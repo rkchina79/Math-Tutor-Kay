@@ -38,14 +38,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .session-item.active { background: rgba(196,96,42,0.25); color: #f5f0e8; }
 .new-session-btn { display: flex; align-items: center; gap: 7px; width: 100%; padding: 9px 10px; background: rgba(196,96,42,0.15); border: 1px solid rgba(196,96,42,0.3); border-radius: 7px; color: var(--accent-2); font-family: var(--sans); font-size: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 14px; }
 .new-session-btn:hover { background: rgba(196,96,42,0.25); }
-.api-section { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
-.api-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(245,240,232,0.3); font-weight: 500; margin-bottom: 7px; }
-.api-input-wrap { position: relative; }
-.api-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 7px; padding: 8px 32px 8px 10px; font-family: var(--mono); font-size: 11px; color: rgba(245,240,232,0.7); outline: none; transition: border-color 0.15s; }
-.api-input::placeholder { color: rgba(245,240,232,0.22); }
-.api-input:focus { border-color: rgba(196,96,42,0.5); }
-.api-save-btn { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(245,240,232,0.3); cursor: pointer; padding: 2px; transition: color 0.15s; }
-.api-save-btn:hover { color: var(--accent-2); }
 
 /* ── Main ── */
 .main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--paper); }
@@ -175,15 +167,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     </button>
     <div class="sidebar-label">Recent sessions</div>
     <div class="sessions" id="sessions-list"></div>
-    <div class="api-section">
-      <div class="api-label">Anthropic API key</div>
-      <div class="api-input-wrap">
-        <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-..." onchange="saveApiKey(this.value)">
-        <button class="api-save-btn" onclick="saveApiKey(document.getElementById('api-key-input').value)" title="Save">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        </button>
-      </div>
-    </div>
   </aside>
 
   <!-- ── Main ── -->
@@ -532,17 +515,17 @@ function addTypingIndicator() {
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
 // ── API ──────────────────────────────────────────────────────────────────────
+const BACKEND_URL = 'https://kay-tutor-api.onrender.com';
+
 async function callKay() {
-  const apiKey = getApiKey();
-  if (!apiKey) { showAlert('Please enter your Anthropic API key in the sidebar.', 'error'); return null; }
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch(BACKEND_URL + '/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, system: SYSTEM_PROMPT, messages }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages }),
   });
-  if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `API error ${response.status}`); }
+  if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error || `Server error ${response.status}`); }
   const data = await response.json();
-  return data.content?.[0]?.text || '';
+  return data.reply || '';
 }
 
 // ── Send ─────────────────────────────────────────────────────────────────────
@@ -582,8 +565,6 @@ function sendHint() {
 function clearChat() { messages = []; currentSessionId = null; renderMessages(); document.getElementById('topic-label').textContent = 'Ready to learn'; clearAlert(); }
 
 // ── Sessions ─────────────────────────────────────────────────────────────────
-function getApiKey() { return localStorage.getItem('kay_api_key') || ''; }
-function saveApiKey(val) { localStorage.setItem('kay_api_key', val.trim()); showAlert('API key saved.', 'info', 1800); }
 function newSession() { if (currentSessionId && messages.length > 0) saveCurrentSession(); currentSessionId = Date.now().toString(); messages = []; renderMessages(); renderSessions(); document.getElementById('topic-label').textContent = 'Ready to learn'; }
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
@@ -616,7 +597,6 @@ function showAlert(msg, type, ms) { clearTimeout(alertTimer); const el = documen
 function clearAlert() { document.getElementById('alert-banner').className = 'alert'; }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-document.getElementById('api-key-input').value = getApiKey();
 renderSessions();
 renderMessages();
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
