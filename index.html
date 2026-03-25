@@ -280,14 +280,19 @@ Examples:
 - Display: $$\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$
 
 ## Graphing
-When explaining a function, equation, or curve that would benefit from visualisation, include a JSON block at the END of your response in this exact format:
+You may offer to graph a function or equation by including a JSON block at the END of your response, but ONLY follow these strict rules:
 
+1. Only include a graph block in the FIRST response where a new equation or function is introduced.
+2. NEVER include a graph block in any follow-up response in the same conversation thread about the same equation. Once graphed, it is graphed — do not repeat it.
+3. If the student asks a follow-up question about the same equation, answer in text only. No graph block.
+4. Only include a graph block if visualising the equation directly helps understanding — not for arithmetic, word problems, or algebraic manipulation steps.
+
+Format:
 \`\`\`graph
 {"expressions": ["y=x^2", "y=2x+1"], "title": "Parabola and line"}
 \`\`\`
 
-Use Desmos syntax inside expressions (e.g. y=x^2, x^2+y^2=25, y=\\sin(x)).
-Only include a graph block when it genuinely helps understanding — not for every response. Never repeat a graph block for an equation you have already graphed earlier in the conversation. One graph block per new equation or concept only.
+Use Desmos syntax (e.g. y=x^2, x^2+y^2=25, y=\\sin(x)).
 
 ## Equation forms
 When a student is working with a polynomial or other expression that has multiple useful representations, show the different forms to build understanding. Format them as a special block at the END of your response:
@@ -465,13 +470,7 @@ function messageHTML(m, idx) {
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Show graph${title ? ': ' + title : ''}
       </button>`;
-      // Auto-add to graph only for the latest message (not on history re-renders)
-      if (parsed.graphData.expressions && parsed.graphData.expressions.length > 0) {
-        const isLatest = idx === messages.length - 1;
-        if (isLatest) {
-          setTimeout(() => addToGraph(parsed.graphData.expressions, parsed.graphData.title || ''), 300);
-        }
-      }
+
     }
 
     // Equation forms
