@@ -287,7 +287,7 @@ When explaining a function, equation, or curve that would benefit from visualisa
 \`\`\`
 
 Use Desmos syntax inside expressions (e.g. y=x^2, x^2+y^2=25, y=\\sin(x)).
-Only include a graph block when it genuinely helps understanding — not for every response.
+Only include a graph block when it genuinely helps understanding — not for every response. Never repeat a graph block for an equation you have already graphed earlier in the conversation. One graph block per new equation or concept only.
 
 ## Equation forms
 When a student is working with a polynomial or other expression that has multiple useful representations, show the different forms to build understanding. Format them as a special block at the END of your response:
@@ -325,6 +325,7 @@ let isLoading = false;
 let desmosCalc = null;
 let graphOpen = false;
 let graphExpressions = [];
+let plottedExpressions = new Set();
 
 // ── Desmos init ───────────────────────────────────────────────────────────────
 function initDesmos() {
@@ -353,11 +354,14 @@ function toggleGraph() {
 }
 
 function addToGraph(expressions, title) {
+  const newExprs = expressions.filter(e => !plottedExpressions.has(e));
+  if (newExprs.length === 0) return;
   if (!graphOpen) toggleGraph();
   initDesmos();
-  expressions.forEach(expr => {
+  newExprs.forEach(expr => {
     desmosCalc.setExpression({ id: 'expr_' + Date.now() + Math.random(), latex: expr });
     graphExpressions.push(expr);
+    plottedExpressions.add(expr);
   });
   renderGraphSidebar();
   setTimeout(() => desmosCalc.resize(), 310);
@@ -379,6 +383,7 @@ function highlightExpr(i) { /* future: zoom to expression */ }
 function clearGraph() {
   if (desmosCalc) desmosCalc.setBlank();
   graphExpressions = [];
+  plottedExpressions = new Set();
   renderGraphSidebar();
 }
 
@@ -460,9 +465,12 @@ function messageHTML(m, idx) {
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Show graph${title ? ': ' + title : ''}
       </button>`;
-      // Auto-add to graph
+      // Auto-add to graph only for the latest message (not on history re-renders)
       if (parsed.graphData.expressions && parsed.graphData.expressions.length > 0) {
-        setTimeout(() => addToGraph(parsed.graphData.expressions, parsed.graphData.title || ''), 300);
+        const isLatest = idx === messages.length - 1;
+        if (isLatest) {
+          setTimeout(() => addToGraph(parsed.graphData.expressions, parsed.graphData.title || ''), 300);
+        }
       }
     }
 
