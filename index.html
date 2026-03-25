@@ -141,8 +141,21 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 @media (max-width: 640px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { display: none; }
-  .topbar, .messages, .input-bar { padding-left: 14px; padding-right: 14px; }
+  .topbar { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; gap: 6px; padding-top: 10px; padding-bottom: 10px; }
+  .topic-pill { font-size: 10px; max-width: 55vw; }
+  .topbar-actions { gap: 4px; }
+  .action-btn { padding: 5px 9px; font-size: 10px; }
+  .messages { padding-left: 12px; padding-right: 12px; padding-top: 16px; }
+  .input-bar { padding-left: 12px; padding-right: 12px; padding-bottom: 14px; }
   .starter-grid { grid-template-columns: 1fr; }
+  .starter-card { font-size: 13px; padding: 11px 13px; }
+  .empty-name { font-size: 28px; }
+  .empty-sub { font-size: 12px; }
+  .graph-panel.open { height: 220px; }
+  .graph-sidebar { display: none; }
+  .msg-bubble { font-size: 13.5px; }
+  .message.user .msg-bubble { max-width: 92%; }
+  .input-hint { font-size: 9px; }
 }
 </style>
 </head>
