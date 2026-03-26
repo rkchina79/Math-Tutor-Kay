@@ -23,7 +23,7 @@
 html, body { height: 100%; font-family: var(--sans); background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
 
 /* ── Layout ── */
-.app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; overflow: hidden; }
+.app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ── Sidebar ── */
 .sidebar { background: #2e2a25; color: var(--kay-text); display: flex; flex-direction: column; padding: 24px 18px 20px; border-right: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
@@ -40,7 +40,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .new-session-btn:hover { background: rgba(196,96,42,0.25); }
 
 /* ── Main ── */
-.main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--paper); }
+.main { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; background: var(--paper); }
 
 /* Topbar */
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 12px; border-bottom: 1px solid var(--paper-3); flex-shrink: 0; gap: 8px; }
@@ -81,6 +81,38 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .message.user .msg-bubble { background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 2px 11px 11px 11px; padding: 10px 14px; display: inline-block; max-width: 82%; }
 .msg-bubble .katex-display { margin: 10px 0; overflow-x: auto; }
 .msg-bubble code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+
+/* ── Message type colour coding ── */
+.msg-bubble.is-question {
+  border-left: 3px solid #378ADD;
+  padding-left: 12px;
+  border-radius: 0;
+}
+.msg-bubble.is-affirmation {
+  background: #EAF3DE;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.msg-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.04em;
+}
+.badge-question {
+  background: #E6F1FB;
+  color: #185FA5;
+}
+.badge-affirmation {
+  background: #EAF3DE;
+  color: #3B6D11;
+}
 
 /* Equation forms panel */
 .eq-forms { margin-top: 10px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 10px; overflow: hidden; }
@@ -131,23 +163,45 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .alert.info  { background: var(--paper-2); border: 1px solid var(--paper-3); color: var(--ink-2); display: block; }
 
 @media (max-width: 640px) {
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 1fr; height: 100vh; height: 100dvh; }
   .sidebar { display: none; }
-  .topbar { padding-left: 12px; padding-right: 12px; flex-wrap: wrap; gap: 6px; padding-top: 10px; padding-bottom: 10px; }
-  .topic-pill { font-size: 10px; max-width: 55vw; }
+  .main { height: 100vh; height: 100dvh; }
+
+  /* Topbar — compact single row */
+  .topbar { padding: 8px 12px; gap: 6px; }
+  .topic-pill { font-size: 10px; max-width: 40vw; padding: 3px 8px; }
   .topbar-actions { gap: 4px; }
-  .action-btn { padding: 5px 9px; font-size: 10px; }
-  .messages { padding-left: 12px; padding-right: 12px; padding-top: 16px; }
-  .input-bar { padding-left: 12px; padding-right: 12px; padding-bottom: 14px; }
-  .starter-grid { grid-template-columns: 1fr; }
-  .starter-card { font-size: 13px; padding: 11px 13px; }
-  .empty-name { font-size: 28px; }
-  .empty-sub { font-size: 12px; }
-  .graph-panel.open { height: 220px; }
-  .graph-sidebar { display: none; }
+  .action-btn { padding: 5px 9px; font-size: 10px; gap: 3px; }
+  .action-btn svg { width: 11px; height: 11px; }
+
+  /* Messages */
+  .messages { padding: 14px 12px 8px; }
   .msg-bubble { font-size: 13.5px; }
   .message.user .msg-bubble { max-width: 92%; }
-  .input-hint { font-size: 9px; }
+  .message { gap: 8px; margin-bottom: 16px; }
+  .msg-avatar { width: 26px; height: 26px; font-size: 11px; }
+
+  /* Empty state — much more compact on mobile */
+  .empty-state { padding: 20px 16px; gap: 8px; justify-content: flex-start; padding-top: 32px; }
+  .empty-name { font-size: 26px; }
+  .empty-sub { font-size: 12px; max-width: 100%; }
+  .starter-grid { grid-template-columns: 1fr; max-width: 100%; margin-top: 10px; }
+  .starter-card { font-size: 12px; padding: 10px 12px; }
+
+  /* Graph panel */
+  .graph-panel.open { height: 200px; }
+  .graph-sidebar { display: none; }
+
+  /* Input area — pinned to bottom, safe area aware */
+  .input-area { flex-shrink: 0; }
+  .input-bar { padding: 8px 12px 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .input-wrap { padding: 7px 7px 7px 12px; }
+  .msg-input { font-size: 16px; } /* 16px prevents iOS auto-zoom on focus */
+  .send-btn { width: 34px; height: 34px; }
+  .input-hint { display: none; } /* hide on mobile — no keyboard shortcut needed */
+
+  /* Alert */
+  .alert { margin: 0 12px 8px; }
 }
 </style>
 </head>
@@ -449,6 +503,38 @@ function renderMessages() {
   container.scrollTop = container.scrollHeight;
 }
 
+function classifyMessage(text) {
+  const lower = text.toLowerCase().trim();
+
+  // Affirmation — Kay confirming a correct answer
+  const affirmPatterns = [
+    /\bexactly\b/, /\bthat'?s (right|correct)\b/, /\bwell done\b/,
+    /\bperfect(ly)?\b/, /\bspot on\b/, /\bnice work\b/, /\byou'?ve got it\b/,
+    /\byes,? that'?s\b/, /\bcorrect\b/, /\bgreat (thinking|reasoning|work)\b/,
+    /\byou'?re (right|correct)\b/, /\babsolutely\b/
+  ];
+  if (affirmPatterns.some(p => p.test(lower))) return 'affirmation';
+
+  // Question — Kay asking the student something
+  // Must end with ? or contain a clear question phrase
+  const sentences = text.split(/[.!]/);
+  const lastSentence = sentences[sentences.length - 1] || '';
+  const hasQuestion = text.includes('?');
+  const questionPhrases = [
+    /what (do|did|does|is|are|would|can|could)/i,
+    /how (do|did|does|would|can|could|might)/i,
+    /can you (tell|show|explain|think|see|try)/i,
+    /do you (know|think|see|understand|remember)/i,
+    /why (do|did|does|is|would)/i,
+    /where (do|did|does|is|are)/i,
+    /which (of|one|step|approach)/i,
+    /have you (tried|thought|considered)/i,
+  ];
+  if (hasQuestion || questionPhrases.some(p => p.test(text))) return 'question';
+
+  return 'statement';
+}
+
 function messageHTML(m, idx) {
   const isKay = m.role === 'assistant';
   let bubbleContent = escapeAndFormat(m.content);
@@ -457,6 +543,20 @@ function messageHTML(m, idx) {
   if (isKay) {
     const parsed = parseKayResponse(m.content);
     bubbleContent = escapeAndFormat(parsed.cleanText);
+
+    // Classify message type and apply styling
+    const msgType = classifyMessage(parsed.cleanText);
+    if (msgType === 'question') {
+      extraHTML = `<span class="msg-type-badge badge-question">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Question
+      </span>`;
+    } else if (msgType === 'affirmation') {
+      extraHTML = `<span class="msg-type-badge badge-affirmation">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Correct
+      </span>`;
+    }
 
     // Graph button
     if (parsed.graphData) {
@@ -485,12 +585,21 @@ function messageHTML(m, idx) {
     }
   }
 
+  const msgType = isKay ? classifyMessage(
+    (() => { try { return parseKayResponse(m.content).cleanText; } catch(e) { return m.content; } })()
+  ) : 'user';
+  const bubbleClass = isKay
+    ? (msgType === 'question' ? 'msg-bubble is-question'
+      : msgType === 'affirmation' ? 'msg-bubble is-affirmation'
+      : 'msg-bubble')
+    : 'msg-bubble';
+
   return `<div class="message ${isKay ? 'kay' : 'user'}">
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
-      <div class="msg-name">${isKay ? 'Kay' : 'You'}</div>
-      <div class="msg-bubble">${bubbleContent}</div>
-      ${extraHTML}
+      <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
+      <div class="${bubbleClass}">${bubbleContent}</div>
+      ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
 }
