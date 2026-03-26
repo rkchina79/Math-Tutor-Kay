@@ -10,9 +10,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -162,19 +159,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .send-btn:disabled { background: var(--paper-3); cursor: not-allowed; }
 .input-hint { font-size: 10px; color: var(--ink-3); margin-top: 6px; text-align: center; }
 
-/* MathQuill input field */
-.mq-wrap { flex: 1; min-width: 0; cursor: text; }
-.mq-editable-field { width: 100%; min-height: 22px; max-height: 100px; overflow-y: auto; font-size: 15px; line-height: 1.6; border: none !important; box-shadow: none !important; outline: none; background: transparent; font-family: var(--sans); color: var(--ink); padding: 0 !important; }
-.mq-editable-field .mq-cursor { border-color: var(--ink); }
-.mq-editable-field.mq-focused { box-shadow: none !important; border: none !important; }
-.mathquill-tooltip { display: none !important; }
-/* plain text fallback for non-math messages */
-.plain-input { flex: 1; background: none; border: none; outline: none; font-family: var(--sans); font-size: 16px; color: var(--ink); resize: none; max-height: 120px; line-height: 1.6; min-height: 22px; }
-.plain-input::placeholder { color: var(--ink-3); }
-/* mode toggle button */
-.mode-btn { width: 32px; height: 32px; border-radius: 7px; background: transparent; border: 1px solid var(--paper-3); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink-3); transition: all 0.15s; font-size: 13px; font-family: var(--mono); flex-shrink: 0; }
-.mode-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.04); }
-.mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
 
 /* Alert */
 .alert { margin: 0 22px 10px; padding: 8px 12px; border-radius: 7px; font-size: 12px; display: none; }
@@ -299,17 +283,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div class="input-area">
 
       <div class="input-bar">
-        <div class="input-wrap" id="input-wrap" onclick="focusInput()">
-          <!-- Math mode: MathQuill -->
-          <div class="mq-wrap" id="mq-wrap">
-            <span id="mq-field"></span>
-          </div>
-          <!-- Text mode: plain textarea -->
-          <textarea class="plain-input" id="plain-input" style="display:none"
-            placeholder="Ask Kay a question or describe where you’re stuck…"
-            rows="1" onkeydown="handlePlainKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-wrap">
+          <textarea class="msg-input" id="msg-input"
+            placeholder="Ask Kay a question, share your working, or describe where you’re stuck…"
+            rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
-            <button class="mode-btn active" id="mode-btn" onclick="toggleInputMode()" title="Switch between math and text input">Σ</button>
             <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
               <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24">
                 <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
@@ -317,7 +295,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
             </button>
           </div>
         </div>
-        <div class="input-hint" id="input-hint">Math mode · type naturally · Enter to send · tap Σ to switch to text</div>
+        <div class="input-hint">Enter to send · Shift+Enter for new line</div>
       </div>
     </div>
 
@@ -564,7 +542,9 @@ function classifyMessage(text) {
 
 function messageHTML(m, idx) {
   const isKay = m.role === 'assistant';
-  let bubbleContent = escapeAndFormat(m.content);
+  // For student messages, convert typed math notation to LaTeX before rendering
+  const rawContent = m.role === 'user' ? convertMathNotation(m.content) : m.content;
+  let bubbleContent = escapeAndFormat(rawContent);
   let extraHTML = '';
 
   if (isKay) {
@@ -631,6 +611,42 @@ function messageHTML(m, idx) {
   </div>`;
 }
 
+// ── Convert typed math notation to LaTeX for student messages ───────────────
+// Converts common typed notation like x^2, sqrt(x), 3/4 to LaTeX
+// Applied to student message display only — Kay still receives original text
+function convertMathNotation(text) {
+  // Already has LaTeX delimiters — skip
+  if (text.includes('$')) return text;
+
+  let result = text;
+
+  // x^2, x^{12}, x^n — exponents
+  result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, '$1^{$2}');
+
+  // sqrt(expr) → LaTeX sqrt
+  result = result.replace(/sqrt\(([^)]+)\)/gi, '\sqrt{$1}');
+
+  // Simple fraction: a/b where a and b are numbers → LaTeX frac
+  result = result.replace(/(\d+)\/(\d+)/g, '\frac{$1}{$2}');
+
+  // If result has any LaTeX commands, wrap the whole thing
+  const hasLatex = /\^|\sqrt|\frac|[a-zA-Z]\d|\d[a-zA-Z]/.test(result);
+
+  if (hasLatex && result !== text) {
+    // Wrap math segments — split by spaces and wrap math-looking tokens
+    const tokens = result.split(/(\s+)/);
+    const wrapped = tokens.map(token => {
+      if (/^\s+$/.test(token)) return token;
+      if (token.startsWith('$')) return token;
+      if (/[\^\]|\d[a-zA-Z]|[a-zA-Z]\d/.test(token)) return '$' + token + '$';
+      return token;
+    }).join('');
+    return wrapped;
+  }
+
+  return result;
+}
+
 function escapeAndFormat(text) {
   // Stash LaTeX blocks so they survive HTML escaping
   const stash = [];
@@ -675,23 +691,11 @@ async function callKay() {
 // ── Send ─────────────────────────────────────────────────────────────────────
 async function sendMessage(overrideText) {
   if (isLoading) return;
-  let text = overrideText;
-  if (!text) {
-    if (mathMode) {
-      // Get LaTeX from MathQuill — wrap in $$ if it contains math
-      const latex = mqField ? mqField.latex().trim() : '';
-      text = latex ? '$$' + latex + '$$' : '';
-    } else {
-      const plain = document.getElementById('plain-input');
-      text = plain ? plain.value.trim() : '';
-    }
-  }
+  const input = document.getElementById('msg-input');
+  const text = overrideText || input.value.trim();
   if (!text) return;
   clearAlert();
-  if (!overrideText) {
-    if (mathMode && mqField) { mqField.latex(''); }
-    else { const p = document.getElementById('plain-input'); if (p) { p.value = ''; autoResize(p); } }
-  }
+  if (!overrideText) { input.value = ''; autoResize(input); }
   if (!currentSessionId) currentSessionId = Date.now().toString();
   messages.push({ role: 'user', content: text });
   renderMessages();
@@ -699,7 +703,8 @@ async function sendMessage(overrideText) {
   isLoading = true;
   document.getElementById('send-btn').disabled = true;
   if (messages.filter(m => m.role === 'user').length === 1) {
-    document.getElementById('topic-label').textContent = text.slice(0, 42) + (text.length > 42 ? '…' : '');
+    const topicText = text.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim();
+    document.getElementById('topic-label').textContent = topicText.slice(0, 42) + (topicText.length > 42 ? '…' : '');
   }
   try {
     const reply = await callKay();
@@ -709,7 +714,7 @@ async function sendMessage(overrideText) {
     removeTypingIndicator(); messages.pop(); renderMessages();
     showAlert('Error: ' + err.message, 'error');
   } finally {
-    isLoading = false; document.getElementById('send-btn').disabled = false; focusInput();
+    isLoading = false; document.getElementById('send-btn').disabled = false; input.focus();
   }
 }
 
@@ -745,54 +750,9 @@ function renderSessions() {
   ).join('');
 }
 
-// ── MathQuill setup ───────────────────────────────────────────────────────────
-let mqField = null;
-let mathMode = true;
-
-function initMathQuill() {
-  if (typeof MathQuill === 'undefined') { setTimeout(initMathQuill, 200); return; }
-  const MQ = MathQuill.getInterface(2);
-  const el = document.getElementById('mq-field');
-  if (!el) return;
-  mqField = MQ.MathField(el, {
-    spaceBehavesLikeTab: false,
-    handlers: {
-      enter: () => sendMessage(),
-    },
-  });
-  // Style the inner textarea for mobile
-  const inner = el.querySelector('textarea');
-  if (inner) { inner.setAttribute('autocomplete', 'off'); inner.setAttribute('autocorrect', 'off'); inner.setAttribute('autocapitalize', 'off'); }
-}
-
-function toggleInputMode() {
-  mathMode = !mathMode;
-  const mqWrap = document.getElementById('mq-wrap');
-  const plainInput = document.getElementById('plain-input');
-  const modeBtn = document.getElementById('mode-btn');
-  const hint = document.getElementById('input-hint');
-  if (mathMode) {
-    mqWrap.style.display = '';
-    plainInput.style.display = 'none';
-    modeBtn.classList.add('active');
-    hint.textContent = 'Math mode — type naturally · Enter to send · tap ∑ for text mode';
-    if (mqField) mqField.focus();
-  } else {
-    mqWrap.style.display = 'none';
-    plainInput.style.display = '';
-    modeBtn.classList.remove('active');
-    hint.textContent = 'Text mode — Enter to send · tap ∑ for math mode';
-    plainInput.focus();
-  }
-}
-
-function focusInput() {
-  if (mathMode && mqField) mqField.focus();
-  else { const p = document.getElementById('plain-input'); if (p) p.focus(); }
-}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function handlePlainKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
 let alertTimer;
 function showAlert(msg, type, ms) { clearTimeout(alertTimer); const el = document.getElementById('alert-banner'); el.textContent = msg; el.className = 'alert ' + type; if (ms) alertTimer = setTimeout(clearAlert, ms); }
@@ -801,10 +761,7 @@ function clearAlert() { document.getElementById('alert-banner').className = 'ale
 // ── Init ─────────────────────────────────────────────────────────────────────
 renderSessions();
 renderMessages();
-window.addEventListener('load', () => {
-  initMathQuill();
-  if (messages.length > 0) renderMessages();
-});
+window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
 </script>
 </body>
 </html>
