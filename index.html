@@ -10,6 +10,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -79,7 +82,9 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .msg-name { font-size: 10px; font-weight: 500; color: var(--ink-3); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 5px; }
 .msg-bubble { font-size: 14px; line-height: 1.75; color: var(--ink); }
 .message.user .msg-bubble { background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 2px 11px 11px 11px; padding: 10px 14px; display: inline-block; max-width: 82%; }
+.message.user .msg-bubble .katex-display { margin: 4px 0; }
 .msg-bubble .katex-display { margin: 10px 0; overflow-x: auto; }
+.msg-bubble .katex { font-size: 1.05em; }
 .msg-bubble code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
 
 /* ── Message type colour coding ── */
@@ -157,6 +162,20 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .send-btn:disabled { background: var(--paper-3); cursor: not-allowed; }
 .input-hint { font-size: 10px; color: var(--ink-3); margin-top: 6px; text-align: center; }
 
+/* MathQuill input field */
+.mq-wrap { flex: 1; min-width: 0; cursor: text; }
+.mq-editable-field { width: 100%; min-height: 22px; max-height: 100px; overflow-y: auto; font-size: 15px; line-height: 1.6; border: none !important; box-shadow: none !important; outline: none; background: transparent; font-family: var(--sans); color: var(--ink); padding: 0 !important; }
+.mq-editable-field .mq-cursor { border-color: var(--ink); }
+.mq-editable-field.mq-focused { box-shadow: none !important; border: none !important; }
+.mathquill-tooltip { display: none !important; }
+/* plain text fallback for non-math messages */
+.plain-input { flex: 1; background: none; border: none; outline: none; font-family: var(--sans); font-size: 16px; color: var(--ink); resize: none; max-height: 120px; line-height: 1.6; min-height: 22px; }
+.plain-input::placeholder { color: var(--ink-3); }
+/* mode toggle button */
+.mode-btn { width: 32px; height: 32px; border-radius: 7px; background: transparent; border: 1px solid var(--paper-3); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink-3); transition: all 0.15s; font-size: 13px; font-family: var(--mono); flex-shrink: 0; }
+.mode-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.04); }
+.mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
+
 /* Alert */
 .alert { margin: 0 22px 10px; padding: 8px 12px; border-radius: 7px; font-size: 12px; display: none; }
 .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; display: block; }
@@ -200,7 +219,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .send-btn { width: 34px; height: 34px; }
   .input-hint { display: none; } /* hide on mobile — no keyboard shortcut needed */
 
-  /* Alert */
+/* Alert */
   .alert { margin: 0 12px 8px; }
 }
 </style>
@@ -280,11 +299,17 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div class="input-area">
 
       <div class="input-bar">
-        <div class="input-wrap">
-          <textarea class="msg-input" id="msg-input"
-            placeholder="Ask Kay a question, share your working, or describe where you're stuck…"
-            rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-wrap" id="input-wrap" onclick="focusInput()">
+          <!-- Math mode: MathQuill -->
+          <div class="mq-wrap" id="mq-wrap">
+            <span id="mq-field"></span>
+          </div>
+          <!-- Text mode: plain textarea -->
+          <textarea class="plain-input" id="plain-input" style="display:none"
+            placeholder="Ask Kay a question or describe where you’re stuck…"
+            rows="1" onkeydown="handlePlainKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
+            <button class="mode-btn active" id="mode-btn" onclick="toggleInputMode()" title="Switch between math and text input">Σ</button>
             <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
               <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24">
                 <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
@@ -292,7 +317,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
             </button>
           </div>
         </div>
-        <div class="input-hint">Enter to send · Shift+Enter for new line</div>
+        <div class="input-hint" id="input-hint">Math mode · type naturally · Enter to send · tap Σ to switch to text</div>
       </div>
     </div>
 
@@ -481,7 +506,9 @@ function renderMessages() {
     renderMathInElement(el, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
-        { left: '$', right: '$', display: false },
+        { left: '$',  right: '$',  display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true },
       ],
       throwOnError: false,
     });
@@ -605,12 +632,20 @@ function messageHTML(m, idx) {
 }
 
 function escapeAndFormat(text) {
-  return text
+  // Stash LaTeX blocks so they survive HTML escaping
+  const stash = [];
+  let s = text
+    .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
+    .replace(/\$([^\$\n]+?)\$/g,      (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
+  // Escape HTML in the non-math parts
+  s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
     .replace(/\n\n/g, '</p><p style="margin-top:9px">')
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
+  // Restore LaTeX blocks unescaped
+  return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
 }
 
 function addTypingIndicator() {
@@ -640,11 +675,23 @@ async function callKay() {
 // ── Send ─────────────────────────────────────────────────────────────────────
 async function sendMessage(overrideText) {
   if (isLoading) return;
-  const input = document.getElementById('msg-input');
-  const text = overrideText || input.value.trim();
+  let text = overrideText;
+  if (!text) {
+    if (mathMode) {
+      // Get LaTeX from MathQuill — wrap in $$ if it contains math
+      const latex = mqField ? mqField.latex().trim() : '';
+      text = latex ? '$$' + latex + '$$' : '';
+    } else {
+      const plain = document.getElementById('plain-input');
+      text = plain ? plain.value.trim() : '';
+    }
+  }
   if (!text) return;
   clearAlert();
-  if (!overrideText) { input.value = ''; autoResize(input); }
+  if (!overrideText) {
+    if (mathMode && mqField) { mqField.latex(''); }
+    else { const p = document.getElementById('plain-input'); if (p) { p.value = ''; autoResize(p); } }
+  }
   if (!currentSessionId) currentSessionId = Date.now().toString();
   messages.push({ role: 'user', content: text });
   renderMessages();
@@ -662,7 +709,7 @@ async function sendMessage(overrideText) {
     removeTypingIndicator(); messages.pop(); renderMessages();
     showAlert('Error: ' + err.message, 'error');
   } finally {
-    isLoading = false; document.getElementById('send-btn').disabled = false; input.focus();
+    isLoading = false; document.getElementById('send-btn').disabled = false; focusInput();
   }
 }
 
@@ -698,8 +745,54 @@ function renderSessions() {
   ).join('');
 }
 
+// ── MathQuill setup ───────────────────────────────────────────────────────────
+let mqField = null;
+let mathMode = true;
+
+function initMathQuill() {
+  if (typeof MathQuill === 'undefined') { setTimeout(initMathQuill, 200); return; }
+  const MQ = MathQuill.getInterface(2);
+  const el = document.getElementById('mq-field');
+  if (!el) return;
+  mqField = MQ.MathField(el, {
+    spaceBehavesLikeTab: false,
+    handlers: {
+      enter: () => sendMessage(),
+    },
+  });
+  // Style the inner textarea for mobile
+  const inner = el.querySelector('textarea');
+  if (inner) { inner.setAttribute('autocomplete', 'off'); inner.setAttribute('autocorrect', 'off'); inner.setAttribute('autocapitalize', 'off'); }
+}
+
+function toggleInputMode() {
+  mathMode = !mathMode;
+  const mqWrap = document.getElementById('mq-wrap');
+  const plainInput = document.getElementById('plain-input');
+  const modeBtn = document.getElementById('mode-btn');
+  const hint = document.getElementById('input-hint');
+  if (mathMode) {
+    mqWrap.style.display = '';
+    plainInput.style.display = 'none';
+    modeBtn.classList.add('active');
+    hint.textContent = 'Math mode — type naturally · Enter to send · tap ∑ for text mode';
+    if (mqField) mqField.focus();
+  } else {
+    mqWrap.style.display = 'none';
+    plainInput.style.display = '';
+    modeBtn.classList.remove('active');
+    hint.textContent = 'Text mode — Enter to send · tap ∑ for math mode';
+    plainInput.focus();
+  }
+}
+
+function focusInput() {
+  if (mathMode && mqField) mqField.focus();
+  else { const p = document.getElementById('plain-input'); if (p) p.focus(); }
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function handlePlainKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
 let alertTimer;
 function showAlert(msg, type, ms) { clearTimeout(alertTimer); const el = document.getElementById('alert-banner'); el.textContent = msg; el.className = 'alert ' + type; if (ms) alertTimer = setTimeout(clearAlert, ms); }
@@ -708,7 +801,10 @@ function clearAlert() { document.getElementById('alert-banner').className = 'ale
 // ── Init ─────────────────────────────────────────────────────────────────────
 renderSessions();
 renderMessages();
-window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
+window.addEventListener('load', () => {
+  initMathQuill();
+  if (messages.length > 0) renderMessages();
+});
 </script>
 </body>
 </html>
