@@ -85,36 +85,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .msg-bubble code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
 
 /* ── Message type colour coding ── */
-.msg-bubble.is-question {
-  border-left: 3px solid #378ADD;
-  padding-left: 12px;
-  border-radius: 0;
-}
-.msg-bubble.is-affirmation {
-  background: #EAF3DE;
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-.msg-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: 500;
-  padding: 2px 7px;
-  border-radius: 20px;
-  margin-left: 6px;
-  vertical-align: middle;
-  letter-spacing: 0.04em;
-}
-.badge-question {
-  background: #E6F1FB;
-  color: #185FA5;
-}
-.badge-affirmation {
-  background: #EAF3DE;
-  color: #3B6D11;
-}
+.msg-bubble.is-question { border-left: 3px solid #378ADD; padding-left: 12px; border-radius: 0; }
+.msg-bubble.is-affirmation { background: #EAF3DE; border-radius: 8px; padding: 10px 14px; }
+.msg-type-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px; margin-left: 6px; vertical-align: middle; letter-spacing: 0.04em; }
+.badge-question { background: #E6F1FB; color: #185FA5; }
+.badge-affirmation { background: #EAF3DE; color: #3B6D11; }
 
 /* Equation forms panel */
 .eq-forms { margin-top: 10px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 10px; overflow: hidden; }
@@ -145,20 +120,117 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 
 /* ── Input area ── */
 .input-area { flex-shrink: 0; border-top: 1px solid var(--paper-3); }
-
-/* Input bar */
 .input-bar { padding: 12px 22px 16px; }
 .input-wrap { display: flex; gap: 8px; align-items: flex-end; background: var(--paper-2); border: 1.5px solid var(--paper-3); border-radius: var(--radius); padding: 8px 8px 8px 14px; transition: border-color 0.15s; }
 .input-wrap:focus-within { border-color: var(--accent); background: #fff; }
+.input-wrap.is-listening { border-color: #d9534f; background: #fff8f8; animation: listeningPulse 1.8s ease infinite; }
+@keyframes listeningPulse {
+  0%, 100% { border-color: #d9534f; box-shadow: 0 0 0 0 rgba(217,83,79,0.0); }
+  50% { border-color: #e8706c; box-shadow: 0 0 0 3px rgba(217,83,79,0.12); }
+}
 .msg-input { flex: 1; background: none; border: none; outline: none; font-family: var(--sans); font-size: 14px; color: var(--ink); resize: none; max-height: 120px; line-height: 1.6; min-height: 22px; }
 .msg-input::placeholder { color: var(--ink-3); }
 .input-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+
+/* Mic button */
+.mic-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--paper-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s; color: var(--ink-3);
+  position: relative;
+}
+.mic-btn:hover { border-color: var(--ink-2); color: var(--ink-2); background: var(--paper-3); }
+.mic-btn.listening {
+  background: #d9534f; border-color: #d9534f; color: white;
+  animation: micPulse 1.4s ease infinite;
+}
+@keyframes micPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217,83,79,0.4); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(217,83,79,0); }
+}
+.mic-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Listening status bar */
+.listening-bar {
+  display: none; align-items: center; gap: 7px;
+  padding: 5px 14px 0;
+  font-size: 11px; color: #b94040;
+  font-weight: 500;
+}
+.listening-bar.visible { display: flex; }
+.listening-wave { display: flex; gap: 2px; align-items: center; height: 14px; }
+.listening-wave span {
+  display: block; width: 2px; border-radius: 1px; background: #d9534f;
+  animation: wave 1s ease infinite;
+}
+.listening-wave span:nth-child(1) { height: 4px; animation-delay: 0s; }
+.listening-wave span:nth-child(2) { height: 10px; animation-delay: 0.15s; }
+.listening-wave span:nth-child(3) { height: 6px; animation-delay: 0.3s; }
+.listening-wave span:nth-child(4) { height: 12px; animation-delay: 0.1s; }
+.listening-wave span:nth-child(5) { height: 4px; animation-delay: 0.25s; }
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); opacity: 0.7; }
+  50% { transform: scaleY(1.7); opacity: 1; }
+}
+.listening-bar .stop-link { margin-left: auto; color: var(--ink-3); text-decoration: underline; cursor: pointer; font-size: 10px; font-weight: 400; }
+.listening-bar .stop-link:hover { color: var(--ink-2); }
+
 .send-btn { width: 32px; height: 32px; border-radius: 7px; background: var(--ink); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s, transform 0.1s; }
 .send-btn:hover { background: var(--accent); }
 .send-btn:active { transform: scale(0.93); }
 .send-btn:disabled { background: var(--paper-3); cursor: not-allowed; }
 .input-hint { font-size: 10px; color: var(--ink-3); margin-top: 6px; text-align: center; }
 
+/* ── Image upload ── */
+.img-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--paper-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s; color: var(--ink-3);
+}
+.img-btn:hover { border-color: var(--ink-2); color: var(--ink-2); background: var(--paper-3); }
+.img-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.img-btn.has-image { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
+
+/* Image preview strip above input */
+.img-preview-strip {
+  display: none; align-items: center; gap: 8px;
+  padding: 8px 14px 0;
+}
+.img-preview-strip.visible { display: flex; }
+.img-preview-thumb {
+  position: relative; width: 52px; height: 52px; border-radius: 7px;
+  overflow: hidden; border: 1px solid var(--paper-3); flex-shrink: 0;
+}
+.img-preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-remove {
+  position: absolute; top: 2px; right: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: white;
+  font-size: 9px; line-height: 1;
+}
+.img-preview-remove:hover { background: rgba(0,0,0,0.8); }
+.img-preview-label { font-size: 11px; color: var(--ink-3); }
+
+/* Inline image in chat */
+.msg-image {
+  display: block; max-width: 260px; max-height: 200px;
+  border-radius: 8px; margin-bottom: 8px;
+  border: 1px solid var(--paper-3); object-fit: cover;
+  cursor: pointer;
+}
+.msg-image:hover { opacity: 0.9; }
+
+/* Lightbox */
+.lightbox {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.82); align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
 
 /* Alert */
 .alert { margin: 0 22px 10px; padding: 8px 12px; border-radius: 7px; font-size: 12px; display: none; }
@@ -169,41 +241,33 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .app { grid-template-columns: 1fr; height: 100vh; height: 100dvh; }
   .sidebar { display: none; }
   .main { height: 100vh; height: 100dvh; }
-
-  /* Topbar — compact single row */
   .topbar { padding: 8px 12px; gap: 6px; }
   .topic-pill { font-size: 10px; max-width: 40vw; padding: 3px 8px; }
   .topbar-actions { gap: 4px; }
   .action-btn { padding: 5px 9px; font-size: 10px; gap: 3px; }
   .action-btn svg { width: 11px; height: 11px; }
-
-  /* Messages */
   .messages { padding: 14px 12px 8px; }
   .msg-bubble { font-size: 13.5px; }
   .message.user .msg-bubble { max-width: 92%; }
   .message { gap: 8px; margin-bottom: 16px; }
   .msg-avatar { width: 26px; height: 26px; font-size: 11px; }
-
-  /* Empty state — much more compact on mobile */
   .empty-state { padding: 20px 16px; gap: 8px; justify-content: flex-start; padding-top: 32px; }
   .empty-name { font-size: 26px; }
   .empty-sub { font-size: 12px; max-width: 100%; }
   .starter-grid { grid-template-columns: 1fr; max-width: 100%; margin-top: 10px; }
   .starter-card { font-size: 12px; padding: 10px 12px; }
-
-  /* Graph panel */
   .graph-panel.open { height: 200px; }
   .graph-sidebar { display: none; }
-
-  /* Input area — pinned to bottom, safe area aware */
   .input-area { flex-shrink: 0; }
   .input-bar { padding: 8px 12px 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
   .input-wrap { padding: 7px 7px 7px 12px; }
-  .msg-input { font-size: 16px; } /* 16px prevents iOS auto-zoom on focus */
+  .msg-input { font-size: 16px; }
   .send-btn { width: 34px; height: 34px; }
-  .input-hint { display: none; } /* hide on mobile — no keyboard shortcut needed */
-
-/* Alert */
+  .mic-btn { width: 34px; height: 34px; }
+  .img-btn { width: 34px; height: 34px; }
+  .img-preview-thumb { width: 44px; height: 44px; }
+  .msg-image { max-width: 200px; max-height: 160px; }
+  .input-hint { display: none; }
   .alert { margin: 0 12px 8px; }
 }
 </style>
@@ -281,13 +345,36 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 
     <!-- Input area -->
     <div class="input-area">
-
       <div class="input-bar">
-        <div class="input-wrap">
+        <div class="input-wrap" id="input-wrap">
           <textarea class="msg-input" id="msg-input"
-            placeholder="Ask Kay a question, share your working, or describe where you’re stuck…"
+            placeholder="Ask Kay a question, share your working, or describe where you're stuck…"
             rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
+            <!-- Hidden file input -->
+            <input type="file" id="img-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleImageFile(event)">
+            <!-- Image attach button -->
+            <button class="img-btn" id="img-btn" onclick="document.getElementById('img-file-input').click()" title="Attach a photo">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
+            <!-- Mic button — hidden if speech not supported -->
+            <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Speak your question" style="display:none">
+              <!-- Idle mic icon -->
+              <svg id="mic-icon-idle" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="9" y="2" width="6" height="12" rx="3"/>
+                <path d="M5 10a7 7 0 0 0 14 0"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="9" y1="22" x2="15" y2="22"/>
+              </svg>
+              <!-- Active stop icon (shown while listening) -->
+              <svg id="mic-icon-active" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" style="display:none">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+              </svg>
+            </button>
             <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
               <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24">
                 <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
@@ -295,11 +382,32 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
             </button>
           </div>
         </div>
+        <!-- Image preview strip -->
+        <div class="img-preview-strip" id="img-preview-strip">
+          <div class="img-preview-thumb" id="img-preview-thumb">
+            <img id="img-preview-img" src="" alt="attached image">
+            <button class="img-preview-remove" onclick="clearImage()" title="Remove image">✕</button>
+          </div>
+          <span class="img-preview-label">Image attached — add a question below</span>
+        </div>
+        <!-- Listening status bar (shown below input while recording) -->
+        <div class="listening-bar" id="listening-bar">
+          <div class="listening-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          Listening…
+          <span class="stop-link" onclick="stopVoice()">Stop</span>
+        </div>
         <div class="input-hint">Enter to send · Shift+Enter for new line</div>
       </div>
     </div>
 
   </main>
+</div>
+
+<!-- Lightbox for full-size image view -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
 </div>
 
 <script>
@@ -385,6 +493,190 @@ let graphOpen = false;
 let graphExpressions = [];
 let plottedExpressions = new Set();
 
+// ── Voice input state ─────────────────────────────────────────────────────────
+let recognition = null;
+let isListening = false;
+let voiceSupported = false;
+
+// ── Image attachment state ────────────────────────────────────────────────────
+let pendingImageBase64 = null;   // base64 string (no data-URL prefix)
+let pendingImageMediaType = null; // e.g. 'image/jpeg'
+let pendingImageDataURL = null;  // full data URL for display
+
+// ── Voice input init ─────────────────────────────────────────────────────────
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    voiceSupported = false;
+    return;
+  }
+  voiceSupported = true;
+
+  // Show mic button now that we know it's supported
+  document.getElementById('mic-btn').style.display = 'flex';
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;       // keep listening until stopped
+  recognition.interimResults = true;   // show live preview as student speaks
+  recognition.lang = 'en-US';
+
+  let finalTranscript = '';
+
+  recognition.onstart = () => {
+    isListening = true;
+    finalTranscript = '';
+    setListeningUI(true);
+  };
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+      if (result.isFinal) {
+        finalTranscript += result[0].transcript;
+      } else {
+        interim += result[0].transcript;
+      }
+    }
+    // Update input field live with combined transcript
+    const input = document.getElementById('msg-input');
+    input.value = (finalTranscript + interim).trim();
+    autoResize(input);
+  };
+
+  recognition.onerror = (event) => {
+    // 'no-speech' is non-fatal — just means silence; others we surface
+    if (event.error !== 'no-speech') {
+      showAlert('Microphone error: ' + event.error, 'error', 4000);
+    }
+    stopVoice();
+  };
+
+  recognition.onend = () => {
+    // onend fires whenever recognition stops (including after silence).
+    // If we're still in listening mode (user hasn't manually stopped), restart
+    // so it keeps going — otherwise clean up.
+    if (isListening) {
+      try { recognition.start(); } catch(e) { /* already started */ }
+    } else {
+      setListeningUI(false);
+    }
+  };
+}
+
+function toggleVoice() {
+  if (!voiceSupported) return;
+  if (isListening) {
+    stopVoice();
+  } else {
+    startVoice();
+  }
+}
+
+function startVoice() {
+  if (!voiceSupported || isListening) return;
+  try {
+    recognition.start();
+    // onstart will update UI
+  } catch(e) {
+    showAlert('Could not start microphone. Please check browser permissions.', 'error', 4000);
+  }
+}
+
+function stopVoice() {
+  if (!voiceSupported) return;
+  isListening = false;
+  try { recognition.stop(); } catch(e) {}
+  setListeningUI(false);
+  // Focus input so student can review/edit transcript
+  document.getElementById('msg-input').focus();
+}
+
+function setListeningUI(listening) {
+  const wrap = document.getElementById('input-wrap');
+  const micBtn = document.getElementById('mic-btn');
+  const bar = document.getElementById('listening-bar');
+  const idleIcon = document.getElementById('mic-icon-idle');
+  const activeIcon = document.getElementById('mic-icon-active');
+
+  if (listening) {
+    wrap.classList.add('is-listening');
+    micBtn.classList.add('listening');
+    micBtn.title = 'Stop recording';
+    bar.classList.add('visible');
+    idleIcon.style.display = 'none';
+    activeIcon.style.display = 'block';
+    // Update placeholder
+    document.getElementById('msg-input').placeholder = 'Listening… speak your question';
+  } else {
+    wrap.classList.remove('is-listening');
+    micBtn.classList.remove('listening');
+    micBtn.title = 'Speak your question';
+    bar.classList.remove('visible');
+    idleIcon.style.display = 'block';
+    activeIcon.style.display = 'none';
+    document.getElementById('msg-input').placeholder = 'Ask Kay a question, share your working, or describe where you\'re stuck…';
+  }
+}
+
+// ── Image upload ──────────────────────────────────────────────────────────────
+function handleImageFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  // Validate type
+  if (!file.type.startsWith('image/')) {
+    showAlert('Please attach an image file (JPEG, PNG, etc.)', 'error', 3000);
+    return;
+  }
+  // 10 MB limit — Anthropic API limit is 5MB decoded; base64 inflates ~33%
+  if (file.size > 7.5 * 1024 * 1024) {
+    showAlert('Image is too large. Please use an image under 7.5 MB.', 'error', 4000);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataURL = e.target.result;
+    // Split out base64 payload
+    const [header, base64] = dataURL.split(',');
+    pendingImageBase64 = base64;
+    pendingImageDataURL = dataURL;
+    // Detect media type from data URL header (e.g. "data:image/jpeg;base64")
+    const mimeMatch = header.match(/data:([^;]+);/);
+    pendingImageMediaType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    showImagePreview(dataURL);
+  };
+  reader.readAsDataURL(file);
+  // Reset file input so the same file can be re-selected if needed
+  event.target.value = '';
+}
+
+function showImagePreview(dataURL) {
+  document.getElementById('img-preview-img').src = dataURL;
+  document.getElementById('img-preview-strip').classList.add('visible');
+  document.getElementById('img-btn').classList.add('has-image');
+  document.getElementById('msg-input').placeholder = 'What would you like to ask about this image?';
+  document.getElementById('msg-input').focus();
+}
+
+function clearImage() {
+  pendingImageBase64 = null;
+  pendingImageMediaType = null;
+  pendingImageDataURL = null;
+  document.getElementById('img-preview-img').src = '';
+  document.getElementById('img-preview-strip').classList.remove('visible');
+  document.getElementById('img-btn').classList.remove('has-image');
+  document.getElementById('msg-input').placeholder = 'Ask Kay a question, share your working, or describe where you\'re stuck…';
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
 // ── Desmos init ───────────────────────────────────────────────────────────────
 function initDesmos() {
   if (desmosCalc) return;
@@ -436,7 +728,7 @@ function renderGraphSidebar() {
   ).join('');
 }
 
-function highlightExpr(i) { /* future: zoom to expression */ }
+function highlightExpr(i) {}
 
 function clearGraph() {
   if (desmosCalc) desmosCalc.setBlank();
@@ -445,24 +737,18 @@ function clearGraph() {
   renderGraphSidebar();
 }
 
-
-
-
-
 // ── Parse Kay's response for special blocks ───────────────────────────────────
 function parseKayResponse(text) {
   let graphData = null;
   let formsData = null;
   let cleanText = text;
 
-  // Extract graph block
   const graphMatch = text.match(/```graph\n([\s\S]*?)```/);
   if (graphMatch) {
     try { graphData = JSON.parse(graphMatch[1].trim()); } catch(e) {}
     cleanText = cleanText.replace(/```graph\n[\s\S]*?```/, '').trim();
   }
 
-  // Extract forms block
   const formsMatch = text.match(/```forms\n([\s\S]*?)```/);
   if (formsMatch) {
     try { formsData = JSON.parse(formsMatch[1].trim()); } catch(e) {}
@@ -491,7 +777,6 @@ function renderMessages() {
       throwOnError: false,
     });
   });
-  // Set up eq forms tabs
   container.querySelectorAll('.eq-forms').forEach(el => {
     const tabs = el.querySelectorAll('.eq-form-tab');
     const body = el.querySelector('.eq-form-body');
@@ -510,8 +795,6 @@ function renderMessages() {
 
 function classifyMessage(text) {
   const lower = text.toLowerCase().trim();
-
-  // Affirmation — Kay confirming a correct answer
   const affirmPatterns = [
     /\bexactly\b/, /\bthat'?s (right|correct)\b/, /\bwell done\b/,
     /\bperfect(ly)?\b/, /\bspot on\b/, /\bnice work\b/, /\byou'?ve got it\b/,
@@ -519,11 +802,6 @@ function classifyMessage(text) {
     /\byou'?re (right|correct)\b/, /\babsolutely\b/
   ];
   if (affirmPatterns.some(p => p.test(lower))) return 'affirmation';
-
-  // Question — Kay asking the student something
-  // Must end with ? or contain a clear question phrase
-  const sentences = text.split(/[.!]/);
-  const lastSentence = sentences[sentences.length - 1] || '';
   const hasQuestion = text.includes('?');
   const questionPhrases = [
     /what (do|did|does|is|are|would|can|could)/i,
@@ -536,22 +814,25 @@ function classifyMessage(text) {
     /have you (tried|thought|considered)/i,
   ];
   if (hasQuestion || questionPhrases.some(p => p.test(text))) return 'question';
-
   return 'statement';
 }
 
 function messageHTML(m, idx) {
   const isKay = m.role === 'assistant';
-  // For student messages, convert typed math notation to LaTeX before rendering
   const rawContent = m.role === 'user' ? convertMathNotation(m.content) : m.content;
   let bubbleContent = escapeAndFormat(rawContent);
   let extraHTML = '';
+
+  // Inline image for user messages
+  let imageHTML = '';
+  if (m.role === 'user' && m.imageDataURL) {
+    imageHTML = `<img class="msg-image" src="${m.imageDataURL}" alt="attached image" onclick="openLightbox('${m.imageDataURL}')">`;
+  }
 
   if (isKay) {
     const parsed = parseKayResponse(m.content);
     bubbleContent = escapeAndFormat(parsed.cleanText);
 
-    // Classify message type and apply styling
     const msgType = classifyMessage(parsed.cleanText);
     if (msgType === 'question') {
       extraHTML = `<span class="msg-type-badge badge-question">
@@ -565,7 +846,6 @@ function messageHTML(m, idx) {
       </span>`;
     }
 
-    // Graph button
     if (parsed.graphData) {
       const exprs = JSON.stringify(parsed.graphData.expressions);
       const title = parsed.graphData.title || '';
@@ -573,10 +853,8 @@ function messageHTML(m, idx) {
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Show graph${title ? ': ' + title : ''}
       </button>`;
-
     }
 
-    // Equation forms
     if (parsed.formsData) {
       const forms = parsed.formsData;
       const formKeys = Object.keys(forms);
@@ -605,35 +883,20 @@ function messageHTML(m, idx) {
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
       <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
-      <div class="${bubbleClass}">${bubbleContent}</div>
+      <div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>
       ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
 }
 
-// ── Convert typed math notation to LaTeX for student messages ───────────────
-// Converts common typed notation like x^2, sqrt(x), 3/4 to LaTeX
-// Applied to student message display only — Kay still receives original text
 function convertMathNotation(text) {
-  // Already has LaTeX delimiters — skip
   if (text.includes('$')) return text;
-
   let result = text;
-
-  // x^2, x^{12}, x^n — exponents
   result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, '$1^{$2}');
-
-  // sqrt(expr) → LaTeX sqrt
   result = result.replace(/sqrt\(([^)]+)\)/gi, '\sqrt{$1}');
-
-  // Simple fraction: a/b where a and b are numbers → LaTeX frac
-  result = result.replace(/(\d+)\/(\d+)/g, '\frac{$1}{$2}');
-
-  // If result has any LaTeX commands, wrap the whole thing
+  result = result.replace(/(\d+)\/(\d+)/g, '\frac{$1}{$2}');
   const hasLatex = /\^|\sqrt|\frac|[a-zA-Z]\d|\d[a-zA-Z]/.test(result);
-
   if (hasLatex && result !== text) {
-    // Wrap math segments — split by spaces and wrap math-looking tokens
     const tokens = result.split(/(\s+)/);
     const wrapped = tokens.map(token => {
       if (/^\s+$/.test(token)) return token;
@@ -643,24 +906,20 @@ function convertMathNotation(text) {
     }).join('');
     return wrapped;
   }
-
   return result;
 }
 
 function escapeAndFormat(text) {
-  // Stash LaTeX blocks so they survive HTML escaping
   const stash = [];
   let s = text
     .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
     .replace(/\$([^\$\n]+?)\$/g,      (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
-  // Escape HTML in the non-math parts
   s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
     .replace(/\n\n/g, '</p><p style="margin-top:9px">')
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
-  // Restore LaTeX blocks unescaped
   return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
 }
 
@@ -678,10 +937,24 @@ function removeTypingIndicator() { const el = document.getElementById('typing');
 const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
 
 async function callKay() {
+  // Build API messages — convert any with images to multimodal content blocks
+  const apiMessages = messages.map(m => {
+    if (m.role === 'user' && m.imageBase64) {
+      return {
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: m.imageMediaType, data: m.imageBase64 } },
+          { type: 'text', text: m.content || 'What can you tell me about this?' }
+        ]
+      };
+    }
+    return { role: m.role, content: m.content };
+  });
+
   const response = await fetch(BACKEND_URL + '/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages: apiMessages }),
   });
   if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error || `Server error ${response.status}`); }
   const data = await response.json();
@@ -691,19 +964,36 @@ async function callKay() {
 // ── Send ─────────────────────────────────────────────────────────────────────
 async function sendMessage(overrideText) {
   if (isLoading) return;
+  // If voice is active, stop it first before sending
+  if (isListening) stopVoice();
   const input = document.getElementById('msg-input');
   const text = overrideText || input.value.trim();
-  if (!text) return;
+  // Allow sending image-only messages (no text required if image attached)
+  if (!text && !pendingImageBase64) return;
   clearAlert();
   if (!overrideText) { input.value = ''; autoResize(input); }
   if (!currentSessionId) currentSessionId = Date.now().toString();
-  messages.push({ role: 'user', content: text });
+
+  // Capture and clear pending image before pushing message
+  const msgImageBase64 = pendingImageBase64;
+  const msgImageMediaType = pendingImageMediaType;
+  const msgImageDataURL = pendingImageDataURL;
+  if (pendingImageBase64) clearImage();
+
+  const userMsg = {
+    role: 'user',
+    content: text || '',
+    ...(msgImageBase64 ? { imageBase64: msgImageBase64, imageMediaType: msgImageMediaType, imageDataURL: msgImageDataURL } : {})
+  };
+  messages.push(userMsg);
   renderMessages();
   addTypingIndicator();
   isLoading = true;
   document.getElementById('send-btn').disabled = true;
+  document.getElementById('mic-btn').disabled = true;
+  document.getElementById('img-btn').disabled = true;
   if (messages.filter(m => m.role === 'user').length === 1) {
-    const topicText = text.replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim();
+    const topicText = (text || 'Image question').replace(/^\$\$|\$\$$/g, '').replace(/^\$|\$$/g, '').trim();
     document.getElementById('topic-label').textContent = topicText.slice(0, 42) + (topicText.length > 42 ? '…' : '');
   }
   try {
@@ -714,7 +1004,11 @@ async function sendMessage(overrideText) {
     removeTypingIndicator(); messages.pop(); renderMessages();
     showAlert('Error: ' + err.message, 'error');
   } finally {
-    isLoading = false; document.getElementById('send-btn').disabled = false; input.focus();
+    isLoading = false;
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('mic-btn').disabled = false;
+    document.getElementById('img-btn').disabled = false;
+    input.focus();
   }
 }
 
@@ -723,10 +1017,14 @@ function sendHint() {
   if (messages.length === 0) { showAlert('Start a problem first, then ask for a hint.', 'info', 2500); return; }
   sendMessage("I'm stuck — can you give me a hint without giving away the answer?");
 }
-function clearChat() { messages = []; currentSessionId = null; renderMessages(); document.getElementById('topic-label').textContent = 'Ready to learn'; clearAlert(); }
+function clearChat() {
+  if (isListening) stopVoice();
+  clearImage();
+  messages = []; currentSessionId = null; renderMessages(); document.getElementById('topic-label').textContent = 'Ready to learn'; clearAlert();
+}
 
 // ── Sessions ─────────────────────────────────────────────────────────────────
-function newSession() { if (currentSessionId && messages.length > 0) saveCurrentSession(); currentSessionId = Date.now().toString(); messages = []; renderMessages(); renderSessions(); document.getElementById('topic-label').textContent = 'Ready to learn'; }
+function newSession() { if (currentSessionId && messages.length > 0) saveCurrentSession(); clearImage(); currentSessionId = Date.now().toString(); messages = []; renderMessages(); renderSessions(); document.getElementById('topic-label').textContent = 'Ready to learn'; }
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
   const firstUser = messages.find(m => m.role === 'user');
@@ -750,7 +1048,6 @@ function renderSessions() {
   ).join('');
 }
 
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
@@ -759,6 +1056,7 @@ function showAlert(msg, type, ms) { clearTimeout(alertTimer); const el = documen
 function clearAlert() { document.getElementById('alert-banner').className = 'alert'; }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+initVoice();
 renderSessions();
 renderMessages();
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
