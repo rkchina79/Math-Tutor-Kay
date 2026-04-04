@@ -967,56 +967,41 @@ function convertMathNotation(text) {
   let result = text;
 
   // ── Natural language word conversions ────────────────────────────────────
-  // "x squared" / "x square" → x^2
-  result = result.replace(/([a-zA-Z0-9]+)\s+squared?\b/gi, '$1^{2}');
-  // "x cubed" / "x cube" → x^3
-  result = result.replace(/([a-zA-Z0-9]+)\s+cubed?\b/gi, '$1^{3}');
-  // "x to the power of n" / "x to the n" → x^n
-  result = result.replace(/([a-zA-Z0-9]+)\s+to\s+the\s+(?:power\s+of\s+)?([0-9]+)/gi, '$1^{$2}');
-  // "square root of x" / "sqrt of x" → \sqrt{x}
-  result = result.replace(/sq(?:uare)?\s*root\s+of\s+([a-zA-Z0-9]+)/gi, '\\sqrt{$1}');
-  // "pi" as standalone word → \pi
-  result = result.replace(/\bpi\b/gi, '\\pi');
-  // "infinity" → \infty
-  result = result.replace(/\binfinity\b/gi, '\\infty');
-  // "theta" → \theta
-  result = result.replace(/\btheta\b/gi, '\\theta');
-  // "alpha", "beta", "delta", "sigma", "lambda" → LaTeX equivalents
-  result = result.replace(/\balpha\b/gi, '\\alpha');
-  result = result.replace(/\bbeta\b/gi, '\\beta');
-  result = result.replace(/\bdelta\b/gi, '\\delta');
-  result = result.replace(/\bsigma\b/gi, '\\sigma');
-  result = result.replace(/\blambda\b/gi, '\\lambda');
+  // "x squared" / "x square" → $x^{2}$
+  result = result.replace(/\b([a-zA-Z0-9]+)\s+squared?\b/gi, '\\$$1^{2}\\$');
+  // "x cubed" / "x cube" → $x^{3}$
+  result = result.replace(/\b([a-zA-Z0-9]+)\s+cubed?\b/gi, '\\$$1^{3}\\$');
+  // "x to the power of n" / "x to the n" → $x^{n}$
+  result = result.replace(/\b([a-zA-Z0-9]+)\s+to\s+the\s+(?:power\s+of\s+)?([0-9]+)\b/gi, '\\$$1^{$2}\\$');
+  // "square root of x" / "sqrt of x" → $\sqrt{x}$
+  result = result.replace(/\bsq(?:uare)?\s*root\s+of\s+([a-zA-Z0-9]+)\b/gi, '\\$\\\\sqrt{$1}\\$');
+  // Standalone "pi" → $\pi$ (only as a whole word, not inside other words)
+  result = result.replace(/\bpi\b/g, '$\\pi$');
+  // "infinity" → $\infty$
+  result = result.replace(/\binfinity\b/gi, '$\\infty$');
+  // "theta" → $\theta$
+  result = result.replace(/\btheta\b/gi, '$\\theta$');
+  // Greek letters
+  result = result.replace(/\balpha\b/gi, '$\\alpha$');
+  result = result.replace(/\bbeta\b/gi, '$\\beta$');
+  result = result.replace(/\bdelta\b/gi, '$\\delta$');
+  result = result.replace(/\bsigma\b/gi, '$\\sigma$');
+  result = result.replace(/\blambda\b/gi, '$\\lambda$');
 
   // ── Symbol / typed notation conversions ──────────────────────────────────
-  // x^2, x^{12}, x^n — exponents
-  result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, '$1^{$2}');
-  // sqrt(expr) → LaTeX sqrt
-  result = result.replace(/sqrt\(([^)]+)\)/gi, '\\sqrt{$1}');
-  // Simple fraction: a/b where a and b are numbers → LaTeX frac
-  result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+  // Only convert if NOT already wrapped in $
+  // x^2, x^n typed with caret
+  result = result.replace(/\b([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])\b/g, '\\$$1^{$2}\\$');
+  // sqrt(expr)
+  result = result.replace(/\bsqrt\(([^)]+)\)/gi, '$\\sqrt{$1}$');
+  // Simple fraction: 3/4 (numbers only, not URLs or dates)
+  result = result.replace(/\b(\d+)\/(\d+)\b/g, '$\\frac{$1}{$2}$');
 
-  // ── If result contains LaTeX, wrap math tokens ────────────────────────────
-  const hasLatex = /\^|\bsqrt\b|\\frac|\\pi|\\infty|\\theta|\\alpha|\\beta|\\delta|\\sigma|\\lambda|[a-zA-Z]\d|\d[a-zA-Z]/.test(result);
-
-  if (hasLatex && result !== text) {
-    // Wrap the whole expression in display math if it looks like a full equation
-    const isFullEquation = /=/.test(result);
-    if (isFullEquation) {
-      // Check if it's a short equation — wrap entire thing in $...$
-      const mathPart = result.trim();
-      return '$' + mathPart + '$';
-    }
-    // Otherwise wrap individual math tokens
-    const tokens = result.split(/(\s+)/);
-    const wrapped = tokens.map(token => {
-      if (/^\s+$/.test(token)) return token;
-      if (token.startsWith('$')) return token;
-      if (/[\^\\]|\d[a-zA-Z]|[a-zA-Z]\d/.test(token)) return '$' + token + '$';
-      return token;
-    }).join('');
-    return wrapped;
-  }
+  // Clean up any double $$ that aren't display math (artefact of replacements)
+  result = result.replace(/\$\$/g, (m, offset, str) => {
+    // Keep intentional $$ for display math; collapse accidental doubles
+    return '$';
+  });
 
   return result;
 }
