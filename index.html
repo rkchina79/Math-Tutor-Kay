@@ -963,21 +963,61 @@ function messageHTML(m, idx) {
 
 function convertMathNotation(text) {
   if (text.includes('$')) return text;
+
   let result = text;
+
+  // ── Natural language word conversions ────────────────────────────────────
+  // "x squared" / "x square" → x^2
+  result = result.replace(/([a-zA-Z0-9]+)\s+squared?\b/gi, '$1^{2}');
+  // "x cubed" / "x cube" → x^3
+  result = result.replace(/([a-zA-Z0-9]+)\s+cubed?\b/gi, '$1^{3}');
+  // "x to the power of n" / "x to the n" → x^n
+  result = result.replace(/([a-zA-Z0-9]+)\s+to\s+the\s+(?:power\s+of\s+)?([0-9]+)/gi, '$1^{$2}');
+  // "square root of x" / "sqrt of x" → \sqrt{x}
+  result = result.replace(/sq(?:uare)?\s*root\s+of\s+([a-zA-Z0-9]+)/gi, '\\sqrt{$1}');
+  // "pi" as standalone word → \pi
+  result = result.replace(/\bpi\b/gi, '\\pi');
+  // "infinity" → \infty
+  result = result.replace(/\binfinity\b/gi, '\\infty');
+  // "theta" → \theta
+  result = result.replace(/\btheta\b/gi, '\\theta');
+  // "alpha", "beta", "delta", "sigma", "lambda" → LaTeX equivalents
+  result = result.replace(/\balpha\b/gi, '\\alpha');
+  result = result.replace(/\bbeta\b/gi, '\\beta');
+  result = result.replace(/\bdelta\b/gi, '\\delta');
+  result = result.replace(/\bsigma\b/gi, '\\sigma');
+  result = result.replace(/\blambda\b/gi, '\\lambda');
+
+  // ── Symbol / typed notation conversions ──────────────────────────────────
+  // x^2, x^{12}, x^n — exponents
   result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, '$1^{$2}');
-  result = result.replace(/sqrt\(([^)]+)\)/gi, '\sqrt{$1}');
-  result = result.replace(/(\d+)\/(\d+)/g, '\frac{$1}{$2}');
-  const hasLatex = /\^|\sqrt|\frac|[a-zA-Z]\d|\d[a-zA-Z]/.test(result);
+  // sqrt(expr) → LaTeX sqrt
+  result = result.replace(/sqrt\(([^)]+)\)/gi, '\\sqrt{$1}');
+  // Simple fraction: a/b where a and b are numbers → LaTeX frac
+  result = result.replace(/(\d+)\/(\d+)/g, '\\frac{$1}{$2}');
+
+  // ── If result contains LaTeX, wrap math tokens ────────────────────────────
+  const hasLatex = /\^|\bsqrt\b|\\frac|\\pi|\\infty|\\theta|\\alpha|\\beta|\\delta|\\sigma|\\lambda|[a-zA-Z]\d|\d[a-zA-Z]/.test(result);
+
   if (hasLatex && result !== text) {
+    // Wrap the whole expression in display math if it looks like a full equation
+    const isFullEquation = /=/.test(result);
+    if (isFullEquation) {
+      // Check if it's a short equation — wrap entire thing in $...$
+      const mathPart = result.trim();
+      return '$' + mathPart + '$';
+    }
+    // Otherwise wrap individual math tokens
     const tokens = result.split(/(\s+)/);
     const wrapped = tokens.map(token => {
       if (/^\s+$/.test(token)) return token;
       if (token.startsWith('$')) return token;
-      if (/[\^\]|\d[a-zA-Z]|[a-zA-Z]\d/.test(token)) return '$' + token + '$';
+      if (/[\^\\]|\d[a-zA-Z]|[a-zA-Z]\d/.test(token)) return '$' + token + '$';
       return token;
     }).join('');
     return wrapped;
   }
+
   return result;
 }
 
