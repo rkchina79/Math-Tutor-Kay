@@ -7,7 +7,7 @@
 <meta name="description" content="Kay is your personal mathematics tutor — from counting to topology.">
 <meta name="theme-color" content="#2e2a25">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Kay">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
@@ -54,7 +54,12 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .main { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; background: var(--paper); }
 
 /* Topbar */
-.topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px 12px; border-bottom: 1px solid var(--paper-3); flex-shrink: 0; gap: 8px; }
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px 12px;
+  padding-top: max(14px, calc(env(safe-area-inset-top) + 8px));
+  border-bottom: 1px solid var(--paper-3); flex-shrink: 0; gap: 8px;
+}
 .topic-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 20px; font-size: 11px; color: var(--ink-2); min-width: 0; overflow: hidden; }
 .topic-pill span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topic-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
@@ -268,17 +273,28 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .sidebar { display: none; }
   .main { height: 100vh; height: 100dvh; }
 
-  /* Topbar — tighter, hide text labels on very small screens */
-  .topbar { padding: 8px 12px; gap: 6px; }
-  .topic-pill { font-size: 10px; max-width: 36vw; padding: 3px 8px; }
-  .topbar-actions { gap: 4px; }
-  .action-btn { padding: 6px 10px; font-size: 10px; gap: 3px; }
-  .action-btn svg { width: 12px; height: 12px; }
+  /* Topbar — compact, never clips */
+  .topbar {
+    padding: 6px 10px;
+    gap: 5px;
+    flex-wrap: nowrap;
+    min-height: 44px;
+    align-items: center;
+  }
+  .topic-pill { font-size: 10px; max-width: 32vw; padding: 3px 7px; flex-shrink: 1; min-width: 0; }
+  .topbar-actions { gap: 3px; flex-shrink: 0; }
+  .action-btn {
+    padding: 5px 8px; font-size: 10px; gap: 2px;
+    white-space: nowrap; flex-shrink: 0;
+    min-height: 30px;
+  }
+  .action-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
 
   /* On very small phones (< 380px) hide button labels, keep icons only */
   @media (max-width: 379px) {
     .action-btn span { display: none; }
-    .action-btn { padding: 6px 8px; }
+    .action-btn { padding: 5px 7px; }
+    .topic-pill { max-width: 28vw; }
   }
 
   /* Messages */
