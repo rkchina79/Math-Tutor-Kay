@@ -73,10 +73,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .topic-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 20px; font-size: 11px; color: var(--ink-2); min-width: 0; overflow: hidden; }
 .topic-pill span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topic-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.topbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.action-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; background: transparent; border: 1px solid var(--paper-3); border-radius: 7px; font-family: var(--sans); font-size: 11px; color: var(--ink-2); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.action-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.04); }
-.action-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
 
 /* Graph panel */
 .graph-panel { background: var(--paper-2); border-bottom: 1px solid var(--paper-3); flex-shrink: 0; overflow: hidden; transition: height 0.3s ease; height: 0; }
@@ -365,17 +361,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: block;
 }
 
-/* End session button */
-.end-session-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 6px 12px; background: transparent;
-  border: 1px solid rgba(196,96,42,0.4); border-radius: 7px;
-  font-family: var(--sans); font-size: 11px;
-  color: var(--accent-2); cursor: pointer; transition: all 0.15s; white-space: nowrap;
-}
-.end-session-btn:hover { background: rgba(196,96,42,0.12); border-color: var(--accent); color: var(--accent); }
-.end-session-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
 /* ── Interactive quiz card ── */
 .quiz-card {
   margin-top: 14px;
@@ -501,6 +486,123 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; display: block; }
 .alert.info  { background: var(--paper-2); border: 1px solid var(--paper-3); color: var(--ink-2); display: block; }
 
+/* ── Sidebar layout fix — three regions: sessions (capped), mastery (scrollable, fills), footer (pinned) ── */
+.sessions { flex: 0 0 auto; max-height: 30vh; }
+.sidebar-mastery-wrap {
+  flex: 1 1 auto; min-height: 60px; overflow-y: auto;
+  padding-right: 4px; margin-right: -4px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.sidebar-mastery-wrap::-webkit-scrollbar { width: 4px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-track { background: transparent; }
+.sidebar-mastery-privacy { font-size: 9.5px; color: rgba(245,240,232,0.4); line-height: 1.5; margin-top: 6px; padding: 0 2px; }
+#sidebar-stats { flex-shrink: 0; }
+.sidebar > .support-btn, .sidebar > .sidebar-divider { flex-shrink: 0; }
+
+/* ── Quick actions row (above input bar) ── */
+.quick-actions {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 22px 0; flex-shrink: 0;
+}
+.quick-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; background: var(--paper-2); border: 1px solid var(--paper-3);
+  border-radius: 7px; font-family: var(--sans); font-size: 11px;
+  color: var(--ink-2); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.quick-chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.06); }
+.quick-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.1); }
+.quick-actions-spacer { flex: 1; }
+.quick-menu-wrap { position: relative; }
+.quick-chip-icon {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--paper-3);
+  color: var(--ink-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; padding: 0;
+}
+.quick-chip-icon:hover { border-color: var(--ink-2); color: var(--ink-2); background: var(--paper-3); }
+.quick-menu {
+  position: absolute; right: 0; bottom: calc(100% + 6px);
+  background: white; border: 1px solid var(--paper-3); border-radius: 9px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  min-width: 170px; z-index: 100; padding: 4px;
+  display: none;
+}
+.quick-menu.open { display: block; }
+.quick-menu-item {
+  display: block; width: 100%; padding: 8px 10px;
+  background: none; border: none; text-align: left;
+  font-family: var(--sans); font-size: 12px; color: var(--ink-2);
+  cursor: pointer; border-radius: 6px;
+}
+.quick-menu-item:hover { background: var(--paper-2); color: var(--ink); }
+
+/* ── Calculator button (in input bar) ── */
+.calc-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--paper-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s; color: var(--ink-3);
+}
+.calc-btn:hover { border-color: var(--ink-2); color: var(--ink-2); background: var(--paper-3); }
+.calc-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
+
+/* ── Calculator overlay & modal ── */
+.calc-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(26, 24, 20, 0.42);
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.calc-overlay.open { display: flex; }
+.calc-modal {
+  background: white; border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 380px; height: 540px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  animation: calcRise 0.2s ease;
+}
+@keyframes calcRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.calc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; border-bottom: 1px solid var(--paper-3);
+  background: var(--paper-2); flex-shrink: 0;
+}
+.calc-title { font-size: 11px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.06em; text-transform: uppercase; }
+.calc-close {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3); transition: all 0.15s;
+}
+.calc-close:hover { background: var(--paper-3); color: var(--ink-2); }
+.calc-body { flex: 1; overflow: hidden; min-height: 0; position: relative; }
+#desmos-scientific { position: absolute; inset: 0; }
+
+/* ── End session prompt (below input bar) ── */
+.end-session-prompt {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 9px 22px 14px;
+  border-top: 1px solid var(--paper-3);
+  background: var(--paper);
+  flex-shrink: 0;
+}
+.end-session-prompt-text {
+  font-size: 11px; color: var(--ink-3); font-style: italic;
+}
+.end-session-link-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid rgba(196,96,42,0.4);
+  border-radius: 6px; padding: 5px 12px;
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  color: var(--accent); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.end-session-link-btn:hover { border-color: var(--accent); background: rgba(196,96,42,0.08); }
+.end-session-link-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Tablet (641px – 1024px) ── */
 @media (min-width: 641px) and (max-width: 1024px) {
   .app { grid-template-columns: 180px 1fr; }
@@ -529,22 +631,28 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     min-height: 44px;
     align-items: center;
   }
-  .topic-pill { font-size: 10px; max-width: 32vw; padding: 3px 7px; flex-shrink: 1; min-width: 0; }
-  .topbar-actions { gap: 3px; flex-shrink: 0; }
-  .action-btn {
-    padding: 5px 8px; font-size: 10px; gap: 2px;
-    white-space: nowrap; flex-shrink: 0;
-    min-height: 30px;
-  }
-  .action-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .topic-pill { font-size: 10px; max-width: 88vw; padding: 3px 7px; flex-shrink: 1; min-width: 0; }
 
-  /* On very small phones (< 380px) hide button labels, keep icons only */
+  /* Quick actions (above input bar) — mobile sizing */
+  .quick-actions { padding: 6px 12px 0; gap: 5px; }
+  .quick-chip { padding: 5px 10px; font-size: 10px; }
+  .quick-chip svg { width: 11px; height: 11px; flex-shrink: 0; }
+  .quick-chip-icon { width: 28px; height: 28px; }
+
+  /* Calculator overlay — full width on mobile */
+  .calc-overlay { padding: 12px; }
+  .calc-modal { max-width: 100%; height: 85vh; }
+
+  /* End session prompt — mobile */
+  .end-session-prompt { padding: 7px 12px max(12px, env(safe-area-inset-bottom)); gap: 7px; }
+  .end-session-prompt-text { font-size: 10px; }
+  .end-session-link-btn { padding: 4px 10px; font-size: 10px; }
+
+  /* On very small phones (< 380px) hide chip labels, keep icons only */
   @media (max-width: 379px) {
-    .action-btn span { display: none; }
-    .end-session-btn span { display: none; }
-    .action-btn { padding: 5px 7px; }
-    .end-session-btn { padding: 5px 7px; }
-    .topic-pill { max-width: 28vw; }
+    .quick-chip span { display: none; }
+    .quick-chip { padding: 5px 7px; }
+    .topic-pill { max-width: 80vw; }
   }
 
   /* Messages */
@@ -565,9 +673,9 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .graph-panel.open { height: 220px; }
   .graph-sidebar { display: none; }
 
-  /* Input — pinned bottom with safe area */
+  /* Input — pinned bottom (safe-area handled by end-session-prompt below) */
   .input-area { flex-shrink: 0; }
-  .input-bar { padding: 8px 12px 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .input-bar { padding: 8px 12px 8px; }
   .input-wrap { padding: 7px 7px 7px 12px; }
   .msg-input { font-size: 16px; } /* prevents iOS auto-zoom */
   .send-btn { width: 36px; height: 36px; }
@@ -605,9 +713,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <span>My Progress</span>
       <button onclick="resetMastery()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset progress">Reset</button>
     </div>
-    <div id="sidebar-mastery"></div>
-    <div style="font-size:9.5px; color:rgba(245,240,232,0.4); line-height:1.5; margin-top:6px; padding: 0 2px;">
-      🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
+    <div class="sidebar-mastery-wrap">
+      <div id="sidebar-mastery"></div>
+      <div class="sidebar-mastery-privacy">
+        🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
+      </div>
     </div>
     <div class="sidebar-divider"></div>
     <!-- ── Live stats ── -->
@@ -637,21 +747,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <div class="topic-pill">
         <div class="topic-dot"></div>
         <span id="topic-label">Ready to learn</span>
-      </div>
-      <div class="topbar-actions">
-        <button class="action-btn" onclick="sendHint()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span>Hint</span>
-        </button>
-        <button class="action-btn" id="graph-toggle-btn" onclick="toggleGraph()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <span>Graph</span>
-        </button>
-        <button class="end-session-btn" id="end-session-btn" onclick="endSession()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          <span>End Session</span>
-        </button>
-        <button class="action-btn" onclick="clearChat()"><span>Clear</span></button>
       </div>
     </div>
 
@@ -688,12 +783,43 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 
     <!-- Input area -->
     <div class="input-area">
+
+      <!-- Quick actions row (above input) -->
+      <div class="quick-actions">
+        <button class="quick-chip" onclick="sendHint()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Hint</span>
+        </button>
+        <button class="quick-chip" id="graph-toggle-btn" onclick="toggleGraph()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Graph</span>
+        </button>
+        <div class="quick-actions-spacer"></div>
+        <div class="quick-menu-wrap">
+          <button class="quick-chip-icon" onclick="toggleQuickMenu(event)" title="More actions" aria-label="More actions">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>
+          </button>
+          <div class="quick-menu" id="quick-menu">
+            <button class="quick-menu-item" onclick="clearChat(); closeQuickMenu();">Clear conversation</button>
+          </div>
+        </div>
+      </div>
+
       <div class="input-bar">
         <div class="input-wrap" id="input-wrap">
           <textarea class="msg-input" id="msg-input"
             placeholder="Ask Kay a question, share your working, or describe where you're stuck…"
             rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <div class="input-actions">
+            <!-- Calculator button — opens Desmos scientific calculator -->
+            <button class="calc-btn" id="calc-btn" onclick="toggleCalculator()" title="Open calculator">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <line x1="8" y1="6" x2="16" y2="6"/>
+                <line x1="16" y1="14" x2="16" y2="18"/>
+                <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
+              </svg>
+            </button>
             <!-- Hidden file input — no capture attr so user can choose camera OR gallery -->
             <input type="file" id="img-file-input" accept="image/*" style="display:none" onchange="handleImageFile(event)">
             <!-- Image attach button -->
@@ -743,6 +869,13 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
         </div>
         <div class="input-hint">Enter to send · Shift+Enter for new line · <a href="https://buymeacoffee.com/tutorkay" target="_blank" style="color:var(--accent);text-decoration:none;">☕ Support Kay</a></div>
       </div>
+
+      <!-- End session prompt (below input bar, inside fixed input-area) -->
+      <div class="end-session-prompt">
+        <span class="end-session-prompt-text">When ready to check what you learned →</span>
+        <button class="end-session-link-btn" id="end-session-btn" onclick="endSession()">End Session</button>
+      </div>
+
     </div>
 
   </main>
@@ -751,6 +884,21 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 <!-- Lightbox for full-size image view -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Calculator overlay (Desmos scientific calculator) -->
+<div class="calc-overlay" id="calc-overlay" onclick="if(event.target===this) closeCalculator()">
+  <div class="calc-modal" role="dialog" aria-label="Scientific Calculator">
+    <div class="calc-header">
+      <span class="calc-title">Scientific Calculator</span>
+      <button class="calc-close" onclick="closeCalculator()" title="Close" aria-label="Close calculator">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="calc-body">
+      <div id="desmos-scientific"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1387,6 +1535,65 @@ function clearGraph() {
   plottedExpressions = new Set();
   renderGraphSidebar();
 }
+
+// ── Scientific Calculator (Desmos) ───────────────────────────────────────────
+let scientificCalc = null;
+let calcOpen = false;
+
+function toggleCalculator() {
+  if (calcOpen) { closeCalculator(); return; }
+  const overlay = document.getElementById('calc-overlay');
+  const btn = document.getElementById('calc-btn');
+  overlay.classList.add('open');
+  btn.classList.add('active');
+  calcOpen = true;
+  // Force a synchronous layout flush so the modal has real dimensions
+  // before Desmos measures the container.
+  void overlay.offsetHeight;
+  // Defer init to the next animation frame to be doubly sure layout is settled.
+  requestAnimationFrame(() => {
+    const el = document.getElementById('desmos-scientific');
+    if (!scientificCalc) {
+      try {
+        if (typeof Desmos === 'undefined' || typeof Desmos.ScientificCalculator !== 'function') {
+          console.error('Desmos.ScientificCalculator is not available. Desmos.enabledFeatures:', typeof Desmos !== 'undefined' ? Desmos.enabledFeatures : 'Desmos not loaded');
+          return;
+        }
+        scientificCalc = Desmos.ScientificCalculator(el, { degreeMode: false });
+      } catch (e) {
+        console.error('Scientific calculator init failed:', e);
+      }
+    }
+    // Resize on every open — handles viewport changes between opens
+    if (scientificCalc && scientificCalc.resize) scientificCalc.resize();
+  });
+}
+
+function closeCalculator() {
+  document.getElementById('calc-overlay').classList.remove('open');
+  document.getElementById('calc-btn').classList.remove('active');
+  calcOpen = false;
+}
+
+// ── Quick actions menu (the "⋯" overflow) ───────────────────────────────────
+function toggleQuickMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('quick-menu').classList.toggle('open');
+}
+function closeQuickMenu() {
+  document.getElementById('quick-menu').classList.remove('open');
+}
+
+// Global listeners — close menu on outside click, close calc on ESC
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.quick-menu-wrap')) closeQuickMenu();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (calcOpen) closeCalculator();
+    closeQuickMenu();
+  }
+});
 
 // ── Quiz state ────────────────────────────────────────────────────────────────
 // Tracks answers per quiz instance (keyed by message index)
