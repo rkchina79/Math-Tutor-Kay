@@ -1138,18 +1138,29 @@ function formatCount(n) {
 }
 
 async function fetchStats() {
-  // Always show seed values immediately as fallback
   const qEl = document.getElementById('stat-questions');
   const sEl = document.getElementById('stat-students');
+  // Show seed values immediately as fallback
   if (qEl && qEl.textContent === '—') qEl.textContent = '2,743';
   if (sEl && sEl.textContent === '—') sEl.textContent = '126';
   try {
-    const res = await fetch(BACKEND_URL + '/stats');
+    const res = await fetch(BACKEND_URL + '/stats', { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return;
     const data = await res.json();
-    if (qEl && data.questionsAnswered) qEl.textContent = formatCount(data.questionsAnswered);
-    if (sEl && data.studentsServed) sEl.textContent = formatCount(data.studentsServed);
-  } catch(e) {} // fallback values already set above
+    if (qEl && data.questionsAnswered > 0) qEl.textContent = formatCount(data.questionsAnswered);
+    if (sEl && data.studentsServed > 0) sEl.textContent = formatCount(data.studentsServed);
+  } catch(e) {
+    // Backend may be waking up — retry once after 5 seconds
+    setTimeout(async () => {
+      try {
+        const res = await fetch(BACKEND_URL + '/stats', { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (qEl && data.questionsAnswered > 0) qEl.textContent = formatCount(data.questionsAnswered);
+        if (sEl && data.studentsServed > 0) sEl.textContent = formatCount(data.studentsServed);
+      } catch(e2) {} // keep showing fallback values
+    }, 5000);
+  }
 }
 
 async function pingQuestion() {

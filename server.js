@@ -208,14 +208,21 @@ function saveStats(stats) {
   try { fs.writeFileSync(STATS_FILE, JSON.stringify(stats)); } catch(e) {}
 }
 
+const SEED = { questionsAnswered: 2743, studentsServed: 126 };
+
 function loadStats() {
   try {
     if (fs.existsSync(STATS_FILE)) {
-      return JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
+      const saved = JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
+      // Keep whichever is higher — real data or seed (protects against /tmp wipes)
+      return {
+        questionsAnswered: Math.max(saved.questionsAnswered || 0, SEED.questionsAnswered),
+        studentsServed: Math.max(saved.studentsServed || 0, SEED.studentsServed),
+        seenSessions: saved.seenSessions || []
+      };
     }
   } catch(e) {}
-  // Seed with baseline data reflecting Kay's existing usage
-  return { questionsAnswered: 2743, studentsServed: 126 };
+  return { ...SEED, seenSessions: [] };
 }
 
 // Called on every chat message — increment counter + record unique student
