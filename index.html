@@ -1867,7 +1867,7 @@ function renderMessages() {
   container.style.display = 'block';
   empty.style.display = 'none';
   container.innerHTML = messages.map((m, i) => messageHTML(m, i)).join('');
-  container.querySelectorAll('.msg-bubble').forEach(el => {
+  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms').forEach(el => {
     renderMathInElement(el, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
