@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { Redis } = require('@upstash/redis');
 
 const app = express();
 app.use(cors());
@@ -190,67 +191,71 @@ app.post('/chat', async (req, res) => {
 
 app.get('/', (req, res) => res.send('Kay tutor API is running.'));
 
-// ── Stats tracking ────────────────────────────────────────────────────────────
-const fs = require('fs');
-const STATS_FILE = '/tmp/kay_stats.json';
+// ── Stats tracking (Upstash Redis) ───────────────────────────────────────────
+// Counters live in Upstash, not on Render's filesystem, so they survive
+// cold starts, redeploys, and free-tier sleep.
 
-function loadStats() {
-  try {
-    if (fs.existsSync(STATS_FILE)) {
-      return JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
-    }
-  } catch(e) {}
-  // Seed with baseline data reflecting Kay's existing usage
-  return { questionsAnswered: 2743 };
-}
-
-function saveStats(stats) {
-  try { fs.writeFileSync(STATS_FILE, JSON.stringify(stats)); } catch(e) {}
-}
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const SEED = { questionsAnswered: 2743, studentsServed: 126 };
 
-function loadStats() {
+// Seed counters on first-ever boot only (SETNX = set if key doesn't exist).
+// On every subsequent boot this is a no-op — the real values stay untouched.
+async function initStats() {
   try {
-    if (fs.existsSync(STATS_FILE)) {
-      const saved = JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
-      // Keep whichever is higher — real data or seed (protects against /tmp wipes)
-      return {
-        questionsAnswered: Math.max(saved.questionsAnswered || 0, SEED.questionsAnswered),
-        studentsServed: Math.max(saved.studentsServed || 0, SEED.studentsServed),
-        seenSessions: saved.seenSessions || []
-      };
-    }
-  } catch(e) {}
-  return { ...SEED, seenSessions: [] };
+    await redis.setnx('kay:questions', SEED.questionsAnswered);
+    await redis.setnx('kay:students', SEED.studentsServed);
+  } catch (err) {
+    console.error('Stats init error:', err);
+  }
 }
+initStats();
 
 // Called on every chat message — increment counter + record unique student
-app.post('/stats/question', (req, res) => {
-  const { sessionId } = req.body;
-  const stats = loadStats();
-  stats.questionsAnswered = (stats.questionsAnswered || 0) + 1;
+app.post('/stats/question', async (req, res) => {
+  try {
+    const { sessionId } = req.body;
 
-  // Track unique students — store seen session IDs as a set
-  if (sessionId) {
-    if (!stats.seenSessions) stats.seenSessions = [];
-    if (!stats.seenSessions.includes(sessionId)) {
-      stats.seenSessions.push(sessionId);
-      stats.studentsServed = (stats.studentsServed || 126) + 1;
+    // Atomic increment of question counter
+    await redis.incr('kay:questions');
+
+    // Track unique students via a Redis Set.
+    // SADD returns 1 if the member is new, 0 if it already existed.
+    if (sessionId) {
+      const isNew = await redis.sadd('kay:sessions', sessionId);
+      if (isNew === 1) {
+        await redis.incr('kay:students');
+      }
     }
+  } catch (err) {
+    console.error('Stats increment error:', err);
+    // Stats are non-critical — never fail the user request because of them
   }
-
-  saveStats(stats);
   res.json({ ok: true });
 });
 
 // Return current stats
-app.get('/stats', (req, res) => {
-  const stats = loadStats();
-  res.json({
-    questionsAnswered: stats.questionsAnswered || 2743,
-    studentsServed: stats.studentsServed || 126
-  });
+app.get('/stats', async (req, res) => {
+  try {
+    const [questions, students] = await Promise.all([
+      redis.get('kay:questions'),
+      redis.get('kay:students'),
+    ]);
+    res.json({
+      questionsAnswered: Number(questions) || SEED.questionsAnswered,
+      studentsServed: Number(students) || SEED.studentsServed,
+    });
+  } catch (err) {
+    console.error('Stats fetch error:', err);
+    // Fall back to seed values if Redis is unreachable
+    res.json({
+      questionsAnswered: SEED.questionsAnswered,
+      studentsServed: SEED.studentsServed,
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
