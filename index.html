@@ -247,7 +247,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .send-btn:hover { background: var(--accent); }
 .send-btn:active { transform: scale(0.93); }
 .send-btn:disabled { background: var(--paper-3); cursor: not-allowed; }
-.input-hint { font-size: 10px; color: var(--ink-3); margin-top: 6px; text-align: center; }
 
 /* ── Image upload ── */
 .img-btn {
@@ -551,26 +550,33 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .calc-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.08); }
 
 /* ── Calculator overlay & modal ── */
+/* Desktop: overlay is a passthrough layer, modal floats and is draggable */
 .calc-overlay {
   display: none; position: fixed; inset: 0; z-index: 900;
-  background: rgba(26, 24, 20, 0.42);
-  align-items: center; justify-content: center;
-  padding: 20px;
+  pointer-events: none;
 }
-.calc-overlay.open { display: flex; }
+.calc-overlay.open { display: block; }
 .calc-modal {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
   background: white; border-radius: 14px; overflow: hidden;
-  width: 100%; max-width: 380px; height: 540px; max-height: 90vh;
+  width: 380px; height: 540px; max-height: 90vh;
   display: flex; flex-direction: column;
   box-shadow: 0 12px 40px rgba(0,0,0,0.22);
   animation: calcRise 0.2s ease;
 }
-@keyframes calcRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes calcRise { from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
 .calc-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 11px 14px; border-bottom: 1px solid var(--paper-3);
   background: var(--paper-2); flex-shrink: 0;
+  cursor: grab;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
 }
+.calc-header.dragging { cursor: grabbing; }
 .calc-title { font-size: 11px; font-weight: 500; color: var(--ink-2); letter-spacing: 0.06em; text-transform: uppercase; }
 .calc-close {
   width: 26px; height: 26px; border-radius: 6px;
@@ -639,9 +645,22 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .quick-chip svg { width: 11px; height: 11px; flex-shrink: 0; }
   .quick-chip-icon { width: 28px; height: 28px; }
 
-  /* Calculator overlay — full width on mobile */
-  .calc-overlay { padding: 12px; }
-  .calc-modal { max-width: 100%; height: 85vh; }
+  /* Calculator — restore modal behavior on mobile (dragging not useful on small screens) */
+  .calc-overlay {
+    pointer-events: auto;
+    background: rgba(26, 24, 20, 0.42);
+  }
+  .calc-overlay.open {
+    display: flex; align-items: center; justify-content: center; padding: 12px;
+  }
+  .calc-modal {
+    position: relative;
+    top: auto; left: auto; transform: none;
+    width: 100%; max-width: 100%; height: 85vh; max-height: 85vh;
+    animation: calcRiseMobile 0.2s ease;
+  }
+  @keyframes calcRiseMobile { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .calc-header { cursor: default; user-select: auto; -webkit-user-select: auto; touch-action: auto; }
 
   /* End session prompt — mobile */
   .end-session-prompt { padding: 7px 12px max(12px, env(safe-area-inset-bottom)); gap: 7px; }
@@ -685,7 +704,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .msg-image { max-width: min(200px, 70vw); max-height: 160px; }
   .msg-with-graph { grid-template-columns: 1fr; }
   .inline-graph-container { height: 180px; }
-  .input-hint { display: none; }
   .alert { margin: 0 12px 8px; }
   .listening-bar { padding: 4px 12px 0; font-size: 10px; }
 }
@@ -867,7 +885,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
           Listening…
           <span class="stop-link" onclick="stopVoice()">Stop</span>
         </div>
-        <div class="input-hint">Enter to send · Shift+Enter for new line · <a href="https://buymeacoffee.com/tutorkay" target="_blank" style="color:var(--accent);text-decoration:none;">☕ Support Kay</a></div>
       </div>
 
       <!-- End session prompt (below input bar, inside fixed input-area) -->
@@ -1539,14 +1556,31 @@ function clearGraph() {
 // ── Scientific Calculator (Desmos) ───────────────────────────────────────────
 let scientificCalc = null;
 let calcOpen = false;
+let calcPosition = null; // remembered position { left, top } across opens
+let calcDragInitialized = false;
 
 function toggleCalculator() {
   if (calcOpen) { closeCalculator(); return; }
   const overlay = document.getElementById('calc-overlay');
+  const modal = document.querySelector('.calc-modal');
   const btn = document.getElementById('calc-btn');
   overlay.classList.add('open');
   btn.classList.add('active');
   calcOpen = true;
+
+  // Restore last known position on desktop; on mobile, reset to default modal
+  const isMobile = window.innerWidth <= 640;
+  if (!isMobile && calcPosition) {
+    modal.style.transform = 'none';
+    modal.style.left = calcPosition.left + 'px';
+    modal.style.top = calcPosition.top + 'px';
+  } else {
+    // Default centered position (desktop) or normal modal (mobile)
+    modal.style.transform = '';
+    modal.style.left = '';
+    modal.style.top = '';
+  }
+
   // Force a synchronous layout flush so the modal has real dimensions
   // before Desmos measures the container.
   void overlay.offsetHeight;
@@ -1564,6 +1598,11 @@ function toggleCalculator() {
         console.error('Scientific calculator init failed:', e);
       }
     }
+    // Set up dragging once
+    if (!calcDragInitialized) {
+      setupCalcDrag();
+      calcDragInitialized = true;
+    }
     // Resize on every open — handles viewport changes between opens
     if (scientificCalc && scientificCalc.resize) scientificCalc.resize();
   });
@@ -1573,6 +1612,79 @@ function closeCalculator() {
   document.getElementById('calc-overlay').classList.remove('open');
   document.getElementById('calc-btn').classList.remove('active');
   calcOpen = false;
+}
+
+// Drag the calculator window by its header (desktop only)
+function setupCalcDrag() {
+  const modal = document.querySelector('.calc-modal');
+  const header = document.querySelector('.calc-header');
+  if (!modal || !header) return;
+
+  let dragging = false;
+  let startX, startY, startLeft, startTop;
+
+  function onPointerDown(e) {
+    // Skip drag on mobile and on close-button taps
+    if (window.innerWidth <= 640) return;
+    if (e.target.closest('.calc-close')) return;
+
+    dragging = true;
+    header.classList.add('dragging');
+
+    const point = e.touches ? e.touches[0] : e;
+    const rect = modal.getBoundingClientRect();
+
+    // Convert from any centered transform to absolute pixel positioning
+    // so drag math stays simple.
+    modal.style.transform = 'none';
+    modal.style.left = rect.left + 'px';
+    modal.style.top = rect.top + 'px';
+
+    startX = point.clientX;
+    startY = point.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const point = e.touches ? e.touches[0] : e;
+    let newLeft = startLeft + (point.clientX - startX);
+    let newTop = startTop + (point.clientY - startY);
+
+    // Constrain so at least 60px of the modal stays visible from any edge
+    const visiblePx = 60;
+    const minLeft = -modal.offsetWidth + visiblePx;
+    const maxLeft = window.innerWidth - visiblePx;
+    const minTop = 0; // never let header go above viewport
+    const maxTop = window.innerHeight - visiblePx;
+
+    newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+    newTop = Math.max(minTop, Math.min(maxTop, newTop));
+
+    modal.style.left = newLeft + 'px';
+    modal.style.top = newTop + 'px';
+  }
+
+  function onPointerUp() {
+    if (!dragging) return;
+    dragging = false;
+    header.classList.remove('dragging');
+    // Remember position so reopening puts it back in the same spot
+    calcPosition = {
+      left: parseInt(modal.style.left, 10) || 0,
+      top: parseInt(modal.style.top, 10) || 0,
+    };
+  }
+
+  header.addEventListener('mousedown', onPointerDown);
+  header.addEventListener('touchstart', onPointerDown, { passive: false });
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('touchmove', onPointerMove, { passive: false });
+  document.addEventListener('mouseup', onPointerUp);
+  document.addEventListener('touchend', onPointerUp);
 }
 
 // ── Quick actions menu (the "⋯" overflow) ───────────────────────────────────
