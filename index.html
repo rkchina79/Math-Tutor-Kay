@@ -1133,16 +1133,25 @@ const SESSION_ID = 'kay_' + Math.random().toString(36).slice(2, 10);
 
 function formatCount(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return n.toString();
+  if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+  // Below 10K — show full number with comma
+  return n.toLocaleString();
+}
+
+function parseDisplayCount(str) {
+  // Parse back a formatted count to a number
+  if (!str || str === '—') return 0;
+  if (str.includes('M')) return Math.round(parseFloat(str) * 1000000);
+  if (str.includes('K')) return Math.round(parseFloat(str) * 1000);
+  return parseInt(str.replace(/,/g, ''), 10) || 0;
 }
 
 async function fetchStats() {
   const qEl = document.getElementById('stat-questions');
   const sEl = document.getElementById('stat-students');
   // Show seed values immediately as fallback
-  if (qEl && qEl.textContent === '—') qEl.textContent = '2,743';
-  if (sEl && sEl.textContent === '—') sEl.textContent = '126';
+  if (qEl && qEl.textContent === '—') qEl.textContent = formatCount(2743);
+  if (sEl && sEl.textContent === '—') sEl.textContent = formatCount(126);
   try {
     const res = await fetch(BACKEND_URL + '/stats', { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return;
@@ -1158,7 +1167,7 @@ async function fetchStats() {
         const data = await res.json();
         if (qEl && data.questionsAnswered > 0) qEl.textContent = formatCount(data.questionsAnswered);
         if (sEl && data.studentsServed > 0) sEl.textContent = formatCount(data.studentsServed);
-      } catch(e2) {} // keep showing fallback values
+      } catch(e2) {}
     }, 5000);
   }
 }
@@ -1170,15 +1179,10 @@ async function pingQuestion() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: SESSION_ID })
     });
-    // Optimistically increment displayed count
+    // Optimistically increment displayed count using safe parser
     const qEl = document.getElementById('stat-questions');
     if (qEl && qEl.textContent !== '—') {
-      const current = parseFloat(qEl.textContent.replace('K','').replace('M','')) || 0;
-      qEl.textContent = formatCount(
-        qEl.textContent.includes('K') ? Math.round(current * 1000) + 1 :
-        qEl.textContent.includes('M') ? Math.round(current * 1000000) + 1 :
-        current + 1
-      );
+      qEl.textContent = formatCount(parseDisplayCount(qEl.textContent) + 1);
     }
   } catch(e) {}
 }
