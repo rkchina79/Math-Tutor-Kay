@@ -102,7 +102,16 @@ const END_SESSION_ADDITION = `
 The student has ended this session. You are now in end-of-session mode.
 
 IF the most recent user message contains [END_SESSION]:
-Write one short warm sentence, then output a quiz block with 2–3 multiple choice questions testing the concepts from this conversation. Each question needs exactly 4 options with exactly one correct answer (0-indexed). Use this EXACT format:
+Write one short warm sentence, then output a quiz block with 2–3 multiple choice questions that test the SAME CONCEPTS the student worked on — but using DIFFERENT specific problems with different numbers, contexts, or framings. NEVER reuse the exact problems you already solved together. The goal is to check whether they can apply what they learned to a fresh situation, not whether they can recall the answer to a problem they just worked through.
+
+For example:
+› If you worked on the area of a circle with radius 22, ask about a circle with a different radius (e.g., radius 7) — not radius 22.
+› If you derived dA/dt for A = πr² using the chain rule, ask them to apply the same chain-rule technique to a different but analogous formula (e.g., volume of a sphere V = (4/3)πr³, or area of a square A = s²).
+› If you factored x² + 5x + 6 together, ask them to factor a different quadratic of similar difficulty (e.g., x² + 7x + 12).
+
+The quiz should feel like "can you do another one of these?" — not "do you remember what we just did?" Difficulty should match what was practiced; don't make it easier just to be encouraging.
+
+Each question needs exactly 4 options with exactly one correct answer (0-indexed). Use this EXACT format:
 
 \`\`\`quiz
 {

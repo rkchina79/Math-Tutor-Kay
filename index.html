@@ -1937,15 +1937,37 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
   const q = msg._quizData.questions[qi];
   if (!q) return;
 
-  // Already answered this question?
+  // Per-question state: track wrong attempts so we can allow one retry
   if (!quizAnswers[msgIdx]) quizAnswers[msgIdx] = {};
+  if (!quizAnswers[msgIdx]._wrongAttempts) quizAnswers[msgIdx]._wrongAttempts = {};
+  const wrongSoFar = quizAnswers[msgIdx]._wrongAttempts[qi] || 0;
+
+  // Question already finalized? Nothing to do.
   if (quizAnswers[msgIdx][qi] !== undefined) return;
 
-  // Record answer
-  quizAnswers[msgIdx][qi] = selectedOi;
   const isCorrect = selectedOi === correctOi;
+  const selectedBtn = document.getElementById(`qopt-${msgIdx}-${qi}-${selectedOi}`);
+  const feedback = document.getElementById(`qfeedback-${msgIdx}-${qi}`);
 
-  // Disable all options for this question
+  // ── Wrong on first try → nudge to try again, don't reveal ──────────────────
+  if (!isCorrect && wrongSoFar === 0) {
+    quizAnswers[msgIdx]._wrongAttempts[qi] = 1;
+    if (selectedBtn) {
+      selectedBtn.classList.add('incorrect');
+      selectedBtn.disabled = true; // lock just this option
+    }
+    if (feedback) {
+      feedback.textContent = '🤔 Not quite — give it another look.';
+      feedback.className = 'quiz-feedback incorrect';
+    }
+    return; // student keeps trying with remaining options
+  }
+
+  // ── Either correct, OR second wrong try → finalize question ────────────────
+  // Record final answer
+  quizAnswers[msgIdx][qi] = selectedOi;
+
+  // Disable all options
   const opts = document.querySelectorAll(`[id^="qopt-${msgIdx}-${qi}-"]`);
   opts.forEach(btn => {
     btn.disabled = true;
@@ -1954,8 +1976,7 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
     else if (oi === selectedOi && !isCorrect) btn.classList.add('incorrect');
   });
 
-  // Show feedback
-  const feedback = document.getElementById(`qfeedback-${msgIdx}-${qi}`);
+  // Show full feedback
   if (feedback) {
     feedback.textContent = isCorrect
       ? `✓ ${q.explanation}`
@@ -1963,8 +1984,8 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
     feedback.className = `quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
   }
 
-  // Update progress
-  const totalAnswered = Object.keys(quizAnswers[msgIdx]).length;
+  // Update progress (only counting truly-finalized questions, not _wrongAttempts)
+  const totalAnswered = Object.keys(quizAnswers[msgIdx]).filter(k => !k.startsWith('_')).length;
   const total = msg._quizData.questions.length;
   const progressEl = document.getElementById(`quiz-progress-${msgIdx}`);
   if (progressEl) progressEl.textContent = `${totalAnswered} / ${total} answered`;
@@ -1972,7 +1993,7 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
   // All answered — show score and auto-submit to Kay
   if (totalAnswered === total) {
     const correctCount = Object.entries(quizAnswers[msgIdx])
-      .filter(([qi, oi]) => parseInt(oi) === msg._quizData.questions[parseInt(qi)].correct).length;
+      .filter(([k, oi]) => !k.startsWith('_') && parseInt(oi) === msg._quizData.questions[parseInt(k)].correct).length;
 
     const scoreEl = document.getElementById(`quiz-score-${msgIdx}`);
     if (scoreEl) {
