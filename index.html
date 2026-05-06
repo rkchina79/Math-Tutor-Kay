@@ -588,6 +588,82 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .calc-body { flex: 1; overflow: hidden; min-height: 0; position: relative; }
 #desmos-scientific { position: absolute; inset: 0; }
 
+/* ── Feedback link (sidebar) ── */
+.feedback-link {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 9px 12px; margin-bottom: 8px;
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; font-family: var(--sans); font-size: 12px;
+  color: rgba(245,240,232,0.7); cursor: pointer; transition: all 0.15s;
+  flex-shrink: 0;
+}
+.feedback-link:hover { background: rgba(255,255,255,0.06); color: #f5f0e8; border-color: rgba(255,255,255,0.2); }
+
+/* ── Feedback modal ── */
+.fb-overlay {
+  display: none; position: fixed; inset: 0; z-index: 950;
+  background: rgba(26, 24, 20, 0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.fb-overlay.open { display: flex; }
+.fb-modal {
+  background: var(--cream); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 460px; max-height: 92vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  animation: fbRise 0.2s ease;
+}
+@keyframes fbRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--paper-3);
+  background: var(--paper-2); flex-shrink: 0;
+}
+.fb-header-content { display: flex; flex-direction: column; gap: 2px; }
+.fb-title { font-family: var(--serif); font-size: 18px; color: var(--ink); }
+.fb-subtitle { font-size: 11px; color: var(--ink-3); }
+.fb-close {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3); transition: all 0.15s; flex-shrink: 0;
+}
+.fb-close:hover { background: var(--paper-3); color: var(--ink-2); }
+.fb-body {
+  padding: 16px 20px; overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.fb-field { display: flex; flex-direction: column; gap: 5px; }
+.fb-label {
+  font-size: 11px; font-weight: 500; color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+.fb-label .fb-optional { color: var(--ink-3); font-weight: 400; font-style: italic; margin-left: 4px; }
+.fb-input, .fb-textarea {
+  width: 100%; padding: 9px 12px; box-sizing: border-box;
+  background: white; border: 1px solid var(--paper-3); border-radius: 8px;
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  resize: vertical; outline: none; transition: border-color 0.15s;
+}
+.fb-textarea { min-height: 100px; line-height: 1.5; }
+.fb-input:focus, .fb-textarea:focus { border-color: var(--accent); }
+.fb-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 20px 16px; border-top: 1px solid var(--paper-3);
+  background: var(--paper-2); flex-shrink: 0;
+}
+.fb-status { font-size: 11px; color: var(--ink-3); }
+.fb-status.success { color: #166534; }
+.fb-status.error { color: #991b1b; }
+.fb-submit {
+  background: var(--accent); color: white; border: none;
+  border-radius: 8px; padding: 9px 18px;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.fb-submit:hover { background: var(--accent-2); }
+.fb-submit:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+
 /* ── End session prompt (below input bar) ── */
 .end-session-prompt {
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -752,6 +828,10 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       </div>
     </div>
     <div class="sidebar-divider"></div>
+    <button class="feedback-link" onclick="openFeedback()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Send feedback
+    </button>
     <a href="https://buymeacoffee.com/tutorkay" target="_blank" class="support-btn">
       ☕ Support Kay
     </a>
@@ -914,6 +994,39 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     </div>
     <div class="calc-body">
       <div id="desmos-scientific"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback modal -->
+<div class="fb-overlay" id="fb-overlay" onclick="if(event.target===this) closeFeedback()">
+  <div class="fb-modal" role="dialog" aria-label="Send Feedback">
+    <div class="fb-header">
+      <div class="fb-header-content">
+        <div class="fb-title">Send feedback</div>
+        <div class="fb-subtitle">Your thoughts help Kay get better 🧁</div>
+      </div>
+      <button class="fb-close" onclick="closeFeedback()" title="Close" aria-label="Close feedback">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="fb-body">
+      <div class="fb-field">
+        <label class="fb-label" for="fb-feedback">What's on your mind?</label>
+        <textarea class="fb-textarea" id="fb-feedback" placeholder="Bug, suggestion, praise, question — anything goes." maxlength="2000"></textarea>
+      </div>
+      <div class="fb-field">
+        <label class="fb-label" for="fb-name">Your name <span class="fb-optional">(optional)</span></label>
+        <input class="fb-input" id="fb-name" type="text" placeholder="So Kay knows who to thank" maxlength="100">
+      </div>
+      <div class="fb-field">
+        <label class="fb-label" for="fb-email">Email <span class="fb-optional">(optional, if you'd like a reply)</span></label>
+        <input class="fb-input" id="fb-email" type="email" placeholder="you@example.com" maxlength="200">
+      </div>
+    </div>
+    <div class="fb-footer">
+      <span class="fb-status" id="fb-status"></span>
+      <button class="fb-submit" id="fb-submit" onclick="submitFeedback()">Send</button>
     </div>
   </div>
 </div>
@@ -1553,6 +1666,82 @@ function clearGraph() {
   renderGraphSidebar();
 }
 
+// ── Feedback (Google Apps Script → Google Sheet) ─────────────────────────────
+const FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbzQS0Vu1BifM7p_nDJ7uNtbxDUjRzrh_trZeqhcjYQL9Yjtb2KTcuwdenxRHHCQ3Upxog/exec';
+
+function openFeedback() {
+  document.getElementById('fb-overlay').classList.add('open');
+  // Reset state on open (in case it was previously sent)
+  document.getElementById('fb-status').textContent = '';
+  document.getElementById('fb-status').className = 'fb-status';
+  document.getElementById('fb-submit').disabled = false;
+  document.getElementById('fb-submit').textContent = 'Send';
+  // Focus the textarea after the modal animates in
+  setTimeout(() => document.getElementById('fb-feedback').focus(), 220);
+}
+
+function closeFeedback() {
+  document.getElementById('fb-overlay').classList.remove('open');
+}
+
+async function submitFeedback() {
+  const feedback = document.getElementById('fb-feedback').value.trim();
+  const name = document.getElementById('fb-name').value.trim();
+  const email = document.getElementById('fb-email').value.trim();
+  const statusEl = document.getElementById('fb-status');
+  const submitBtn = document.getElementById('fb-submit');
+
+  if (!feedback) {
+    statusEl.textContent = 'Please add your feedback before sending.';
+    statusEl.className = 'fb-status error';
+    document.getElementById('fb-feedback').focus();
+    return;
+  }
+
+  // Pull current session context for debugging (silently)
+  const currentTopic = document.getElementById('topic-label')?.textContent || '';
+  const sessionId = (typeof SESSION_ID !== 'undefined') ? SESSION_ID : '';
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  statusEl.textContent = '';
+  statusEl.className = 'fb-status';
+
+  try {
+    // Apps Script web apps don't add CORS headers for preflight, so we send
+    // as text/plain (which avoids CORS preflight) and Apps Script reads
+    // e.postData.contents as the raw JSON string.
+    await fetch(FEEDBACK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        name, email, feedback,
+        sessionId,
+        topic: currentTopic,
+        userAgent: navigator.userAgent || '',
+      }),
+    });
+    // Note: with mode 'no-cors' we can't read the response, but the request
+    // does reach Apps Script and append the row. We optimistically treat
+    // a non-throwing fetch as success.
+    statusEl.textContent = 'Thanks! Your feedback was sent. 🧁';
+    statusEl.className = 'fb-status success';
+    submitBtn.textContent = 'Sent';
+    // Clear fields and auto-close after a moment
+    document.getElementById('fb-feedback').value = '';
+    document.getElementById('fb-name').value = '';
+    document.getElementById('fb-email').value = '';
+    setTimeout(() => closeFeedback(), 1600);
+  } catch (err) {
+    console.error('Feedback submit failed:', err);
+    statusEl.textContent = 'Couldn\'t send right now. Please try again.';
+    statusEl.className = 'fb-status error';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send';
+  }
+}
+
 // ── Scientific Calculator (Desmos) ───────────────────────────────────────────
 let scientificCalc = null;
 let calcOpen = false;
@@ -1703,6 +1892,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (calcOpen) closeCalculator();
+    if (document.getElementById('fb-overlay')?.classList.contains('open')) closeFeedback();
     closeQuickMenu();
   }
 });
