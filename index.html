@@ -2632,6 +2632,7 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
         delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
         throwOnError: false
       });
+      if (typeof stripBackslashDollarsInProse === 'function') stripBackslashDollarsInProse(feedback);
     }
   }
 
@@ -2773,6 +2774,10 @@ function renderMessages() {
       ],
       throwOnError: false,
     });
+    // After KaTeX runs, strip backslashes from \$ in non-KaTeX text nodes.
+    // KaTeX correctly leaves \$ alone (recognizing it as an escape), but the
+    // backslash is still visible in the rendered output. We clean it up here.
+    stripBackslashDollarsInProse(el);
   });
   container.querySelectorAll('.eq-forms').forEach(el => {
     const tabs = el.querySelectorAll('.eq-form-tab');
@@ -2784,6 +2789,7 @@ function renderMessages() {
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
         renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
+        stripBackslashDollarsInProse(body);
       });
     });
   });
@@ -3047,26 +3053,23 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
-  // Step 0: Auto-escape currency. Any "$" immediately followed by a digit is
-  // overwhelmingly currency, not math (math expressions use letters or operators
-  // after the opening "$"). The negative lookbehind (?<!\\) skips dollars
-  // that are already escaped, so we don't double-escape Kay's own \$ patterns.
-  // Converting "$5" to "\$5" here means we don't depend on the model remembering
-  // to escape it. The Step 1 pass below then handles all \$ uniformly.
-  let s = text.replace(/(?<!\\)\$(?=\d)/g, '\\$');
+  // Step 0: Auto-escape currency. Match $ followed by digits that are NOT
+  // followed by a letter — this distinguishes currency ($5, $1.50, $46) from
+  // math expressions ($2x, $5y, $3a). The negative lookbehind (?<!\\) skips
+  // dollars that are already escaped, so we don't double-escape Kay's own \$.
+  // After this pass, all currency $ is written as \$ — and we LEAVE IT THAT WAY
+  // in the HTML output. KaTeX recognizes \$ as an escape and skips it (won't
+  // pair it as a math delimiter). The post-render cleanup function then strips
+  // the backslash from \$ in non-KaTeX text nodes for clean display.
+  let s = text.replace(/(?<!\\)\$(\d[\d.,]*)(?![a-zA-Z])/g, '\\$$$1');
 
-  // Step 1: Replace any escaped dollar signs (\$) with a unique placeholder
-  // so the math stasher below doesn't mistake them for math delimiters.
-  // We use a control-char placeholder unlikely to appear in real text.
-  // After all processing, we restore them as literal "$" characters.
-  s = s.replace(/\\\$/g, '\u0004');
-
-  // Step 2: Stash ALL math first — both display and inline — before any processing
+  // Step 1: Stash ALL math first — both display and inline — before any processing.
+  // The math stasher only matches $...$ pairs, NOT \$ (which is now an escape).
   s = s
     .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
     .replace(/\$([^\$\n]+?)\$/g,    (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
-  // Step 3: Now safe to process text — math is fully protected in stash, escaped $ is placeheld
+  // Step 2: Now safe to process text — math is stashed, escaped $ is preserved as \$
   s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
@@ -3080,11 +3083,38 @@ function escapeAndFormat(text) {
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
 
-  // Step 4: Restore stashed math — untouched
-  s = s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+  // Step 3: Restore stashed math — untouched. \$ is still in the prose text.
+  return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+}
 
-  // Step 5: Restore escaped dollar placeholders as literal $ characters
-  return s.replace(/\u0004/g, '$');
+// After KaTeX has rendered, walk text nodes (skipping KaTeX-rendered subtrees)
+// and convert any literal "\$" to "$". KaTeX leaves "\$" intact in prose text
+// (it correctly recognized them as escapes and skipped pairing them as math).
+// We strip the backslash for visual cleanliness.
+function stripBackslashDollarsInProse(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue.includes('\\$')) return NodeFilter.FILTER_SKIP;
+      // Skip if node is inside a KaTeX-rendered element
+      let p = node.parentNode;
+      while (p && p !== root) {
+        if (p.classList && (
+          p.classList.contains('katex') ||
+          p.classList.contains('katex-display') ||
+          p.classList.contains('katex-mathml') ||
+          p.classList.contains('katex-html')
+        )) return NodeFilter.FILTER_REJECT;
+        p = p.parentNode;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const fixes = [];
+  let n;
+  while ((n = walker.nextNode())) fixes.push(n);
+  fixes.forEach(node => {
+    node.nodeValue = node.nodeValue.split('\\$').join('$');
+  });
 }
 
 function addTypingIndicator() {
