@@ -74,6 +74,32 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .topic-pill span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topic-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
+/* Hamburger button + topbar feedback icon — desktop hides, mobile reveals */
+.hamburger-btn, .topbar-feedback-btn {
+  display: none; /* desktop default */
+  width: 36px; height: 36px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--ink-2); transition: all 0.15s; padding: 0;
+}
+.hamburger-btn:hover, .topbar-feedback-btn:hover {
+  background: var(--paper-2); border-color: var(--paper-3); color: var(--ink);
+}
+.topbar-feedback-btn { color: var(--accent); }
+.topbar-feedback-btn:hover { color: var(--accent); border-color: rgba(196,96,42,0.3); background: rgba(196,96,42,0.06); }
+
+/* Mobile stats sub-row — desktop hides, mobile reveals */
+.mobile-stats-row { display: none; }
+
+/* Mobile sidebar backdrop — only shown when drawer is open */
+.mobile-sidebar-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 850;
+  background: rgba(26,24,20,0.55);
+  animation: fadeIn 0.2s ease;
+}
+.mobile-sidebar-backdrop.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 /* Graph panel */
 .graph-panel { background: var(--paper-2); border-bottom: 1px solid var(--paper-3); flex-shrink: 0; overflow: hidden; transition: height 0.3s ease; height: 0; }
 .graph-panel.open { height: 300px; }
@@ -689,6 +715,133 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .fb-submit:hover { background: var(--accent-2); }
 .fb-submit:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
 
+/* ── Image chooser popover (Camera or Upload) ── */
+.img-chooser-overlay {
+  display: none; position: fixed; inset: 0; z-index: 940;
+  background: rgba(26,24,20,0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.img-chooser-overlay.open { display: flex; }
+.img-chooser {
+  background: var(--paper); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 360px;
+  padding: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  animation: fbRise 0.18s ease;
+}
+.img-chooser-title {
+  font-family: var(--serif); font-size: 17px; color: var(--ink);
+  text-align: center; margin-bottom: 14px;
+}
+.img-chooser-options {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.img-chooser-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 16px 12px;
+  background: var(--paper-2); border: 1px solid var(--paper-3);
+  border-radius: 10px; cursor: pointer; transition: all 0.15s;
+  color: var(--ink-2); font-family: var(--sans);
+}
+.img-chooser-btn:hover {
+  border-color: var(--accent); background: rgba(196,96,42,0.05); color: var(--accent);
+}
+.img-chooser-btn-label { font-size: 13px; font-weight: 500; margin-top: 4px; }
+.img-chooser-btn-sub { font-size: 11px; color: var(--ink-3); }
+.img-chooser-btn:hover .img-chooser-btn-sub { color: var(--accent-2); }
+.img-chooser-cancel {
+  width: 100%; margin-top: 12px; padding: 9px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; color: var(--ink-3);
+  transition: color 0.15s;
+}
+.img-chooser-cancel:hover { color: var(--ink); }
+
+/* ── Webcam capture modal ── */
+.cam-overlay {
+  display: none; position: fixed; inset: 0; z-index: 945;
+  background: rgba(26,24,20,0.6);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.cam-overlay.open { display: flex; }
+.cam-modal {
+  background: #1a1814; border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 540px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  animation: calcRise 0.2s ease;
+}
+.cam-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #2e2a25;
+  background: #26221e; flex-shrink: 0;
+}
+.cam-title {
+  font-size: 11px; font-weight: 500; color: rgba(245,240,232,0.75);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.cam-close {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(245,240,232,0.5); transition: all 0.15s;
+}
+.cam-close:hover { background: rgba(255,255,255,0.08); color: #f5f0e8; }
+.cam-body {
+  flex: 1; min-height: 0; position: relative;
+  background: #0a0a08;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; min-height: 280px;
+}
+.cam-stream, .cam-preview {
+  display: block; max-width: 100%; max-height: 100%;
+  width: auto; height: auto;
+}
+.cam-error {
+  padding: 24px; color: #fca5a5; text-align: center;
+  font-size: 13px; line-height: 1.6;
+}
+.cam-footer {
+  background: #26221e; padding: 14px 16px;
+  flex-shrink: 0; border-top: 1px solid #2e2a25;
+}
+.cam-footer-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.cam-cancel, .cam-retake {
+  background: none; border: 1px solid rgba(245,240,232,0.25);
+  border-radius: 7px; padding: 8px 14px; cursor: pointer;
+  font-family: var(--sans); font-size: 12px;
+  color: rgba(245,240,232,0.7); transition: all 0.15s; min-width: 70px;
+}
+.cam-cancel:hover, .cam-retake:hover {
+  background: rgba(255,255,255,0.06); color: #f5f0e8; border-color: rgba(245,240,232,0.4);
+}
+.cam-capture {
+  background: none; border: none; cursor: pointer;
+  padding: 0; transition: transform 0.1s;
+  display: flex; align-items: center; justify-content: center;
+}
+.cam-capture:active { transform: scale(0.92); }
+.cam-capture-ring {
+  display: flex; align-items: center; justify-content: center;
+  width: 54px; height: 54px; border-radius: 50%;
+  border: 3px solid rgba(245,240,232,0.85);
+  background: transparent;
+}
+.cam-capture-dot {
+  width: 40px; height: 40px; border-radius: 50%; background: white;
+  transition: background 0.15s;
+}
+.cam-capture:hover .cam-capture-dot { background: var(--accent-2); }
+.cam-use {
+  background: var(--accent); border: none;
+  border-radius: 7px; padding: 9px 18px; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: white; transition: background 0.15s;
+}
+.cam-use:hover { background: var(--accent-2); }
+
 /* ── End session prompt (below input bar) ── */
 .end-session-prompt {
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -727,7 +880,42 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 /* ── Mobile (≤ 640px) ── */
 @media (max-width: 640px) {
   .app { grid-template-columns: 1fr; height: 100vh; height: 100dvh; }
-  .sidebar { display: none; }
+
+  /* Sidebar becomes a slide-in drawer (not hidden anymore) */
+  .sidebar {
+    display: flex; /* override default hide-on-mobile from earlier */
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 860;
+    width: 80%; max-width: 300px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 6px 0 24px rgba(0,0,0,0);
+    padding-top: max(24px, calc(env(safe-area-inset-top) + 18px));
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 6px 0 24px rgba(0,0,0,0.35);
+  }
+
+  /* Reveal hamburger + topbar feedback button */
+  .hamburger-btn, .topbar-feedback-btn { display: flex; }
+
+  /* Reveal mobile stats sub-row below topbar */
+  .mobile-stats-row {
+    display: flex; align-items: center; justify-content: center; gap: 18px;
+    padding: 6px 12px; flex-shrink: 0;
+    border-bottom: 1px solid var(--paper-3);
+    background: var(--paper);
+  }
+  .mobile-stats-item {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .mobile-stats-value {
+    font-family: var(--serif); font-size: 13px; font-weight: 600;
+    color: var(--accent);
+  }
+  .mobile-stats-label { color: var(--ink-3); }
+
   .main { height: 100vh; height: 100dvh; }
 
   /* Topbar — compact, never clips */
@@ -813,8 +1001,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 <body>
 <div class="app">
 
+  <!-- Mobile sidebar backdrop (only visible when sidebar is open on mobile) -->
+  <div class="mobile-sidebar-backdrop" id="mobile-sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
   <!-- ── Sidebar ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div>
       <div class="kay-name">Kay</div>
       <div class="kay-title">Mathematics Tutor</div>
@@ -867,9 +1058,29 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 
     <!-- Topbar -->
     <div class="topbar">
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Open menu">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="topic-pill">
         <div class="topic-dot"></div>
         <span id="topic-label">Ready to learn</span>
+      </div>
+      <button class="topbar-feedback-btn" onclick="openFeedback()" aria-label="Send feedback" title="Send feedback">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>
+
+    <!-- Mobile-only stats sub-row (sits just below topbar) -->
+    <div class="mobile-stats-row" id="mobile-stats-row">
+      <div class="mobile-stats-item">
+        <span>💬</span>
+        <span id="mobile-stat-questions" class="mobile-stats-value">—</span>
+        <span class="mobile-stats-label">questions</span>
+      </div>
+      <div class="mobile-stats-item">
+        <span>🌍</span>
+        <span id="mobile-stat-students" class="mobile-stats-value">—</span>
+        <span class="mobile-stats-label">students</span>
       </div>
     </div>
 
@@ -945,8 +1156,8 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
             </button>
             <!-- Hidden file input — no capture attr so user can choose camera OR gallery -->
             <input type="file" id="img-file-input" accept="image/*" style="display:none" onchange="handleImageFile(event)">
-            <!-- Image attach button -->
-            <button class="img-btn" id="img-btn" onclick="document.getElementById('img-file-input').click()" title="Attach a photo">
+            <!-- Image attach button — opens chooser modal: Camera or Upload -->
+            <button class="img-btn" id="img-btn" onclick="openImageChooser()" title="Attach a photo">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -1052,6 +1263,58 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div class="fb-footer">
       <span class="fb-status" id="fb-status"></span>
       <button class="fb-submit" id="fb-submit" onclick="submitFeedback()">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image chooser popover (opens when student taps the photo icon) -->
+<div class="img-chooser-overlay" id="img-chooser-overlay" onclick="if(event.target===this) closeImageChooser()">
+  <div class="img-chooser" role="dialog" aria-label="Add a photo">
+    <div class="img-chooser-title">Add a photo</div>
+    <div class="img-chooser-options">
+      <button class="img-chooser-btn" onclick="chooseCamera()" id="img-chooser-camera">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="img-chooser-btn-label">Use camera</div>
+        <div class="img-chooser-btn-sub">Take a photo of your work</div>
+      </button>
+      <button class="img-chooser-btn" onclick="chooseUpload()">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="img-chooser-btn-label">Upload a file</div>
+        <div class="img-chooser-btn-sub">Choose from your device</div>
+      </button>
+    </div>
+    <button class="img-chooser-cancel" onclick="closeImageChooser()">Cancel</button>
+  </div>
+</div>
+
+<!-- Webcam capture modal -->
+<div class="cam-overlay" id="cam-overlay" onclick="if(event.target===this) closeCamera()">
+  <div class="cam-modal" role="dialog" aria-label="Capture photo from camera">
+    <div class="cam-header">
+      <span class="cam-title">Take a photo</span>
+      <button class="cam-close" onclick="closeCamera()" title="Close" aria-label="Close camera">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="cam-body">
+      <video id="cam-video" class="cam-stream" autoplay playsinline muted></video>
+      <canvas id="cam-canvas" class="cam-preview" style="display:none"></canvas>
+      <div id="cam-error" class="cam-error" style="display:none"></div>
+    </div>
+    <div class="cam-footer">
+      <!-- Footer shown while live (before capture) -->
+      <div id="cam-footer-live" class="cam-footer-row">
+        <button class="cam-cancel" onclick="closeCamera()">Cancel</button>
+        <button class="cam-capture" onclick="captureFrame()" id="cam-capture-btn">
+          <span class="cam-capture-ring"><span class="cam-capture-dot"></span></span>
+        </button>
+        <div style="width:70px"></div>
+      </div>
+      <!-- Footer shown after capture (review state) -->
+      <div id="cam-footer-review" class="cam-footer-row" style="display:none">
+        <button class="cam-retake" onclick="retakeCapture()">↻ Retake</button>
+        <button class="cam-use" onclick="usePhoto()">Use this photo</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1275,6 +1538,138 @@ function clearImage() {
   document.getElementById('msg-input').placeholder = 'Ask Kay a question, share your working, or describe where you\'re stuck…';
 }
 
+// ── Image chooser (Camera or Upload popover) ──────────────────────────────────
+function openImageChooser() {
+  // If camera is unavailable in this browser, skip the chooser and open file picker directly
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    document.getElementById('img-file-input').click();
+    return;
+  }
+  document.getElementById('img-chooser-overlay').classList.add('open');
+}
+function closeImageChooser() {
+  document.getElementById('img-chooser-overlay').classList.remove('open');
+}
+function chooseUpload() {
+  closeImageChooser();
+  document.getElementById('img-file-input').click();
+}
+function chooseCamera() {
+  closeImageChooser();
+  openCamera();
+}
+
+// ── Webcam capture ────────────────────────────────────────────────────────────
+let camStream = null;
+let camCapturedDataURL = null;
+
+async function openCamera() {
+  const overlay = document.getElementById('cam-overlay');
+  const video = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  const errorEl = document.getElementById('cam-error');
+  const footerLive = document.getElementById('cam-footer-live');
+  const footerReview = document.getElementById('cam-footer-review');
+
+  // Reset modal to fresh state
+  video.style.display = 'block';
+  canvas.style.display = 'none';
+  errorEl.style.display = 'none';
+  footerLive.style.display = 'flex';
+  footerReview.style.display = 'none';
+  camCapturedDataURL = null;
+
+  overlay.classList.add('open');
+
+  try {
+    // Request the rear camera if available (better for capturing paper/work),
+    // fall back to whatever camera the device offers.
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1600 }, height: { ideal: 1200 } },
+      audio: false,
+    });
+    video.srcObject = camStream;
+  } catch (err) {
+    console.error('Camera access failed:', err);
+    video.style.display = 'none';
+    errorEl.style.display = 'block';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      errorEl.textContent = 'Camera access was denied. To allow it, click the 🔒 lock icon in your browser address bar, set Camera to Allow, then try again.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      errorEl.textContent = 'No camera was found on this device. Try uploading a photo instead.';
+    } else {
+      errorEl.textContent = 'Could not access the camera. Please check browser permissions.';
+    }
+  }
+}
+
+function closeCamera() {
+  document.getElementById('cam-overlay').classList.remove('open');
+  // Always release the camera stream so the indicator light turns off
+  if (camStream) {
+    camStream.getTracks().forEach(t => t.stop());
+    camStream = null;
+  }
+  document.getElementById('cam-video').srcObject = null;
+  camCapturedDataURL = null;
+}
+
+function captureFrame() {
+  const video = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  if (!video.videoWidth || !video.videoHeight) {
+    showAlert('Camera is still warming up. Try again in a moment.', 'info', 2500);
+    return;
+  }
+  // Snapshot current frame to canvas at native resolution
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Compress same way as uploaded files (max 1600px, JPEG quality 0.82)
+  let { width, height } = canvas;
+  const maxPx = 1600;
+  if (width > maxPx || height > maxPx) {
+    if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+    else { width = Math.round(width * maxPx / height); height = maxPx; }
+    const scaled = document.createElement('canvas');
+    scaled.width = width; scaled.height = height;
+    scaled.getContext('2d').drawImage(canvas, 0, 0, width, height);
+    camCapturedDataURL = scaled.toDataURL('image/jpeg', 0.82);
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(scaled, 0, 0);
+  } else {
+    camCapturedDataURL = canvas.toDataURL('image/jpeg', 0.82);
+  }
+
+  // Switch UI to review state — show captured frame, swap footer
+  document.getElementById('cam-video').style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('cam-footer-live').style.display = 'none';
+  document.getElementById('cam-footer-review').style.display = 'flex';
+}
+
+function retakeCapture() {
+  // Discard captured frame, return to live view
+  camCapturedDataURL = null;
+  document.getElementById('cam-canvas').style.display = 'none';
+  document.getElementById('cam-video').style.display = 'block';
+  document.getElementById('cam-footer-live').style.display = 'flex';
+  document.getElementById('cam-footer-review').style.display = 'none';
+}
+
+function usePhoto() {
+  if (!camCapturedDataURL) return;
+  // Feed into the same pipeline as uploaded images
+  const [, base64] = camCapturedDataURL.split(',');
+  pendingImageBase64 = base64;
+  pendingImageDataURL = camCapturedDataURL;
+  pendingImageMediaType = 'image/jpeg';
+  showImagePreview(camCapturedDataURL);
+  closeCamera();
+}
+
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('open');
@@ -1305,15 +1700,28 @@ function parseDisplayCount(str) {
 async function fetchStats() {
   const qEl = document.getElementById('stat-questions');
   const sEl = document.getElementById('stat-students');
+  const mqEl = document.getElementById('mobile-stat-questions');
+  const msEl = document.getElementById('mobile-stat-students');
+  // Helper to update both desktop and mobile in one go
+  const setQuestions = (val) => {
+    const formatted = formatCount(val);
+    if (qEl) qEl.textContent = formatted;
+    if (mqEl) mqEl.textContent = formatted;
+  };
+  const setStudents = (val) => {
+    const formatted = formatCount(val);
+    if (sEl) sEl.textContent = formatted;
+    if (msEl) msEl.textContent = formatted;
+  };
   // Show seed values immediately as fallback
-  if (qEl && qEl.textContent === '—') qEl.textContent = formatCount(2743);
-  if (sEl && sEl.textContent === '—') sEl.textContent = formatCount(126);
+  if (qEl && qEl.textContent === '—') setQuestions(2743);
+  if (sEl && sEl.textContent === '—') setStudents(126);
   try {
     const res = await fetch(BACKEND_URL + '/stats', { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return;
     const data = await res.json();
-    if (qEl && data.questionsAnswered > 0) qEl.textContent = formatCount(data.questionsAnswered);
-    if (sEl && data.studentsServed > 0) sEl.textContent = formatCount(data.studentsServed);
+    if (data.questionsAnswered > 0) setQuestions(data.questionsAnswered);
+    if (data.studentsServed > 0) setStudents(data.studentsServed);
   } catch(e) {
     // Backend may be waking up — retry once after 5 seconds
     setTimeout(async () => {
@@ -1321,8 +1729,8 @@ async function fetchStats() {
         const res = await fetch(BACKEND_URL + '/stats', { signal: AbortSignal.timeout(8000) });
         if (!res.ok) return;
         const data = await res.json();
-        if (qEl && data.questionsAnswered > 0) qEl.textContent = formatCount(data.questionsAnswered);
-        if (sEl && data.studentsServed > 0) sEl.textContent = formatCount(data.studentsServed);
+        if (data.questionsAnswered > 0) setQuestions(data.questionsAnswered);
+        if (data.studentsServed > 0) setStudents(data.studentsServed);
       } catch(e2) {}
     }, 5000);
   }
@@ -1335,12 +1743,35 @@ async function pingQuestion() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: SESSION_ID })
     });
-    // Optimistically increment displayed count using safe parser
+    // Optimistically increment displayed count (both desktop and mobile)
     const qEl = document.getElementById('stat-questions');
+    const mqEl = document.getElementById('mobile-stat-questions');
     if (qEl && qEl.textContent !== '—') {
-      qEl.textContent = formatCount(parseDisplayCount(qEl.textContent) + 1);
+      const next = formatCount(parseDisplayCount(qEl.textContent) + 1);
+      qEl.textContent = next;
+      if (mqEl) mqEl.textContent = next;
     }
   } catch(e) {}
+}
+
+// ── Mobile sidebar drawer toggle ──────────────────────────────────────────────
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('mobile-sidebar-backdrop');
+  if (sidebar.classList.contains('open')) {
+    closeMobileSidebar();
+  } else {
+    sidebar.classList.add('open');
+    backdrop.classList.add('visible');
+  }
+}
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mobile-sidebar-backdrop').classList.remove('visible');
+}
+// Close drawer when a session is selected (so the chat is visible after picking)
+function autoCloseSidebarOnMobile() {
+  if (window.innerWidth <= 640) closeMobileSidebar();
 }
 const MASTERY_KEY = 'kay_mastery';
 
@@ -1771,6 +2202,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (calcOpen) closeCalculator();
     if (document.getElementById('fb-overlay')?.classList.contains('open')) closeFeedback();
+    if (document.getElementById('cam-overlay')?.classList.contains('open')) closeCamera();
+    if (document.getElementById('img-chooser-overlay')?.classList.contains('open')) closeImageChooser();
+    if (document.getElementById('sidebar')?.classList.contains('open')) closeMobileSidebar();
     closeQuickMenu();
   }
 });
@@ -2445,6 +2879,7 @@ function newSession() {
   renderSessions();
   document.getElementById('topic-label').textContent = 'Ready to learn';
   document.getElementById('end-session-btn').disabled = false;
+  autoCloseSidebarOnMobile();
 }
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
@@ -2462,6 +2897,7 @@ function loadSession(id) {
   currentSessionId = id; messages = [...s.messages]; renderMessages(); renderSessions();
   const firstUser = messages.find(m => m.role === 'user');
   document.getElementById('topic-label').textContent = firstUser ? firstUser.content.slice(0,40)+'…' : 'Session';
+  autoCloseSidebarOnMobile();
 }
 function renderSessions() {
   document.getElementById('sessions-list').innerHTML = sessions.map(s =>
