@@ -165,8 +165,10 @@ app.post('/chat', async (req, res) => {
     ? SYSTEM_PROMPT + END_SESSION_ADDITION
     : SYSTEM_PROMPT;
 
-  // Use more tokens for end session responses (achievements block needs space)
-  const maxTokens = inEndSession ? 2000 : 1500;
+  // Use more tokens for end session responses (achievements block needs space).
+  // Standard responses get 3000 to give multi-diagram responses room to complete
+  // without being truncated mid-SVG (which causes diagram code to dump as raw text).
+  const maxTokens = inEndSession ? 2500 : 3000;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
