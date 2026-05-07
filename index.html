@@ -121,6 +121,9 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   align-items: start;
 }
 .msg-with-graph .msg-text-col { min-width: 0; }
+.msg-with-graph .msg-diagram-col {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
 .inline-graph-wrap {
   border: 1px solid var(--paper-3);
   border-radius: 10px; overflow: hidden;
@@ -165,6 +168,23 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: flex; flex-direction: column; gap: 12px; margin-top: 12px;
 }
 .multi-diagram-stack .inline-graph-wrap { width: 100%; }
+
+/* Interleaved layout for 3+ diagram responses: text → diagram → text → diagram, etc.
+   Each text segment flows naturally into the diagram that follows it. */
+.msg-interleaved {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.msg-interleaved .inline-graph-wrap {
+  width: 100%; max-width: 480px;
+  margin: 0 auto;
+}
+.msg-segment-text {
+  /* matches default msg-bubble paragraph styling so prose blends in */
+  line-height: 1.6;
+}
+.msg-segment-text:not(:first-child) {
+  margin-top: 4px;
+}
 .eq-forms-header { display: flex; border-bottom: 1px solid var(--paper-3); }
 .eq-form-tab { flex: 1; padding: 7px 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); background: none; border: none; border-right: 1px solid var(--paper-3); cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
 .eq-form-tab:last-child { border-right: none; }
@@ -2074,13 +2094,52 @@ function parseKayResponse(text) {
     console.warn('Diagram block detected but regex failed to match. Raw text:', text);
   }
 
+  // For multi-diagram responses: build interleaved segments of prose and diagrams,
+  // preserving original document order so each diagram renders next to its context.
+  // textSegments is only used when there are 3+ diagrams (renderer falls back to
+  // side-by-side for 1-2 diagrams). Each segment is { type: 'text'|'diagram', content }.
+  let textSegments = null;
+  if (diagramsList.length >= 3) {
+    textSegments = [];
+    const splitRegex = /```(?:diagram|svg|html)\s*\n([\s\S]*?)\n\s*```/g;
+    let lastIdx = 0;
+    let diagramIdx = 0;
+    let m;
+    while ((m = splitRegex.exec(text)) !== null) {
+      // Push the prose chunk before this diagram (if any)
+      const prose = text.slice(lastIdx, m.index).trim();
+      if (prose) textSegments.push({ type: 'text', content: prose });
+      // Push the diagram itself (already parsed into diagramsList in order)
+      if (diagramsList[diagramIdx]) {
+        textSegments.push({ type: 'diagram', content: diagramsList[diagramIdx] });
+      }
+      diagramIdx++;
+      lastIdx = m.index + m[0].length;
+    }
+    // Push any trailing prose after the last diagram
+    const tail = text.slice(lastIdx).trim();
+    if (tail) textSegments.push({ type: 'text', content: tail });
+    // Remove any other code-fence blocks (graph/forms/quiz/achievements) from text segments
+    // since those are rendered separately
+    textSegments = textSegments.map(seg => {
+      if (seg.type !== 'text') return seg;
+      let cleaned = seg.content
+        .replace(/```graph[ \t]*\r?\n[\s\S]*?```/g, '')
+        .replace(/```forms[ \t]*\r?\n[\s\S]*?```/g, '')
+        .replace(/```achievements[ \t]*\r?\n[\s\S]*?```/g, '')
+        .replace(/```quiz[ \t]*\r?\n[\s\S]*?```/g, '')
+        .trim();
+      return { type: 'text', content: cleaned };
+    }).filter(seg => seg.type !== 'text' || seg.content.length > 0);
+  }
+
   const quizMatch = text.match(/```quiz[ \t]*\r?\n([\s\S]*?)```/);
   if (quizMatch) {
     try { quizData = JSON.parse(quizMatch[1].trim()); } catch(e) {}
     cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, quizData };
+  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData };
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
@@ -2228,8 +2287,8 @@ function messageHTML(m, idx) {
     }
 
     if (parsed.diagramsList && parsed.diagramsList.length > 0) {
-      // Build HTML for ALL diagrams (handles multi-diagram responses)
-      const allDiagramsHTML = parsed.diagramsList.map(({ svg, caption }) => `<div class="inline-graph-wrap">
+      // Reusable function to wrap a single SVG in the standard diagram container
+      const wrapDiagram = ({ svg, caption }) => `<div class="inline-graph-wrap">
         <div class="inline-graph-header">
           <span class="inline-graph-title">📐 Diagram</span>
         </div>
@@ -2237,18 +2296,25 @@ function messageHTML(m, idx) {
           ${svg}
           ${caption ? `<div class="inline-diagram-caption">${caption}</div>` : ''}
         </div>
-      </div>`).join('');
+      </div>`;
 
       // Only fall back to extraHTML if THIS message also has a graph (rare)
       if (parsed.graphData) {
         extraHTML += parsed.diagramsList.map(({ svg, caption }) =>
           `<div class="inline-diagram">${svg}${caption ? `<div class="inline-diagram-caption">${caption}</div>` : ''}</div>`
         ).join('');
+      } else if (parsed.diagramsList.length <= 2 || !parsed.textSegments) {
+        // 1-2 diagrams: side-by-side with the full message text (current elegant layout)
+        const allDiagramsHTML = parsed.diagramsList.map(wrapDiagram).join('');
+        bubbleContent = `<div class="msg-with-graph"><div class="msg-text-col">${bubbleContent}</div><div class="msg-diagram-col">${allDiagramsHTML}</div></div>`;
       } else {
-        // Place side-by-side with text (single diagram) or stacked below text (multiple)
-        bubbleContent = parsed.diagramsList.length === 1
-          ? `<div class="msg-with-graph"><div class="msg-text-col">${bubbleContent}</div>${allDiagramsHTML}</div>`
-          : `${bubbleContent}<div class="multi-diagram-stack">${allDiagramsHTML}</div>`;
+        // 3+ diagrams: interleave each diagram with the text segment that introduces it
+        const segmentsHTML = parsed.textSegments.map(seg => {
+          if (seg.type === 'diagram') return wrapDiagram(seg.content);
+          // Render text segment with the same formatting as the main bubble
+          return `<div class="msg-segment-text">${escapeAndFormat(seg.content)}</div>`;
+        }).join('');
+        bubbleContent = `<div class="msg-interleaved">${segmentsHTML}</div>`;
       }
     }
 
