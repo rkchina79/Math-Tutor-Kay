@@ -2045,8 +2045,8 @@ function parseKayResponse(text) {
   }
 
   // diagram block — catches ```diagram, ```svg, or ```html containing SVG
-  // Tolerant of trailing spaces and \r\n line endings (common LLM output variations)
-  const diagramMatch = text.match(/```(?:diagram|svg|html)[ \t]*\r?\n([\s\S]*?)```/);
+  // Highly tolerant of whitespace variations (LLM output can be inconsistent)
+  const diagramMatch = text.match(/```(?:diagram|svg|html)\s*\n([\s\S]*?)\n\s*```/);
   if (diagramMatch) {
     try {
       const raw = diagramMatch[1].trim();
@@ -2058,8 +2058,11 @@ function parseKayResponse(text) {
         svg = lines.slice(1).join('\n').trim();
       }
       diagramData = { svg, caption };
-    } catch(e) {}
-    cleanText = cleanText.replace(/```(?:diagram|svg|html)[ \t]*\r?\n[\s\S]*?```/, '').trim();
+    } catch(e) { console.warn('Diagram parse failed:', e); }
+    cleanText = cleanText.replace(/```(?:diagram|svg|html)\s*\n[\s\S]*?\n\s*```/, '').trim();
+  } else if (text.includes('```diagram') || text.includes('<svg')) {
+    // Diagnostic: log when there's a diagram-shaped block but our regex didn't match
+    console.warn('Diagram block detected but regex failed to match. Raw text:', text);
   }
 
   const quizMatch = text.match(/```quiz[ \t]*\r?\n([\s\S]*?)```/);
