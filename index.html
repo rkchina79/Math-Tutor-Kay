@@ -2414,7 +2414,7 @@ document.addEventListener('keydown', (e) => {
 
 // ── Quiz state ────────────────────────────────────────────────────────────────
 // Tracks answers per quiz instance (keyed by message index)
-const quizAnswers = {};
+let quizAnswers = {};
 
 function renderQuizBlock(quizData, msgIdx) {
   const questions = quizData.questions || [];
@@ -2447,7 +2447,7 @@ function renderQuizBlock(quizData, msgIdx) {
 
 function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
   // Find the quiz data from the message
-  const msg = messages.find((m, i) => i === msgIdx);
+  const msg = messages[msgIdx];
   if (!msg || !msg._quizData) return;
   const q = msg._quizData.questions[qi];
   if (!q) return;
@@ -2534,18 +2534,47 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 
 // ── Practice mode (SAT/ACT) — single MCQ card with one-click locking ──────────
 // Track which practice cards have been answered (msgIdx → selected option index)
-const practiceAnswers = {};
+let practiceAnswers = {};
 
 function renderPracticeCard(p, msgIdx) {
   if (!p || !Array.isArray(p.options)) return '';
   const letters = ['A', 'B', 'C', 'D'];
+  // Check if this card was already answered in a prior render — if so, render
+  // it in its locked state (disabled buttons, correct/incorrect highlight,
+  // and the inline feedback message). This handles re-renders triggered when
+  // Kay's next response arrives and renderMessages rebuilds the whole DOM.
+  const priorAnswer = practiceAnswers[msgIdx];
+  const wasAnswered = priorAnswer !== undefined;
+  const wasCorrect = wasAnswered && (priorAnswer === p.correct);
+
   const optsHTML = p.options.map((opt, oi) => {
     const letter = letters[oi] || String(oi + 1);
-    return `<button class="practice-option" id="popt-${msgIdx}-${oi}" onclick="handlePracticeAnswer(${msgIdx}, ${oi}, ${p.correct})">
+    let stateClass = '';
+    if (wasAnswered) {
+      if (oi === priorAnswer) stateClass = wasCorrect ? ' correct' : ' incorrect';
+      else if (oi === p.correct && !wasCorrect) stateClass = ' reveal-correct';
+    }
+    const disabledAttr = wasAnswered ? 'disabled' : '';
+    return `<button class="practice-option${stateClass}" id="popt-${msgIdx}-${oi}" ${disabledAttr} onclick="handlePracticeAnswer(${msgIdx}, ${oi}, ${p.correct})">
       <span class="practice-option-letter">${letter}</span>
       <span class="practice-option-text">${escapeAndFormat(String(opt))}</span>
     </button>`;
   }).join('');
+
+  // Pre-render feedback if already answered
+  let feedbackHTML = '';
+  if (wasAnswered) {
+    const feedbackInner = wasCorrect
+      ? `<div class="practice-feedback-correct">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Correct!</span>
+        </div>`
+      : `<div class="practice-feedback-wrong">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>Not quite — the correct answer is ${letters[p.correct]}.</span>
+        </div>`;
+    feedbackHTML = feedbackInner;
+  }
 
   return `<div class="practice-card" id="practice-${msgIdx}">
     <div class="practice-header">
@@ -2554,7 +2583,7 @@ function renderPracticeCard(p, msgIdx) {
     </div>
     <div class="practice-question">${escapeAndFormat(p.question || '')}</div>
     <div class="practice-options">${optsHTML}</div>
-    <div class="practice-feedback" id="pfeedback-${msgIdx}"></div>
+    <div class="practice-feedback${wasAnswered ? ' visible' : ''}" id="pfeedback-${msgIdx}">${feedbackHTML}</div>
   </div>`;
 }
 
@@ -2563,7 +2592,7 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
   if (practiceAnswers[msgIdx] !== undefined) return;
   practiceAnswers[msgIdx] = selectedOi;
 
-  const msg = messages.find((m, i) => i === msgIdx);
+  const msg = messages[msgIdx];
   if (!msg || !msg._practiceData) return;
   const p = msg._practiceData;
   const isCorrect = selectedOi === correctOi;
@@ -2603,8 +2632,6 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
         delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
         throwOnError: false
       });
-      // Strip leftover \$ → $ in any non-KaTeX text nodes
-      if (typeof unescapeLiteralDollars === 'function') unescapeLiteralDollars(feedback);
     }
   }
 
@@ -2746,10 +2773,6 @@ function renderMessages() {
       ],
       throwOnError: false,
     });
-    // Post-KaTeX cleanup: convert any remaining literal "\$" in text nodes to "$".
-    // KaTeX skips "\$" as a math delimiter (correct), but leaves the backslash visible
-    // in the output. We sweep all non-KaTeX text nodes and clean it up.
-    unescapeLiteralDollars(el);
   });
   container.querySelectorAll('.eq-forms').forEach(el => {
     const tabs = el.querySelectorAll('.eq-form-tab');
@@ -2761,39 +2784,10 @@ function renderMessages() {
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
         renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
-        unescapeLiteralDollars(body);
       });
     });
   });
   container.scrollTop = container.scrollHeight;
-}
-
-// Walk all descendant text nodes of root and replace "\$" with "$".
-// Skip KaTeX-rendered subtrees (.katex, .katex-display, .katex-mathml) since
-// they may legitimately contain backslashes that aren't display escapes.
-function unescapeLiteralDollars(root) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      // Skip if any ancestor is a KaTeX-rendered element
-      let p = node.parentNode;
-      while (p && p !== root) {
-        if (p.classList && (p.classList.contains('katex') ||
-            p.classList.contains('katex-display') ||
-            p.classList.contains('katex-mathml') ||
-            p.classList.contains('katex-html'))) {
-          return NodeFilter.FILTER_REJECT;
-        }
-        p = p.parentNode;
-      }
-      return node.nodeValue.includes('\\$') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-    }
-  });
-  const nodesToFix = [];
-  let n;
-  while ((n = walker.nextNode())) nodesToFix.push(n);
-  nodesToFix.forEach(node => {
-    node.nodeValue = node.nodeValue.replace(/\\\$/g, '$');
-  });
 }
 
 function classifyMessage(text, msgIdx) {
@@ -3053,12 +3047,18 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
-  // Stash ALL math first — both display and inline — before any processing
-  let s = text
+  // Step 1: Replace any escaped dollar signs (\$) with a unique placeholder
+  // so the math stasher below doesn't mistake them for math delimiters.
+  // We use a control-char placeholder unlikely to appear in real text.
+  // After all processing, we restore them as literal "$" characters.
+  let s = text.replace(/\\\$/g, '\u0004');
+
+  // Step 2: Stash ALL math first — both display and inline — before any processing
+  s = s
     .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
     .replace(/\$([^\$\n]+?)\$/g,    (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
-  // Now safe to process text — math is fully protected in stash
+  // Step 3: Now safe to process text — math is fully protected in stash, escaped $ is placeheld
   s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
@@ -3072,8 +3072,11 @@ function escapeAndFormat(text) {
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
 
-  // Restore stashed math — untouched
-  return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+  // Step 4: Restore stashed math — untouched
+  s = s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+
+  // Step 5: Restore escaped dollar placeholders as literal $ characters
+  return s.replace(/\u0004/g, '$');
 }
 
 function addTypingIndicator() {
@@ -3230,7 +3233,9 @@ Generate 2-3 questions based on what was covered in this conversation. The quiz 
 function clearChat() {
   if (isListening) stopVoice();
   clearImage();
-  messages = []; currentSessionId = null; renderMessages();
+  messages = []; currentSessionId = null;
+  quizAnswers = {}; practiceAnswers = {};
+  renderMessages();
   document.getElementById('topic-label').textContent = 'Ready to learn';
   clearAlert();
 }
@@ -3241,6 +3246,7 @@ function newSession() {
   clearImage();
   currentSessionId = Date.now().toString();
   messages = [];
+  quizAnswers = {}; practiceAnswers = {};
   renderMessages();
   renderSessions();
   document.getElementById('topic-label').textContent = 'Ready to learn';
@@ -3260,7 +3266,9 @@ function saveCurrentSession() {
 function loadSession(id) {
   if (currentSessionId && messages.length > 0) saveCurrentSession();
   const s = sessions.find(s => s.id === id); if (!s) return;
-  currentSessionId = id; messages = [...s.messages]; renderMessages(); renderSessions();
+  currentSessionId = id; messages = [...s.messages];
+  quizAnswers = {}; practiceAnswers = {};
+  renderMessages(); renderSessions();
   const firstUser = messages.find(m => m.role === 'user');
   document.getElementById('topic-label').textContent = firstUser ? firstUser.content.slice(0,40)+'…' : 'Session';
   autoCloseSidebarOnMobile();
