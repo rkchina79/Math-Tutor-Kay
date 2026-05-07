@@ -75,7 +75,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .topic-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
 /* Hamburger button + topbar feedback button — desktop hides, mobile reveals */
-.hamburger-btn, .topbar-feedback-btn, .topbar-kay-mark {
+.hamburger-btn, .topbar-feedback-btn {
   display: none; /* desktop default */
 }
 .hamburger-btn {
@@ -87,23 +87,15 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .hamburger-btn:hover {
   background: var(--paper-2); border-color: var(--paper-3); color: var(--ink);
 }
-.topbar-kay-mark {
-  font-family: var(--serif); font-size: 20px; color: var(--ink);
-  letter-spacing: -0.3px; line-height: 1;
-  flex: 1; text-align: center;
-  white-space: nowrap; overflow: hidden;
-}
 .topbar-feedback-btn {
   align-items: center; gap: 6px;
-  padding: 7px 12px; border-radius: 7px;
-  background: rgba(196,96,42,0.08); border: 1px solid rgba(196,96,42,0.3);
+  padding: 7px 4px; border-radius: 7px;
+  background: transparent; border: none;
   cursor: pointer; flex-shrink: 0; color: var(--accent);
   font-family: var(--sans); font-size: 12px; font-weight: 500;
-  transition: all 0.15s;
+  transition: opacity 0.15s;
 }
-.topbar-feedback-btn:hover {
-  background: rgba(196,96,42,0.14); border-color: var(--accent);
-}
+.topbar-feedback-btn:hover { opacity: 0.7; }
 .topbar-feedback-label { white-space: nowrap; }
 
 /* Mobile stats sub-row — desktop hides, mobile reveals */
@@ -914,11 +906,10 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     box-shadow: 6px 0 24px rgba(0,0,0,0.35);
   }
 
-  /* Reveal hamburger + topbar Kay mark + topbar feedback button */
+  /* Reveal hamburger + topbar feedback button */
   .hamburger-btn { display: flex; }
-  .topbar-kay-mark { display: block; }
   .topbar-feedback-btn { display: inline-flex; }
-  /* Hide the desktop topic pill on mobile (replaced by Kay wordmark) */
+  /* Hide the desktop topic pill on mobile */
   .topic-pill { display: none; }
 
   /* On very narrow phones (<360px), drop the feedback label, keep just the icon */
@@ -1087,8 +1078,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileSidebar()" aria-label="Open menu">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <!-- Kay wordmark — only shows on mobile (desktop shows topic pill instead) -->
-      <div class="topbar-kay-mark" aria-hidden="true">Kay</div>
       <!-- Topic pill — only shows on desktop -->
       <div class="topic-pill">
         <div class="topic-dot"></div>
@@ -1136,7 +1125,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div id="messages" class="messages" style="display:none"></div>
     <div id="empty-state" class="empty-state">
       <div class="empty-name">Hello, I'm Kay.</div>
-      <div class="empty-sub">Your mathematics guide from counting to topology. What are we working through today?</div>
+      <div class="empty-sub">Today is a great day to learn something new!<br>Where shall we begin?</div>
       <div class="starter-grid">
         <button class="starter-card" onclick="sendStarter(this.innerText)">I'm stuck on a problem — can you help me work through it?</button>
         <button class="starter-card" onclick="sendStarter(this.innerText)">Can you explain what a derivative actually means?</button>
