@@ -160,6 +160,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .inline-graph-wrap svg {
   display: block; max-width: 100%; height: auto;
 }
+/* Stack multiple diagrams vertically below the message text */
+.multi-diagram-stack {
+  display: flex; flex-direction: column; gap: 12px; margin-top: 12px;
+}
+.multi-diagram-stack .inline-graph-wrap { width: 100%; }
 .eq-forms-header { display: flex; border-bottom: 1px solid var(--paper-3); }
 .eq-form-tab { flex: 1; padding: 7px 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); background: none; border: none; border-right: 1px solid var(--paper-3); cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
 .eq-form-tab:last-child { border-right: none; }
@@ -2023,6 +2028,7 @@ function parseKayResponse(text) {
   let formsData = null;
   let achievementsData = null;
   let diagramData = null;
+  let diagramsList = [];
   let quizData = null;
   let cleanText = text;
 
@@ -2044,12 +2050,13 @@ function parseKayResponse(text) {
     cleanText = cleanText.replace(/```achievements[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  // diagram block — catches ```diagram, ```svg, or ```html containing SVG
-  // Highly tolerant of whitespace variations (LLM output can be inconsistent)
-  const diagramMatch = text.match(/```(?:diagram|svg|html)\s*\n([\s\S]*?)\n\s*```/);
-  if (diagramMatch) {
+  // diagram blocks — catches ```diagram, ```svg, or ```html containing SVG
+  // Collect ALL diagrams (not just the first) so multi-diagram responses render correctly
+  const diagramRegex = /```(?:diagram|svg|html)\s*\n([\s\S]*?)\n\s*```/g;
+  let dMatch;
+  while ((dMatch = diagramRegex.exec(text)) !== null) {
     try {
-      const raw = diagramMatch[1].trim();
+      const raw = dMatch[1].trim();
       const lines = raw.split(/\r?\n/);
       let caption = '';
       let svg = raw;
@@ -2057,11 +2064,13 @@ function parseKayResponse(text) {
         caption = lines[0].replace(/^caption:\s*/i, '');
         svg = lines.slice(1).join('\n').trim();
       }
-      diagramData = { svg, caption };
+      diagramsList.push({ svg, caption });
     } catch(e) { console.warn('Diagram parse failed:', e); }
-    cleanText = cleanText.replace(/```(?:diagram|svg|html)\s*\n[\s\S]*?\n\s*```/, '').trim();
+  }
+  if (diagramsList.length > 0) {
+    diagramData = diagramsList[0]; // back-compat: first diagram available as diagramData
+    cleanText = cleanText.replace(/```(?:diagram|svg|html)\s*\n[\s\S]*?\n\s*```/g, '').trim();
   } else if (text.includes('```diagram') || text.includes('<svg')) {
-    // Diagnostic: log when there's a diagram-shaped block but our regex didn't match
     console.warn('Diagram block detected but regex failed to match. Raw text:', text);
   }
 
@@ -2071,7 +2080,7 @@ function parseKayResponse(text) {
     cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  return { cleanText, graphData, formsData, achievementsData, diagramData, quizData };
+  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, quizData };
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
@@ -2218,9 +2227,9 @@ function messageHTML(m, idx) {
       }
     }
 
-    if (parsed.diagramData) {
-      const { svg, caption } = parsed.diagramData;
-      const diagramHTML = `<div class="inline-graph-wrap">
+    if (parsed.diagramsList && parsed.diagramsList.length > 0) {
+      // Build HTML for ALL diagrams (handles multi-diagram responses)
+      const allDiagramsHTML = parsed.diagramsList.map(({ svg, caption }) => `<div class="inline-graph-wrap">
         <div class="inline-graph-header">
           <span class="inline-graph-title">📐 Diagram</span>
         </div>
@@ -2228,13 +2237,18 @@ function messageHTML(m, idx) {
           ${svg}
           ${caption ? `<div class="inline-diagram-caption">${caption}</div>` : ''}
         </div>
-      </div>`;
+      </div>`).join('');
+
       // Only fall back to extraHTML if THIS message also has a graph (rare)
       if (parsed.graphData) {
-        extraHTML += `<div class="inline-diagram">${svg}${caption ? `<div class="inline-diagram-caption">${caption}</div>` : ''}</div>`;
+        extraHTML += parsed.diagramsList.map(({ svg, caption }) =>
+          `<div class="inline-diagram">${svg}${caption ? `<div class="inline-diagram-caption">${caption}</div>` : ''}</div>`
+        ).join('');
       } else {
-        // Always place side-by-side with text
-        bubbleContent = `<div class="msg-with-graph"><div class="msg-text-col">${bubbleContent}</div>${diagramHTML}</div>`;
+        // Place side-by-side with text (single diagram) or stacked below text (multiple)
+        bubbleContent = parsed.diagramsList.length === 1
+          ? `<div class="msg-with-graph"><div class="msg-text-col">${bubbleContent}</div>${allDiagramsHTML}</div>`
+          : `${bubbleContent}<div class="multi-diagram-stack">${allDiagramsHTML}</div>`;
       }
     }
 
