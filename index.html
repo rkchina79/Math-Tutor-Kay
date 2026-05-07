@@ -3047,11 +3047,19 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
+  // Step 0: Auto-escape currency. Any "$" immediately followed by a digit is
+  // overwhelmingly currency, not math (math expressions use letters or operators
+  // after the opening "$"). The negative lookbehind (?<!\\) skips dollars
+  // that are already escaped, so we don't double-escape Kay's own \$ patterns.
+  // Converting "$5" to "\$5" here means we don't depend on the model remembering
+  // to escape it. The Step 1 pass below then handles all \$ uniformly.
+  let s = text.replace(/(?<!\\)\$(?=\d)/g, '\\$');
+
   // Step 1: Replace any escaped dollar signs (\$) with a unique placeholder
   // so the math stasher below doesn't mistake them for math delimiters.
   // We use a control-char placeholder unlikely to appear in real text.
   // After all processing, we restore them as literal "$" characters.
-  let s = text.replace(/\\\$/g, '\u0004');
+  s = s.replace(/\\\$/g, '\u0004');
 
   // Step 2: Stash ALL math first — both display and inline — before any processing
   s = s
