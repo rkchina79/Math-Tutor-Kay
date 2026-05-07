@@ -236,6 +236,87 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .starter-card { padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 9px; font-size: 12px; color: var(--ink-2); cursor: pointer; text-align: left; line-height: 1.4; transition: all 0.15s; font-family: var(--sans); }
 .starter-card:hover { border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04); }
 
+/* ── Session-type cards (home screen primary entry) ── */
+.session-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 760px; width: 100%;
+  margin-top: 18px;
+}
+.session-card {
+  position: relative;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 18px 16px 16px;
+  background: var(--paper-2); border: 1px solid var(--paper-3);
+  border-radius: 12px; cursor: pointer;
+  text-align: left; font-family: var(--sans);
+  transition: all 0.15s;
+  min-height: 150px;
+}
+.session-card:hover {
+  border-color: var(--accent);
+  background: rgba(196,96,42,0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(196,96,42,0.08);
+}
+.session-card-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--paper-3); color: var(--ink-2);
+  margin-bottom: 4px; transition: all 0.15s;
+}
+.session-card:hover .session-card-icon {
+  background: var(--accent); color: white;
+}
+.session-card-title {
+  font-size: 14px; font-weight: 500; color: var(--ink);
+  line-height: 1.3;
+}
+.session-card-desc {
+  font-size: 11.5px; color: var(--ink-3);
+  line-height: 1.5;
+}
+.session-card-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 10px;
+  background: var(--accent); color: white;
+}
+.session-card-badge-soon {
+  background: var(--paper-3); color: var(--ink-3);
+}
+.session-card-featured {
+  border-color: rgba(196,96,42,0.35);
+  background: rgba(196,96,42,0.03);
+}
+.session-card-disabled {
+  opacity: 0.65;
+}
+.session-card-disabled:hover {
+  transform: none; box-shadow: none;
+  border-color: var(--paper-3);
+  background: var(--paper-2);
+}
+.session-card-disabled:hover .session-card-icon {
+  background: var(--paper-3); color: var(--ink-2);
+}
+
+/* "or jump straight in with" divider */
+.starter-divider {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; max-width: 480px; margin: 24px 0 4px;
+}
+.starter-divider::before,
+.starter-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--paper-3);
+}
+.starter-divider span {
+  font-size: 11px; color: var(--ink-3); font-style: italic;
+  white-space: nowrap;
+}
+
 /* ── Input area ── */
 .input-area { flex-shrink: 0; border-top: 1px solid var(--paper-3); }
 .input-bar { padding: 12px 22px 16px; }
@@ -977,6 +1058,22 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .starter-grid { grid-template-columns: 1fr 1fr; max-width: 100%; margin-top: 10px; gap: 6px; }
   .starter-card { font-size: 11.5px; padding: 10px 10px; }
 
+  /* Session cards: stack vertically on mobile, with compact horizontal layout per card */
+  .session-cards {
+    grid-template-columns: 1fr;
+    gap: 8px; margin-top: 14px;
+  }
+  .session-card {
+    min-height: auto; padding: 14px 14px 14px 14px; gap: 4px;
+  }
+  .session-card-icon {
+    width: 30px; height: 30px; margin-bottom: 2px;
+  }
+  .session-card-title { font-size: 13px; }
+  .session-card-desc { font-size: 11px; line-height: 1.45; }
+  .session-card-badge { top: 10px; right: 10px; font-size: 8px; padding: 2px 6px; }
+  .starter-divider { margin: 16px 0 4px; }
+
   /* Graph */
   .graph-panel.open { height: 220px; }
   .graph-sidebar { display: none; }
@@ -1108,6 +1205,36 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div id="empty-state" class="empty-state">
       <div class="empty-name">Hello, I'm Kay.</div>
       <div class="empty-sub">Today is a great day to learn something new!<br>Where shall we begin?</div>
+
+      <!-- Session-type cards (primary entry point) -->
+      <div class="session-cards">
+        <button class="session-card" onclick="startLearnMode()">
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="session-card-title">Understand a concept</div>
+          <div class="session-card-desc">Work through a math idea step by step with Kay's guided questions. Best for building real understanding.</div>
+        </button>
+        <button class="session-card session-card-featured" onclick="startPracticeMode()">
+          <div class="session-card-badge">Beta</div>
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+          </div>
+          <div class="session-card-title">Practice SAT / ACT problems</div>
+          <div class="session-card-desc">Drill problems at exam difficulty. Kay generates fresh questions, checks your work, and explains where you went wrong.</div>
+        </button>
+        <button class="session-card session-card-disabled" onclick="showComingSoon()">
+          <div class="session-card-badge session-card-badge-soon">Coming soon</div>
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="session-card-title">Take a timed mini-test</div>
+          <div class="session-card-desc">10 problems, exam-style, no hints. Get a score and a personalized review at the end.</div>
+        </button>
+      </div>
+
+      <!-- Secondary: classic open-ended starter prompts -->
+      <div class="starter-divider"><span>or jump straight in with</span></div>
       <div class="starter-grid">
         <button class="starter-card" onclick="sendStarter(this.innerText)">I'm stuck on a problem — can you help me work through it?</button>
         <button class="starter-card" onclick="sendStarter(this.innerText)">Can you explain what a derivative actually means?</button>
@@ -2796,15 +2923,17 @@ async function sendMessage(overrideText) {
   const msgImageDataURL = pendingImageDataURL;
   if (pendingImageBase64) clearImage();
 
-  const isEndSession = text.startsWith('[END_SESSION]') || text.startsWith('[QUIZ_RESULTS]');
+  const isControlMessage = text.startsWith('[END_SESSION]')
+    || text.startsWith('[QUIZ_RESULTS]')
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]');
 
   // Ping stats counter for every real student message
-  if (!isEndSession) pingQuestion();
+  if (!isControlMessage) pingQuestion();
 
   const userMsg = {
     role: 'user',
     content: text || '',
-    hidden: isEndSession, // flag to hide from display
+    hidden: isControlMessage, // flag to hide from display
     ...(msgImageBase64 ? { imageBase64: msgImageBase64, imageMediaType: msgImageMediaType, imageDataURL: msgImageDataURL } : {})
   };
   messages.push(userMsg);
@@ -2837,6 +2966,28 @@ async function sendMessage(overrideText) {
 }
 
 function sendStarter(t) { sendMessage(t); }
+
+// ── Session-type entry points (home screen cards) ─────────────────────────────
+function startLearnMode() {
+  // "Understand a concept" — the original Kay experience.
+  // Just focus the input so the student can type their question.
+  document.getElementById('msg-input').focus();
+  document.getElementById('msg-input').placeholder = 'What math concept would you like to understand?';
+}
+
+function startPracticeMode() {
+  // "Practice SAT/ACT problems" — inject the practice mode marker as the
+  // first user message. The backend detects [SAT_ACT_PRACTICE_MODE] and
+  // applies the practice-mode system prompt addition.
+  document.getElementById('topic-label').textContent = 'Practice mode · SAT/ACT Math';
+  sendMessage('[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. Give me my first problem.');
+}
+
+function showComingSoon() {
+  // "Take a timed mini-test" — Phase 2 feature, not built yet.
+  showAlert('Timed mini-tests are coming soon! For now, try Practice mode for unlimited problems with feedback.', 'info', 4000);
+}
+
 function sendHint() {
   if (messages.length === 0) { showAlert('Start a problem first, then ask for a hint.', 'info', 2500); return; }
   sendMessage("I'm stuck — can you give me a hint without giving away the answer?");
