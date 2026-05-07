@@ -2603,6 +2603,8 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
         delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
         throwOnError: false
       });
+      // Strip leftover \$ → $ in any non-KaTeX text nodes
+      if (typeof unescapeLiteralDollars === 'function') unescapeLiteralDollars(feedback);
     }
   }
 
@@ -2744,6 +2746,10 @@ function renderMessages() {
       ],
       throwOnError: false,
     });
+    // Post-KaTeX cleanup: convert any remaining literal "\$" in text nodes to "$".
+    // KaTeX skips "\$" as a math delimiter (correct), but leaves the backslash visible
+    // in the output. We sweep all non-KaTeX text nodes and clean it up.
+    unescapeLiteralDollars(el);
   });
   container.querySelectorAll('.eq-forms').forEach(el => {
     const tabs = el.querySelectorAll('.eq-form-tab');
@@ -2755,10 +2761,39 @@ function renderMessages() {
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
         renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
+        unescapeLiteralDollars(body);
       });
     });
   });
   container.scrollTop = container.scrollHeight;
+}
+
+// Walk all descendant text nodes of root and replace "\$" with "$".
+// Skip KaTeX-rendered subtrees (.katex, .katex-display, .katex-mathml) since
+// they may legitimately contain backslashes that aren't display escapes.
+function unescapeLiteralDollars(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      // Skip if any ancestor is a KaTeX-rendered element
+      let p = node.parentNode;
+      while (p && p !== root) {
+        if (p.classList && (p.classList.contains('katex') ||
+            p.classList.contains('katex-display') ||
+            p.classList.contains('katex-mathml') ||
+            p.classList.contains('katex-html'))) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        p = p.parentNode;
+      }
+      return node.nodeValue.includes('\\$') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  const nodesToFix = [];
+  let n;
+  while ((n = walker.nextNode())) nodesToFix.push(n);
+  nodesToFix.forEach(node => {
+    node.nodeValue = node.nodeValue.replace(/\\\$/g, '$');
+  });
 }
 
 function classifyMessage(text, msgIdx) {
