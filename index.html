@@ -516,14 +516,14 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .quiz-question-text {
   font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.5;
 }
-.quiz-options { display: flex; flex-direction: column; gap: 6px; }
+.quiz-options { display: flex; flex-direction: column; gap: 5px; }
 .quiz-option {
   display: flex; align-items: center; gap: 8px;
-  padding: 9px 12px; border-radius: 8px;
+  padding: 7px 10px; border-radius: 7px;
   border: 1.5px solid var(--paper-3);
   background: white; cursor: pointer;
   font-family: var(--sans); font-size: 12px; color: var(--ink-2);
-  transition: all 0.15s; text-align: left; line-height: 1.4;
+  transition: all 0.15s; text-align: left; line-height: 1.35;
 }
 .quiz-option:hover:not(:disabled) { border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04); }
 .quiz-option:disabled { cursor: default; }
@@ -531,9 +531,9 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .quiz-option.incorrect { border-color: #f87171; background: #fef2f2; color: #991b1b; }
 .quiz-option.reveal { border-color: #4ade80; background: #f0fdf4; color: #166534; opacity: 0.7; }
 .quiz-option-letter {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
   background: var(--paper-3); color: var(--ink-3);
-  font-size: 10px; font-weight: 600;
+  font-size: 9px; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
 }
@@ -547,6 +547,81 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 }
 .quiz-feedback.correct { background: #f0fdf4; color: #166534; display: block; }
 .quiz-feedback.incorrect { background: #fef2f2; color: #991b1b; display: block; }
+
+/* ── Practice card (SAT/ACT mode) — clickable single-MCQ card ── */
+.practice-card {
+  margin-top: 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-radius: 12px; overflow: hidden;
+}
+.practice-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--paper-3);
+  display: flex; align-items: center; gap: 8px;
+}
+.practice-header-label {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent);
+}
+.practice-topic {
+  font-size: 9px; color: var(--ink-3);
+  margin-left: auto; padding: 2px 7px;
+  background: var(--paper-3); border-radius: 8px;
+}
+.practice-question {
+  padding: 12px 14px 10px;
+  font-size: 13px; color: var(--ink); line-height: 1.55;
+}
+.practice-options {
+  padding: 0 14px 12px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.practice-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 7px;
+  border: 1.5px solid var(--paper-3);
+  background: white; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; color: var(--ink-2);
+  transition: all 0.15s; text-align: left; line-height: 1.35;
+}
+.practice-option:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04);
+}
+.practice-option:disabled { cursor: default; }
+.practice-option.correct { border-color: #4ade80; background: #f0fdf4; color: #166534; }
+.practice-option.incorrect { border-color: #f87171; background: #fef2f2; color: #991b1b; }
+.practice-option.reveal-correct { border-color: #4ade80; background: #f0fdf4; color: #166534; opacity: 0.85; }
+.practice-option-letter {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: var(--paper-3); color: var(--ink-3);
+  font-size: 9px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.practice-option-text {
+  flex: 1; min-width: 0;
+}
+.practice-option.correct .practice-option-letter { background: #4ade80; color: white; }
+.practice-option.incorrect .practice-option-letter { background: #f87171; color: white; }
+.practice-option.reveal-correct .practice-option-letter { background: #4ade80; color: white; }
+.practice-feedback {
+  display: none;
+  padding: 0 14px 12px;
+}
+.practice-feedback.visible { display: block; }
+.practice-feedback-correct {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-radius: 7px;
+  background: #f0fdf4; color: #166534;
+  font-size: 12px; font-weight: 500;
+}
+.practice-feedback-wrong {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-radius: 7px;
+  background: #fef2f2; color: #991b1b;
+  font-size: 12px; font-weight: 500;
+}
 .quiz-submit-row {
   padding: 0 14px 14px;
 }
@@ -2457,6 +2532,90 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
   }
 }
 
+// ── Practice mode (SAT/ACT) — single MCQ card with one-click locking ──────────
+// Track which practice cards have been answered (msgIdx → selected option index)
+const practiceAnswers = {};
+
+function renderPracticeCard(p, msgIdx) {
+  if (!p || !Array.isArray(p.options)) return '';
+  const letters = ['A', 'B', 'C', 'D'];
+  const optsHTML = p.options.map((opt, oi) => {
+    const letter = letters[oi] || String(oi + 1);
+    return `<button class="practice-option" id="popt-${msgIdx}-${oi}" onclick="handlePracticeAnswer(${msgIdx}, ${oi}, ${p.correct})">
+      <span class="practice-option-letter">${letter}</span>
+      <span class="practice-option-text">${escapeAndFormat(String(opt))}</span>
+    </button>`;
+  }).join('');
+
+  return `<div class="practice-card" id="practice-${msgIdx}">
+    <div class="practice-header">
+      <span class="practice-header-label">📝 Practice problem</span>
+      ${p.topic ? `<span class="practice-topic">${escapeAndFormat(p.topic)}</span>` : ''}
+    </div>
+    <div class="practice-question">${escapeAndFormat(p.question || '')}</div>
+    <div class="practice-options">${optsHTML}</div>
+    <div class="practice-feedback" id="pfeedback-${msgIdx}"></div>
+  </div>`;
+}
+
+function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
+  // Already answered? Ignore subsequent clicks (one-click lock).
+  if (practiceAnswers[msgIdx] !== undefined) return;
+  practiceAnswers[msgIdx] = selectedOi;
+
+  const msg = messages.find((m, i) => i === msgIdx);
+  if (!msg || !msg._practiceData) return;
+  const p = msg._practiceData;
+  const isCorrect = selectedOi === correctOi;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  // Lock and visually mark all options
+  for (let oi = 0; oi < p.options.length; oi++) {
+    const btn = document.getElementById(`popt-${msgIdx}-${oi}`);
+    if (!btn) continue;
+    btn.disabled = true;
+    if (oi === selectedOi) {
+      btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+    } else if (oi === correctOi && !isCorrect) {
+      // Show correct answer when student got it wrong
+      btn.classList.add('reveal-correct');
+    }
+  }
+
+  // Show inline feedback (explanation visible immediately for both right and wrong)
+  const feedback = document.getElementById(`pfeedback-${msgIdx}`);
+  if (feedback) {
+    if (isCorrect) {
+      feedback.innerHTML = `<div class="practice-feedback-correct">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>Correct!</span>
+      </div>`;
+    } else {
+      feedback.innerHTML = `<div class="practice-feedback-wrong">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span>Not quite — the correct answer is ${letters[correctOi]}.</span>
+      </div>`;
+    }
+    feedback.className = 'practice-feedback visible';
+    // Re-render math in the feedback area
+    if (window.renderMathInElement) {
+      renderMathInElement(feedback, {
+        delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+        throwOnError: false
+      });
+    }
+  }
+
+  // Send the student's selection back to Kay so she can:
+  //   - acknowledge correct + present next problem (auto-flow), OR
+  //   - give directed test-prep diagnostic feedback for wrong answer
+  const resultMsg = isCorrect
+    ? `[PRACTICE_ANSWER] I picked ${letters[selectedOi]}. Correct.`
+    : `[PRACTICE_ANSWER] I picked ${letters[selectedOi]}. The correct answer was ${letters[correctOi]}.`;
+  // Small delay so the visual feedback registers before Kay responds
+  setTimeout(() => sendMessage(resultMsg), 700);
+}
+
 // ── Parse Kay's response for special blocks ───────────────────────────────────
 function parseKayResponse(text) {
   let graphData = null;
@@ -2554,7 +2713,17 @@ function parseKayResponse(text) {
     cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData };
+  // practice block — single MCQ for SAT/ACT practice mode (clickable answer card)
+  let practiceData = null;
+  const practiceMatch = text.match(/```practice[ \t]*\r?\n([\s\S]*?)```/);
+  if (practiceMatch) {
+    try { practiceData = JSON.parse(practiceMatch[1].trim()); } catch(e) {
+      console.warn('Practice block parse failed:', e);
+    }
+    cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/, '').trim();
+  }
+
+  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData, practiceData };
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
@@ -2565,7 +2734,7 @@ function renderMessages() {
   container.style.display = 'block';
   empty.style.display = 'none';
   container.innerHTML = messages.map((m, i) => messageHTML(m, i)).join('');
-  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms').forEach(el => {
+  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms, .practice-card').forEach(el => {
     renderMathInElement(el, {
       delimiters: [
         { left: '$$', right: '$$', display: true },
@@ -2652,6 +2821,8 @@ function messageHTML(m, idx) {
     if (parsed.graphData) m._graphData = parsed.graphData;
     // Store quiz data so answer handler can access it
     if (parsed.quizData) m._quizData = parsed.quizData;
+    // Store practice data so click handler can access it
+    if (parsed.practiceData) m._practiceData = parsed.practiceData;
 
     const msgType = classifyMessage(parsed.cleanText, idx);
     if (msgType === 'question') {
@@ -2735,6 +2906,10 @@ function messageHTML(m, idx) {
 
     if (parsed.quizData) {
       extraHTML += renderQuizBlock(parsed.quizData, idx);
+    }
+
+    if (parsed.practiceData) {
+      extraHTML += renderPracticeCard(parsed.practiceData, idx);
     }
 
     // Note: diagram SVG is added to extraHTML (not bubbleContent) so it
@@ -2877,7 +3052,7 @@ function addTypingIndicator() {
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
 // ── API ──────────────────────────────────────────────────────────────────────
-const BACKEND_URL = 'https://math-tutor-kay-staging.onrender.com';
+const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
 
 async function callKay() {
   // Build API messages — convert any with images to multimodal content blocks
@@ -2925,7 +3100,8 @@ async function sendMessage(overrideText) {
 
   const isControlMessage = text.startsWith('[END_SESSION]')
     || text.startsWith('[QUIZ_RESULTS]')
-    || text.startsWith('[SAT_ACT_PRACTICE_MODE]');
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
+    || text.startsWith('[PRACTICE_ANSWER]');
 
   // Ping stats counter for every real student message
   if (!isControlMessage) pingQuestion();
