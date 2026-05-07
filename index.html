@@ -2026,30 +2026,31 @@ function parseKayResponse(text) {
   let quizData = null;
   let cleanText = text;
 
-  const graphMatch = text.match(/```graph\n([\s\S]*?)```/);
+  const graphMatch = text.match(/```graph[ \t]*\r?\n([\s\S]*?)```/);
   if (graphMatch) {
     try { graphData = JSON.parse(graphMatch[1].trim()); } catch(e) {}
-    cleanText = cleanText.replace(/```graph\n[\s\S]*?```/, '').trim();
+    cleanText = cleanText.replace(/```graph[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  const formsMatch = text.match(/```forms\n([\s\S]*?)```/);
+  const formsMatch = text.match(/```forms[ \t]*\r?\n([\s\S]*?)```/);
   if (formsMatch) {
     try { formsData = JSON.parse(formsMatch[1].trim()); } catch(e) {}
-    cleanText = cleanText.replace(/```forms\n[\s\S]*?```/, '').trim();
+    cleanText = cleanText.replace(/```forms[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  const achievementsMatch = text.match(/```achievements\n([\s\S]*?)```/);
+  const achievementsMatch = text.match(/```achievements[ \t]*\r?\n([\s\S]*?)```/);
   if (achievementsMatch) {
     try { achievementsData = JSON.parse(achievementsMatch[1].trim()); } catch(e) {}
-    cleanText = cleanText.replace(/```achievements\n[\s\S]*?```/, '').trim();
+    cleanText = cleanText.replace(/```achievements[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
   // diagram block — catches ```diagram, ```svg, or ```html containing SVG
-  const diagramMatch = text.match(/```(?:diagram|svg|html)\n([\s\S]*?)```/);
+  // Tolerant of trailing spaces and \r\n line endings (common LLM output variations)
+  const diagramMatch = text.match(/```(?:diagram|svg|html)[ \t]*\r?\n([\s\S]*?)```/);
   if (diagramMatch) {
     try {
       const raw = diagramMatch[1].trim();
-      const lines = raw.split('\n');
+      const lines = raw.split(/\r?\n/);
       let caption = '';
       let svg = raw;
       if (lines[0].toLowerCase().startsWith('caption:')) {
@@ -2058,13 +2059,13 @@ function parseKayResponse(text) {
       }
       diagramData = { svg, caption };
     } catch(e) {}
-    cleanText = cleanText.replace(/```(?:diagram|svg|html)\n[\s\S]*?```/, '').trim();
+    cleanText = cleanText.replace(/```(?:diagram|svg|html)[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  const quizMatch = text.match(/```quiz\n([\s\S]*?)```/);
+  const quizMatch = text.match(/```quiz[ \t]*\r?\n([\s\S]*?)```/);
   if (quizMatch) {
     try { quizData = JSON.parse(quizMatch[1].trim()); } catch(e) {}
-    cleanText = cleanText.replace(/```quiz\n[\s\S]*?```/, '').trim();
+    cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
   return { cleanText, graphData, formsData, achievementsData, diagramData, quizData };
