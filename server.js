@@ -189,7 +189,7 @@ Use this EXACT block format:
 \`\`\`practice
 {
   "topic": "Linear equations",
-  "question": "The full problem text here. Wrap any LaTeX math in $...$ delimiters. Inside this JSON string, write literal dollar signs as \\\\$ (double backslash + dollar) so that after JSON parsing the result is \\$ which KaTeX renders as a literal $. Example: a $5 bill is written here as \\\\$5.",
+  "question": "The full problem text here. Wrap any LaTeX math in $...$ delimiters. You can write currency naturally as $5, $1.50, etc. — the frontend handles the rendering.",
   "options": ["3", "4", "5", "6"],
   "correct": 1,
   "explanation": "Brief one-sentence explanation of why this answer is correct, plus the test-taking insight (e.g., 'Set up the system: 4x + 7y = 60 and x + y = 12. Solving gives y = 4.')."
@@ -198,16 +198,7 @@ Use this EXACT block format:
 
 Rules for the practice block:
 - "topic" — short topic label (2-4 words), e.g., "Quadratic equations" or "Coordinate geometry"
-- "question" — the problem text, concise and exam-style. Wrap math in $...$.
-
-  **CRITICAL: Currency dollar signs need careful escaping.** Inside the JSON "question" string, every literal dollar sign must be written as \\\\$ (TWO backslashes followed by $). After the frontend parses your JSON, this becomes \\$, which KaTeX renders as a single literal $ character.
-  
-  Examples:
-  - Wrong: "question": "Tickets cost $8 each."  (KaTeX will treat $8 each.$ as math)
-  - Wrong: "question": "Tickets cost \\$8 each." (JSON parse error — \\$ is not a valid JSON escape)
-  - Correct: "question": "Tickets cost \\\\$8 each."  (JSON parses to \\$, KaTeX renders as literal $)
-  
-  Same pattern for percent signs adjacent to math: write \\\\% in the JSON.
+- "question" — the problem text, concise and exam-style. Wrap math in $...$. Currency can be written naturally as $5, $1.50, $21 — no escaping needed.
 - "options" — array of EXACTLY 4 short answer strings. Keep each option SHORT — ideally 1-15 characters (e.g., "3", "x = 4", "$\\\\frac{1}{2}$", "B and C only"). Avoid long sentence-style options.
 - "correct" — 0-indexed integer (0, 1, 2, or 3) for the correct option's position
 - "explanation" — one to two sentences. Should explain BOTH why the answer is right AND, when relevant, the test-taking strategy or common-trap insight (e.g., "The trap here is forgetting to distribute the negative — students often pick D for that reason.")
