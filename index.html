@@ -2624,7 +2624,10 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
     // Render math in the feedback area (explanation may contain math)
     if (window.renderMathInElement) {
       renderMathInElement(feedback, {
-        delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+        delimiters: [
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
         throwOnError: false
       });
     }
@@ -2773,8 +2776,6 @@ function renderMessages() {
   container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms, .practice-card').forEach(el => {
     renderMathInElement(el, {
       delimiters: [
-        { left: '$$', right: '$$', display: true },
-        { left: '$',  right: '$',  display: false },
         { left: '\\(', right: '\\)', display: false },
         { left: '\\[', right: '\\]', display: true },
       ],
@@ -2790,7 +2791,13 @@ function renderMessages() {
         tab.classList.add('active');
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
-        renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
+        renderMathInElement(body, {
+          delimiters: [
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true },
+          ],
+          throwOnError: false
+        });
       });
     });
   });
@@ -3054,10 +3061,12 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
-  // Stash ALL math first — both display and inline — before any processing
+  // Stash ALL math first — both display and inline — before any processing.
+  // We use \(...\) for inline math and \[...\] for display math (matching the
+  // KaTeX delimiters config). Dollar signs are NEVER math — they're literal $.
   let s = text
-    .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
-    .replace(/\$([^\$\n]+?)\$/g,    (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
+    .replace(/\\\[([\s\S]+?)\\\]/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
+    .replace(/\\\(([\s\S]+?)\\\)/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
   // Now safe to process text — math is fully protected in stash
   s = s
