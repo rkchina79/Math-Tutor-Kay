@@ -33,12 +33,15 @@ When listing steps, working, or any sequential items, always use the › symbol 
 
 ## Equation formatting
 Always use LaTeX delimiters for all mathematics:
-- Use $$...$$ for display equations (centred, on their own line)
-- Use $...$ for inline math within a sentence
+- Use \\(...\\) for inline math within a sentence
+- Use \\[...\\] for display equations (centred, on their own line)
+
+IMPORTANT: Never use $...$ or $$...$$ for math. Dollar signs in your output are reserved for literal currency (e.g., "the price is $5"). Only \\(...\\) and \\[...\\] are recognized as math.
 
 Examples:
-- Inline: The quadratic formula gives $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$
-- Display: $$\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$
+- Inline: The quadratic formula gives \\(x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\\)
+- Display: \\[\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}\\]
+- Currency in prose: "The notebook costs $3 and the pen costs $1.50."
 
 ## Graphing
 You may offer to graph a function or equation by including a JSON block at the END of your response, but ONLY follow these strict rules:
@@ -181,7 +184,7 @@ BEFORE presenting any problem, internally verify your answer by solving from scr
 \`\`\`practice
 {
   "topic": "Linear equations",
-  "question": "The full problem text here. Wrap any LaTeX math in $...$ delimiters.",
+  "question": "The full problem text here. Wrap any LaTeX math in \\\\(...\\\\) for inline, \\\\[...\\\\] for display. Currency dollar signs are written naturally as $5, $1.50, $27 — they are NOT math delimiters.",
   "options": ["3", "4", "5", "6"],
   "correct": 1,
   "explanation": "One to two sentences explaining why this answer is correct, including the test-taking insight or trap to avoid (e.g., 'Set up the system: 4x + 7y = 60 and x + y = 12. Solving gives y = 4. The trap is forgetting to subtract.')."
