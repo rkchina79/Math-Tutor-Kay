@@ -478,6 +478,58 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: block;
 }
 
+/* ── Practice session recap card — extends achievement card styling ── */
+.practice-recap-message {
+  /* Override default .message flex behavior — center the card on its own */
+  justify-content: center;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.practice-recap-card {
+  margin-top: 12px;
+  background: #2e2a25;
+  border: 1px solid rgba(196,96,42,0.4);
+  border-radius: 12px; overflow: visible;
+  max-width: 560px; width: 100%;
+}
+.recap-tally {
+  font-size: 13px; color: rgba(245,240,232,0.85);
+  line-height: 1.6; margin-bottom: 14px;
+}
+.recap-number {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; font-weight: normal;
+  letter-spacing: -0.5px;
+  display: inline-block; padding: 0 2px;
+}
+.recap-number-correct { color: var(--accent-2); }
+.recap-accuracy-bar {
+  position: relative;
+  height: 26px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden; margin-bottom: 16px;
+}
+.recap-accuracy-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.recap-accuracy-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+  color: rgba(245,240,232,0.85);
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.recap-topic-score {
+  display: inline-block;
+  font-size: 10px; color: rgba(245,240,232,0.45);
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Interactive quiz card ── */
 .quiz-card {
   margin-top: 14px;
@@ -2655,6 +2707,100 @@ function requestNextProblem(msgIdx) {
   sendMessage(trigger);
 }
 
+// ── Practice session recap card ───────────────────────────────────────────────
+// Renders the celebratory "session complete" summary card shown when a
+// student ends a practice session. Style matches the dark achievement card
+// from concept tutoring for visual consistency.
+function renderPracticeRecapCard(recap) {
+  const { total, correct, strong, revisit } = recap;
+  if (total === 0) {
+    // Empty session (ended without answering anything) — minimal card
+    return `<div class="message kay practice-recap-message">
+      <div class="practice-recap-card">
+        <div class="achievement-header">
+          <div class="achievement-icon">🎯</div>
+          <div>
+            <div class="achievement-title">Practice session complete</div>
+            <div class="achievement-subtitle">Session summary</div>
+          </div>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-note">No problems answered this session — pick a card above whenever you're ready to dive in.</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const pct = Math.round((correct / total) * 100);
+  // Choose accuracy bar color based on performance band
+  // 80%+ = green, 50-79% = amber, <50% = red-tinted accent
+  const barColor = pct >= 80 ? '#6abf69' : pct >= 50 ? '#e8a530' : '#d97757';
+
+  // Warm closing sentence based on accuracy
+  let closingNote;
+  if (pct === 100) {
+    closingNote = `Perfect run — ${total} for ${total}. That's exam-level confidence right there.`;
+  } else if (pct >= 80) {
+    closingNote = `Strong session. You're tracking the kind of accuracy that translates to real exam scores.`;
+  } else if (pct >= 60) {
+    closingNote = `Good consistency. Keep building reps — the patterns will become automatic.`;
+  } else if (pct >= 40) {
+    closingNote = `Practice is working — every miss is a topic you've now seen. Come back tomorrow.`;
+  } else if (pct > 0) {
+    closingNote = `Tough one, but every session sharpens your eye for the SAT's traps. Keep at it.`;
+  } else {
+    closingNote = `Tough session — but each problem leaves a fingerprint. You'll see these patterns again.`;
+  }
+
+  const strongHTML = strong.length
+    ? `<div class="achievement-section">
+        <span class="achievement-section-label">✓ Strong topics</span>
+        <div class="achievement-items">${strong.map(s =>
+          `<div class="achievement-item">
+            <div class="achievement-item-dot green"></div>
+            <span>${escapeAndFormat(s.topic)} <span class="recap-topic-score">${s.correct}/${s.total}</span></span>
+          </div>`
+        ).join('')}</div>
+      </div>` : '';
+
+  const revisitHTML = revisit.length
+    ? `<div class="achievement-section">
+        <span class="achievement-section-label">↻ Worth revisiting</span>
+        <div class="achievement-items">${revisit.map(r =>
+          `<div class="achievement-item">
+            <div class="achievement-item-dot amber"></div>
+            <span>${escapeAndFormat(r.topic)} <span class="recap-topic-score">${r.correct}/${r.total}</span></span>
+          </div>`
+        ).join('')}</div>
+      </div>` : '';
+
+  return `<div class="message kay practice-recap-message">
+    <div class="practice-recap-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🎯</div>
+        <div>
+          <div class="achievement-title">Practice session complete</div>
+          <div class="achievement-subtitle">Session summary</div>
+        </div>
+      </div>
+      <div class="achievement-body">
+        <div class="recap-tally">
+          You answered <strong class="recap-number">${total}</strong>
+          problem${total === 1 ? '' : 's'} and got
+          <strong class="recap-number recap-number-correct">${correct}</strong> correct.
+        </div>
+        <div class="recap-accuracy-bar">
+          <div class="recap-accuracy-fill" style="width: ${pct}%; background: ${barColor};"></div>
+          <div class="recap-accuracy-label">${pct}% accuracy</div>
+        </div>
+        ${strongHTML}
+        ${revisitHTML}
+        <div class="achievement-note">${closingNote}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 // ── Parse Kay's response for special blocks ───────────────────────────────────
 function parseKayResponse(text) {
   let graphData = null;
@@ -2845,6 +2991,12 @@ function classifyMessage(text, msgIdx) {
 function messageHTML(m, idx) {
   // Don't render hidden system trigger messages
   if (m.hidden) return '';
+
+  // Practice session recap card — synthetic message with _recapData
+  // Render as a standalone card (no avatar/bubble wrapper)
+  if (m._recapData) {
+    return renderPracticeRecapCard(m._recapData);
+  }
 
   const isKay = m.role === 'assistant';
   const rawContent = m.role === 'user' ? convertMathNotation(m.content) : m.content;
@@ -3228,18 +3380,20 @@ function endSession() {
 
   if (isPracticeSession) {
     // Practice mode: skip the end-session quiz (the whole session was already
-    // a quiz). Compute a simple summary from practiceAnswers and save.
-    const totals = computePracticeSummary();
-    const summary = totals.total > 0
-      ? `Nice work! You answered ${totals.total} problem${totals.total === 1 ? '' : 's'}, got ${totals.correct} correct.`
-      : 'Session saved.';
-    showAlert(summary, 'success', 4500);
-    saveCurrentSession();
-    // Reset to home
-    messages = []; currentSessionId = null;
-    quizAnswers = {}; practiceAnswers = {};
+    // a quiz). Compute summary stats and inject a recap card as a final
+    // assistant message, so the student sees a proper session ending in the
+    // chat flow rather than a transient toast.
+    const recap = computePracticeSummary();
+    const recapMessage = {
+      role: 'assistant',
+      content: '', // No prose — the card is rendered from _recapData
+      _recapData: recap,
+    };
+    messages.push(recapMessage);
     renderMessages();
-    document.getElementById('topic-label').textContent = 'Ready to learn';
+    saveCurrentSession();
+    // Don't auto-reset to home — let the student admire their recap
+    // and choose when to start a new session via the New session button.
     return;
   }
 
@@ -3263,17 +3417,47 @@ Generate 2-3 questions based on what was covered in this conversation. The quiz 
   sendMessage(trigger);
 }
 
-// Compute summary stats from a practice session for the end-session toast
+// Compute summary stats from a practice session.
+// Returns total/correct counts plus per-topic stats for the recap card.
 function computePracticeSummary() {
   let total = 0, correct = 0;
+  const topicStats = {}; // { topicName: { total, correct } }
+
   Object.keys(practiceAnswers).forEach(idxStr => {
     const idx = parseInt(idxStr, 10);
     const msg = messages[idx];
     if (!msg || !msg._practiceData) return;
+    const p = msg._practiceData;
+    const isCorrect = practiceAnswers[idxStr] === p.correct;
     total++;
-    if (practiceAnswers[idxStr] === msg._practiceData.correct) correct++;
+    if (isCorrect) correct++;
+    const topic = (p.topic || 'Other').trim();
+    if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
+    topicStats[topic].total++;
+    if (isCorrect) topicStats[topic].correct++;
   });
-  return { total, correct };
+
+  // Strong topics: > 50% correct (and at least 1 problem on that topic)
+  // Worth revisiting: < 50% correct
+  // Topics with exactly 50% (single-problem 1/2, etc.) get bucketed by overall trend
+  const strong = [];
+  const revisit = [];
+  Object.keys(topicStats).forEach(topic => {
+    const t = topicStats[topic];
+    const pct = t.correct / t.total;
+    if (pct > 0.5) {
+      strong.push({ topic, correct: t.correct, total: t.total });
+    } else if (pct < 0.5) {
+      revisit.push({ topic, correct: t.correct, total: t.total });
+    }
+    // Exactly 0.5 — neutral, don't list
+  });
+
+  // Sort by total problems descending so most-practiced topics appear first
+  strong.sort((a, b) => b.total - a.total);
+  revisit.sort((a, b) => b.total - a.total);
+
+  return { total, correct, strong, revisit };
 }
 function clearChat() {
   if (isListening) stopVoice();
