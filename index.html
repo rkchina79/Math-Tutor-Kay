@@ -2913,9 +2913,67 @@ function parseKayResponse(text) {
     }
     // Strip ALL practice blocks from the prose so abandoned attempts don't leak
     cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/g, '').trim();
+
+    // Filter the surrounding prose to prevent leaks of Kay's internal thinking
+    // (verification reasoning, topic deliberation, "let me try X" drafting).
+    // Kay's LLM nature is to think out loud — we honor that backstage but never
+    // show it to the student when there's a practice card to display.
+    //
+    // Allowlist approach: keep prose only if it's short, contains no problem
+    // values or math, and isn't deliberation language. Otherwise strip entirely.
+    cleanText = filterPracticeProse(cleanText);
   }
 
   return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData, practiceData };
+}
+
+// Filter prose around a practice block so internal reasoning (verification
+// reasoning, topic deliberation, "let me try" drafts) never reaches the
+// student. Returns either the prose unchanged (if it's a clean short
+// acknowledgment) or empty string (if it leaks any internal thinking).
+function filterPracticeProse(prose) {
+  const trimmed = (prose || '').trim();
+  if (!trimmed) return '';
+
+  // Length gate: anything over 80 chars is almost certainly leaked thinking.
+  // Real acknowledgments ("Nice.", "Let's start.", "Let's keep going.",
+  // "Next one — quick one.") are all well under this.
+  if (trimmed.length > 80) return '';
+
+  const lower = trimmed.toLowerCase();
+
+  // Deliberation words — Kay narrating her topic choice or planning process.
+  // If any of these appear, the prose is internal thinking, not acknowledgment.
+  const deliberationMarkers = [
+    'hmm', 'actually', 'let me try', 'let me pick', 'let me do',
+    'let me switch', 'let me shift', 'let me move', 'let me give',
+    'let me make', 'let me set', 'let me redo', 'let me replace',
+    'let me find', 'let me think', 'let me change',
+    'something less', 'something more', 'something different',
+    'a different', 'this time', 'next topic', 'less standard',
+    'more challenging', 'straightforward problem', 'clean problem',
+    'good — solutions', 'good - solutions',
+    'verified', 'verifying', 'checked', 'confirms',
+    'solutions are', 'solution is', 'answer is',
+    'will ask for', 'will test', 'will check',
+    'one problem at a time', 'four choices', 'mix of topics',
+    'i' + "'" + 'll throw', 'we' + "'" + 'll try',
+  ];
+  for (const marker of deliberationMarkers) {
+    if (lower.includes(marker)) return '';
+  }
+
+  // Math/equation indicators — any specific value from the upcoming problem.
+  // Numbers, equations, math delimiters, or variable assignments leak content.
+  if (/\d/.test(trimmed)) return '';                     // any digit
+  if (/[=<>]/.test(trimmed)) return '';                   // equation/inequality
+  if (/\\\(|\\\[/.test(trimmed)) return '';               // math delimiters
+  if (/[a-zA-Z]\s*\^/.test(trimmed)) return '';           // exponents like x^2
+  if (/[²³⁴⁵⁶⁷⁸⁹]/.test(trimmed)) return '';            // unicode superscripts
+  if (/\b(x|y|z|n|p|t)\s*[=+\-*/]/.test(trimmed)) return ''; // variable arithmetic
+
+  // Passed all filters — looks like a clean acknowledgment, keep it.
+  return trimmed;
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
