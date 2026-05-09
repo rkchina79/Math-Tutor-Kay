@@ -258,10 +258,24 @@ The student must approach the problem completely fresh, without ANY preview of t
 
 Rules for the block:
 - "topic" — short label (2-4 words), e.g., "Quadratic equations" or "Coordinate geometry"
-- "question" — concise, exam-style problem text
-- "options" — array of EXACTLY 4 SHORT answer strings (1-15 chars each ideally)
+- "question" — concise, exam-style problem text. Wrap any math in \\\\(...\\\\) for inline, \\\\[...\\\\] for display. Currency is NOT math — write \$5, \$1.50 as plain text.
+- "options" — array of EXACTLY 4 SHORT answer strings (1-15 chars each ideally). Wrap math expressions in \\\\(...\\\\) here too — e.g., "\\\\(\\\\frac{3}{2}\\\\)" not "3/2".
 - "correct" — 0-indexed integer (0, 1, 2, or 3) for the correct option
-- "explanation" — one to two sentences. MUST explain why the answer is right AND include the test-taking insight when relevant. This is shown to the student automatically when they click an answer.
+- "explanation" — one to two sentences. MUST explain why the answer is right AND include the test-taking insight when relevant. **All math in the explanation MUST be wrapped in \\\\(...\\\\) delimiters** — the explanation is rendered as KaTeX-formatted prose, and unwrapped math will display as raw text with literal carets and parentheses. Use proper LaTeX syntax: exponents need curly braces (\\\\(3^{2x}\\\\) not 3^(2x)), fractions use \\\\frac, etc.
+
+**Explanation formatting examples:**
+
+Correct (math properly wrapped):
+\`\`\`
+"explanation": "Simplify the left side: \\\\((3^x)^2 = 3^{2x}\\\\), so the expression becomes \\\\(3^{2x - (x+1)} = 3^{x-1}\\\\). Setting \\\\(3^{x-1} = 3^3\\\\) gives \\\\(x - 1 = 3\\\\), so \\\\(x = 4\\\\). The trap is forgetting to distribute the subtraction across \\\\((x+1)\\\\)."
+\`\`\`
+
+Wrong (plain text math — will render with literal carets and look broken):
+\`\`\`
+"explanation": "Simplify the left side: (3^x)^2 = 3^(2x), so the expression becomes 3^(2x - (x+1)) = 3^(x-1). Setting 3^(x-1) = 3^3 gives x - 1 = 3, so x = 4."
+\`\`\`
+
+This applies even to simple things — write "\\\\(x = 4\\\\)" not "x = 4", "\\\\(3n\\\\)" not "3n", "\\\\(y = mx + b\\\\)" not "y = mx + b". When in doubt, wrap it.
 
 ### Optional intro prose
 Before each practice block you MAY write ONE short sentence introducing it. The intro must be GENERIC — about the topic flavor, not about the specific problem.
