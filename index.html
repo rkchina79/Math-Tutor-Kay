@@ -2899,13 +2899,20 @@ function parseKayResponse(text) {
   }
 
   // practice block — single MCQ for SAT/ACT practice mode (clickable answer card)
+  // Robust to: multiple blocks (we take the LAST one, since Kay sometimes writes
+  // a block, then writes another after self-correction), trailing whitespace,
+  // and Windows line endings. ALL blocks are stripped from the prose.
   let practiceData = null;
-  const practiceMatch = text.match(/```practice[ \t]*\r?\n([\s\S]*?)```/);
-  if (practiceMatch) {
-    try { practiceData = JSON.parse(practiceMatch[1].trim()); } catch(e) {
+  const practiceRegex = /```practice[ \t]*\r?\n([\s\S]*?)```/g;
+  const allPracticeMatches = [...text.matchAll(practiceRegex)];
+  if (allPracticeMatches.length > 0) {
+    // Take the LAST block — Kay's final answer after any self-correction
+    const lastMatch = allPracticeMatches[allPracticeMatches.length - 1];
+    try { practiceData = JSON.parse(lastMatch[1].trim()); } catch(e) {
       console.warn('Practice block parse failed:', e);
     }
-    cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/, '').trim();
+    // Strip ALL practice blocks from the prose so abandoned attempts don't leak
+    cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/g, '').trim();
   }
 
   return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData, practiceData };
@@ -3115,12 +3122,14 @@ function messageHTML(m, idx) {
       const formKeys = Object.keys(forms);
       const firstKey = formKeys[0];
       const firstVal = forms[firstKey];
+      // Wrap each equation form in \(...\) so KaTeX renders it as math.
+      // (Dollar signs are no longer math delimiters — currency only.)
       const tabsHTML = formKeys.map((k, i) =>
-        `<button class="eq-form-tab${i===0?' active':''}" data-content="$${forms[k]}$">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
+        `<button class="eq-form-tab${i===0?' active':''}" data-content="\\(${forms[k]}\\)">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
       ).join('');
       extraHTML += `<div class="eq-forms">
         <div class="eq-forms-header">${tabsHTML}</div>
-        <div class="eq-form-body" data-content="$${firstVal}$">$${firstVal}$</div>
+        <div class="eq-form-body" data-content="\\(${firstVal}\\)">\\(${firstVal}\\)</div>
       </div>`;
     }
 
@@ -3178,34 +3187,35 @@ function messageHTML(m, idx) {
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
       <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
-      <div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>
+      ${(bubbleContent.trim() || imageHTML) ? `<div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>` : ''}
       ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
 }
 
 function convertMathNotation(text) {
-  if (text.includes('$')) return text;
+  // Skip if user already wrote LaTeX delimiters (don't double-wrap)
+  if (text.includes('\\(') || text.includes('\\[')) return text;
 
   let result = text;
   let changed = false;
 
-  // x^2, x^n — exponents with caret, wrap just that token in $...$
+  // x^2, x^n — exponents with caret, wrap just that token in \(...\)
   result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, (match) => {
     changed = true;
-    return '$' + match + '$';
+    return '\\(' + match + '\\)';
   });
 
-  // sqrt(expr) → $\sqrt{expr}$
+  // sqrt(expr) → \(\sqrt{expr}\)
   result = result.replace(/sqrt\(([^)]+)\)/gi, (match, expr) => {
     changed = true;
-    return '$\\sqrt{' + expr + '}$';
+    return '\\(\\sqrt{' + expr + '}\\)';
   });
 
-  // Simple numeric fraction: 3/4 → $\frac{3}{4}$
+  // Simple numeric fraction: 3/4 → \(\frac{3}{4}\)
   result = result.replace(/\b(\d+)\/(\d+)\b/g, (match, a, b) => {
     changed = true;
-    return '$\\frac{' + a + '}{' + b + '}$';
+    return '\\(\\frac{' + a + '}{' + b + '}\\)';
   });
 
   return changed ? result : text;
@@ -3480,6 +3490,7 @@ function computePracticeSummary() {
 
   return { total, correct, strong, revisit };
 }
+
 function clearChat() {
   if (isListening) stopVoice();
   clearImage();
@@ -3506,7 +3517,21 @@ function newSession() {
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
   const firstUser = messages.find(m => m.role === 'user');
-  const title = firstUser ? firstUser.content.slice(0, 48) : 'Untitled';
+  // Build a friendly title for the sidebar list.
+  // For practice sessions, the first user message is the [SAT_ACT_PRACTICE_MODE]
+  // control marker — replace it with a clean label that reflects the session's
+  // type and progress, rather than showing the raw bracketed marker.
+  let title;
+  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
+    const answeredCount = Object.keys(practiceAnswers).length;
+    title = answeredCount > 0
+      ? `SAT/ACT Practice · ${answeredCount} problem${answeredCount === 1 ? '' : 's'}`
+      : 'SAT/ACT Practice';
+  } else if (firstUser) {
+    title = firstUser.content.slice(0, 48);
+  } else {
+    title = 'Untitled';
+  }
   const idx = sessions.findIndex(s => s.id === currentSessionId);
   const obj = { id: currentSessionId, title, messages: [...messages] };
   if (idx >= 0) sessions[idx] = obj; else sessions.unshift(obj);
@@ -3519,8 +3544,18 @@ function loadSession(id) {
   currentSessionId = id; messages = [...s.messages];
   quizAnswers = {}; practiceAnswers = {};
   renderMessages(); renderSessions();
+  // Set topic-label cleanly — practice sessions get a friendly label instead
+  // of the raw [SAT_ACT_PRACTICE_MODE] marker
   const firstUser = messages.find(m => m.role === 'user');
-  document.getElementById('topic-label').textContent = firstUser ? firstUser.content.slice(0,40)+'…' : 'Session';
+  let topicLabel;
+  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
+    topicLabel = 'Practice mode · SAT/ACT Math';
+  } else if (firstUser) {
+    topicLabel = firstUser.content.slice(0, 40) + '…';
+  } else {
+    topicLabel = 'Session';
+  }
+  document.getElementById('topic-label').textContent = topicLabel;
   autoCloseSidebarOnMobile();
 }
 function renderSessions() {
