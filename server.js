@@ -186,10 +186,53 @@ The student should experience real variety across problems. You are seeing the f
 
 If the student's launch message specifies an opening topic (e.g., "pick a question about: triangles"), you MUST honor that for Problem 1 — generate a problem about that exact topic.
 
-### Self-consistency check (mandatory)
-BEFORE presenting any problem, internally verify your answer by solving from scratch a second time using a different approach. If your two solutions disagree, regenerate the problem. Do NOT show this verification to the student.
+### Mandatory verification using the code_execution tool
 
-**CRITICAL — silent regeneration only.** If your self-check reveals the problem has a messy answer, an ambiguity, or any other issue, regenerate it SILENTLY in your private thinking. Do NOT write commentary like "Hmm, that has a messy answer, let me redo it" or "Let me replace that with a cleaner one." The student must never see abandoned attempts or self-correction prose. Only ONE practice block should ever appear in your response, and there should be no narration about regenerating it. If something needs to be redone, redo it in your head and present only the final clean version.
+You have access to a Python code execution tool. **You MUST use it to verify every practice problem before presenting it to the student.** This is non-negotiable — words like "I solved it twice in my head" are not verification. Real Python that runs and returns a number is verification.
+
+**The verification workflow for every problem:**
+
+1. Draft a problem in your head: question, four options, the option you believe is correct (your "claimed correct").
+2. **Call the code_execution tool** with Python that solves the problem from scratch using actual computation. The Python should print the computed answer.
+3. Read the printed output. Compare it to the value of the option you claimed was correct.
+4. **If they match exactly:** emit the practice block. You're done.
+5. **If they don't match:** something is wrong. Either the answer key is wrong, or the options don't include the actual answer. Draft a NEW problem (different numbers, possibly different topic), verify again. Do not present any problem until verification matches.
+
+**Example verification Python** (for a problem like "Maya buys notebooks at $3 and pens at $1.50, total 12 items, total $27, how many notebooks?"):
+
+\`\`\`python
+# n = notebooks, p = pens
+# n + p = 12  →  p = 12 - n
+# 3n + 1.5p = 27  →  3n + 1.5(12 - n) = 27  →  1.5n = 9  →  n = 6
+n = 9 / 1.5
+p = 12 - n
+# Verify constraints both hold
+assert n + p == 12, "items don't match"
+assert 3*n + 1.5*p == 27, "cost doesn't match"
+print(f"Notebooks: {int(n)}")
+\`\`\`
+
+If the printed value is "Notebooks: 6" and your claimed correct option is "6" → match, emit the block. If the printed value is "Notebooks: 6" but your claimed correct option is "5" → mismatch, your draft was wrong, redo.
+
+**Use sympy for symbolic math when needed:**
+
+\`\`\`python
+from sympy import symbols, solve, Eq, Rational, simplify
+x = symbols('x')
+# Solve (2x+3)/(x-1) = 5
+solutions = solve(Eq((2*x + 3)/(x - 1), 5), x)
+print(f"Solutions: {solutions}")
+# Returns [8/3] — if your options don't contain 8/3, the problem is bad, redo
+\`\`\`
+
+**Critical verification rules:**
+- Use the tool for EVERY problem. No exceptions. Even "easy" problems get verified.
+- If sympy returns a fraction or non-integer when your options are all integers, **the problem is broken** — pick different numbers and start over.
+- If Python errors out, fix the code and try again.
+- Never present a problem you haven't verified with the tool in this same response.
+- All of this verification is INTERNAL — the student never sees your Python or its output. They only see the final practice block.
+
+**Silent regeneration only.** If verification fails, regenerate silently in your private thinking. Do NOT write commentary like "Hmm, that has a messy answer, let me redo it." The student must never see abandoned attempts. Only ONE practice block should ever appear in your final response, with no narration about regenerating.
 
 ### Exact problem format — use this block, every time
 \`\`\`practice
@@ -258,12 +301,32 @@ app.post('/chat', async (req, res) => {
   if (inEndSession) systemPrompt += END_SESSION_ADDITION;
   else if (inPractice) systemPrompt += SAT_ACT_PRACTICE_ADDITION;
 
-  // Use more tokens for end session responses (achievements block needs space).
-  // Standard responses get 3000 to give multi-diagram responses room to complete
-  // without being truncated mid-SVG (which causes diagram code to dump as raw text).
-  const maxTokens = inEndSession ? 2500 : 3000;
+  // Token budget:
+  // - End session: 2500 (achievements block is small).
+  // - Practice mode: 8000 to give Kay headroom for the verification loop —
+  //   she may write Python, read the result, regenerate the problem, and
+  //   verify again before emitting the final practice block.
+  // - Standard tutoring: 3000 to allow multi-diagram responses to complete
+  //   without being truncated mid-SVG.
+  const maxTokens = inEndSession ? 2500 : (inPractice ? 8000 : 3000);
+
+  // Tools — only enabled in practice mode for answer-key verification.
+  // Code execution is a SERVER tool: Anthropic runs the Python in their
+  // sandbox and the verification loop happens inside a single API call.
+  // Our backend just sees the final text response.
+  const tools = inPractice
+    ? [{ type: 'code_execution_20250825', name: 'code_execution' }]
+    : undefined;
 
   try {
+    const requestBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages,
+    };
+    if (tools) requestBody.tools = tools;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -271,12 +334,7 @@ app.post('/chat', async (req, res) => {
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        messages,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -285,7 +343,15 @@ app.post('/chat', async (req, res) => {
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
+    // Response content is an array of typed blocks. With code execution,
+    // we get text blocks AND server_tool_use / code_execution_tool_result
+    // blocks. The student should only see the final text — concatenate all
+    // text-type blocks and ignore the rest (which are internal verification).
+    const text = (data.content || [])
+      .filter(block => block.type === 'text')
+      .map(block => block.text || '')
+      .join('\n')
+      .trim();
     res.json({ reply: text });
 
   } catch (err) {
