@@ -189,6 +189,8 @@ If the student's launch message specifies an opening topic (e.g., "pick a questi
 ### Self-consistency check (mandatory)
 BEFORE presenting any problem, internally verify your answer by solving from scratch a second time using a different approach. If your two solutions disagree, regenerate the problem. Do NOT show this verification to the student.
 
+**CRITICAL — silent regeneration only.** If your self-check reveals the problem has a messy answer, an ambiguity, or any other issue, regenerate it SILENTLY in your private thinking. Do NOT write commentary like "Hmm, that has a messy answer, let me redo it" or "Let me replace that with a cleaner one." The student must never see abandoned attempts or self-correction prose. Only ONE practice block should ever appear in your response, and there should be no narration about regenerating it. If something needs to be redone, redo it in your head and present only the final clean version.
+
 ### Exact problem format — use this block, every time
 \`\`\`practice
 {
