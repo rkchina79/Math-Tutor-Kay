@@ -2291,10 +2291,28 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 
   // Show full feedback
   if (feedback) {
-    feedback.textContent = isCorrect
-      ? `✓ ${q.explanation}`
-      : `✗ ${q.explanation}`;
+    // Use innerHTML so the explanation can contain math wrapped in $...$ —
+    // textContent was treating the dollar signs as literal text.
+    const prefix = isCorrect ? '✓ ' : '✗ ';
+    feedback.innerHTML = '';
+    feedback.appendChild(document.createTextNode(prefix));
+    const span = document.createElement('span');
+    span.textContent = q.explanation;
+    feedback.appendChild(span);
     feedback.className = `quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    // Render any LaTeX math in the explanation. Without this, $...$ shows as
+    // literal text since the original renderMessages() pass already finished.
+    if (window.renderMathInElement) {
+      renderMathInElement(feedback, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$',  right: '$',  display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false
+      });
+    }
   }
 
   // Update progress (only counting truly-finalized questions, not _wrongAttempts)
