@@ -3353,12 +3353,33 @@ function startLearnMode() {
   }
 }
 
+// SAT/ACT Math subtopic categories used for opener variety.
+// Each session starts with a randomly-chosen subtopic so students don't see
+// the same problem type twice in a row across sessions.
+const PRACTICE_OPENER_TOPICS = [
+  'linear equations',
+  'quadratic equations',
+  'systems of equations',
+  'functions and function notation',
+  'exponential expressions and rules',
+  'percentages and percent change',
+  'ratios and proportions',
+  'coordinate geometry (lines, slopes, distance)',
+  'triangles and special right triangles',
+  'circles (area, circumference, equations)',
+  'data interpretation (tables, graphs, statistics)',
+  'basic trigonometry (sin, cos, tan)',
+];
+
 function startPracticeMode() {
   // "Practice SAT/ACT problems" — inject the practice mode marker as the
   // first user message. The backend detects [SAT_ACT_PRACTICE_MODE] and
   // applies the practice-mode system prompt addition.
+  // Frontend picks a random opener topic so sessions don't all start with
+  // the same problem type. Kay honors this in the system prompt.
+  const openerTopic = PRACTICE_OPENER_TOPICS[Math.floor(Math.random() * PRACTICE_OPENER_TOPICS.length)];
   document.getElementById('topic-label').textContent = 'Practice mode · SAT/ACT Math';
-  sendMessage('[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. Give me my first problem.');
+  sendMessage(`[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. For the first problem, pick a question about: ${openerTopic}.`);
 }
 
 function showComingSoon() {
