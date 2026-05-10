@@ -240,73 +240,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .starter-card { padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 9px; font-size: 12px; color: var(--ink-2); cursor: pointer; text-align: left; line-height: 1.4; transition: all 0.15s; font-family: var(--sans); }
 .starter-card:hover { border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04); }
 
-/* ── Session-type cards (home screen primary entry) ── */
-.session-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  max-width: 760px; width: 100%;
-  margin-top: 18px;
-}
-.session-card {
-  position: relative;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-  padding: 18px 16px 16px;
-  background: var(--paper-2); border: 1px solid var(--paper-3);
-  border-radius: 12px; cursor: pointer;
-  text-align: left; font-family: var(--sans);
-  transition: all 0.15s;
-  min-height: 150px;
-}
-.session-card:hover {
-  border-color: var(--accent);
-  background: rgba(196,96,42,0.04);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(196,96,42,0.08);
-}
-.session-card-icon {
-  display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 8px;
-  background: var(--paper-3); color: var(--ink-2);
-  margin-bottom: 4px; transition: all 0.15s;
-}
-.session-card:hover .session-card-icon { background: var(--accent); color: white; }
-.session-card-title { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.3; }
-.session-card-desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
-.session-card-badge {
-  position: absolute; top: 10px; right: 10px;
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 3px 7px; border-radius: 10px;
-  background: var(--accent); color: white;
-}
-.session-card-badge-soon { background: var(--paper-3); color: var(--ink-3); }
-.session-card-featured {
-  border-color: rgba(196,96,42,0.35);
-  background: rgba(196,96,42,0.03);
-}
-.session-card-disabled { opacity: 0.65; }
-.session-card-disabled:hover {
-  transform: none; box-shadow: none;
-  border-color: var(--paper-3); background: var(--paper-2);
-}
-.session-card-disabled:hover .session-card-icon {
-  background: var(--paper-3); color: var(--ink-2);
-}
-
-/* "or jump straight in with" divider */
-.starter-divider {
-  display: flex; align-items: center; gap: 12px;
-  width: 100%; max-width: 480px; margin: 24px 0 4px;
-}
-.starter-divider::before, .starter-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--paper-3);
-}
-.starter-divider span {
-  font-size: 11px; color: var(--ink-3); font-style: italic;
-  white-space: nowrap;
-}
-
 /* ── Input area ── */
 .input-area { flex-shrink: 0; border-top: 1px solid var(--paper-3); }
 .input-bar { padding: 12px 22px 16px; }
@@ -482,58 +415,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: block;
 }
 
-/* ── Practice session recap card — extends achievement card styling ── */
-.practice-recap-message {
-  /* Override default .message flex behavior — center the card on its own */
-  justify-content: center;
-  margin-top: 8px;
-  margin-bottom: 24px;
-}
-.practice-recap-card {
-  margin-top: 12px;
-  background: #2e2a25;
-  border: 1px solid rgba(196,96,42,0.4);
-  border-radius: 12px; overflow: visible;
-  max-width: 560px; width: 100%;
-}
-.recap-tally {
-  font-size: 13px; color: rgba(245,240,232,0.85);
-  line-height: 1.6; margin-bottom: 14px;
-}
-.recap-number {
-  font-family: var(--serif); font-size: 22px;
-  color: #f5f0e8; font-weight: normal;
-  letter-spacing: -0.5px;
-  display: inline-block; padding: 0 2px;
-}
-.recap-number-correct { color: var(--accent-2); }
-.recap-accuracy-bar {
-  position: relative;
-  height: 26px; border-radius: 6px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  overflow: hidden; margin-bottom: 16px;
-}
-.recap-accuracy-fill {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  border-radius: 6px 0 0 6px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.recap-accuracy-label {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 500;
-  color: rgba(245,240,232,0.85);
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-}
-.recap-topic-score {
-  display: inline-block;
-  font-size: 10px; color: rgba(245,240,232,0.45);
-  margin-left: 6px;
-  font-variant-numeric: tabular-nums;
-}
-
 /* ── Interactive quiz card ── */
 .quiz-card {
   margin-top: 14px;
@@ -606,90 +487,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: none;
 }
 .quiz-score-row.visible { display: block; }
-
-/* ── Practice card (SAT/ACT mode) — clickable single-MCQ card ── */
-.practice-card {
-  margin-top: 14px;
-  background: var(--paper-2);
-  border: 1px solid var(--paper-3);
-  border-radius: 12px; overflow: hidden;
-}
-.practice-header {
-  padding: 10px 14px 8px;
-  border-bottom: 1px solid var(--paper-3);
-  display: flex; align-items: center; gap: 8px;
-}
-.practice-header-label {
-  font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--accent);
-}
-.practice-topic {
-  font-size: 9px; color: var(--ink-3);
-  margin-left: auto; padding: 2px 7px;
-  background: var(--paper-3); border-radius: 8px;
-}
-.practice-question {
-  padding: 12px 14px 10px;
-  font-size: 13px; color: var(--ink); line-height: 1.55;
-}
-.practice-options {
-  padding: 0 14px 12px;
-  display: flex; flex-direction: column; gap: 5px;
-}
-.practice-option {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; border-radius: 7px;
-  border: 1.5px solid var(--paper-3);
-  background: white; cursor: pointer;
-  font-family: var(--sans); font-size: 12px; color: var(--ink-2);
-  transition: all 0.15s; text-align: left; line-height: 1.35;
-}
-.practice-option:hover:not(:disabled) {
-  border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04);
-}
-.practice-option:disabled { cursor: default; }
-.practice-option.correct { border-color: #4ade80; background: #f0fdf4; color: #166534; }
-.practice-option.incorrect { border-color: #f87171; background: #fef2f2; color: #991b1b; }
-.practice-option.reveal-correct { border-color: #4ade80; background: #f0fdf4; color: #166534; opacity: 0.85; }
-.practice-option-letter {
-  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
-  background: var(--paper-3); color: var(--ink-3);
-  font-size: 9px; font-weight: 600;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.practice-option-text { flex: 1; min-width: 0; }
-.practice-option.correct .practice-option-letter { background: #4ade80; color: white; }
-.practice-option.incorrect .practice-option-letter { background: #f87171; color: white; }
-.practice-option.reveal-correct .practice-option-letter { background: #4ade80; color: white; }
-.practice-feedback {
-  display: none;
-  padding: 0 14px 12px;
-}
-.practice-feedback.visible { display: block; }
-.practice-feedback-header {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 10px; border-radius: 7px;
-  font-size: 12px; font-weight: 500;
-  margin-bottom: 8px;
-}
-.practice-feedback-correct { background: #f0fdf4; color: #166534; }
-.practice-feedback-wrong { background: #fef2f2; color: #991b1b; }
-.practice-explanation {
-  padding: 8px 10px; margin-bottom: 8px;
-  font-size: 12px; color: var(--ink-2); line-height: 1.5;
-  background: var(--paper); border-radius: 7px;
-  border: 1px solid var(--paper-3);
-}
-.practice-next-btn {
-  display: block; width: 100%;
-  padding: 9px 12px; border-radius: 7px;
-  background: var(--ink); color: white; border: none;
-  font-family: var(--sans); font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: background 0.15s;
-}
-.practice-next-btn:hover { background: var(--accent); }
-.practice-next-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: default; }
 
 /* Sidebar stats */
 .sidebar-stats-row {
@@ -1184,15 +981,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .starter-grid { grid-template-columns: 1fr 1fr; max-width: 100%; margin-top: 10px; gap: 6px; }
   .starter-card { font-size: 11.5px; padding: 10px 10px; }
 
-  /* Session cards: stack vertically on mobile */
-  .session-cards { grid-template-columns: 1fr; gap: 8px; margin-top: 14px; }
-  .session-card { min-height: auto; padding: 14px; gap: 4px; }
-  .session-card-icon { width: 30px; height: 30px; margin-bottom: 2px; }
-  .session-card-title { font-size: 13px; }
-  .session-card-desc { font-size: 11px; line-height: 1.45; }
-  .session-card-badge { top: 10px; right: 10px; font-size: 8px; padding: 2px 6px; }
-  .starter-divider { margin: 16px 0 4px; }
-
   /* Graph */
   .graph-panel.open { height: 220px; }
   .graph-sidebar { display: none; }
@@ -1324,36 +1112,6 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div id="empty-state" class="empty-state">
       <div class="empty-name">Hello, I'm Kay.</div>
       <div class="empty-sub">Today is a great day to learn something new!<br>Where shall we begin?</div>
-
-      <!-- Session-type cards (primary entry point) -->
-      <div class="session-cards">
-        <button class="session-card" onclick="startLearnMode()">
-          <div class="session-card-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div class="session-card-title">Understand a concept</div>
-          <div class="session-card-desc">Work through a math idea step by step with Kay's guided questions. Best for building real understanding.</div>
-        </button>
-        <button class="session-card session-card-featured" onclick="startPracticeMode()">
-          <div class="session-card-badge">Beta</div>
-          <div class="session-card-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
-          </div>
-          <div class="session-card-title">Practice SAT / ACT problems</div>
-          <div class="session-card-desc">Drill problems at exam difficulty. Kay generates fresh questions, checks your work, and explains each one.</div>
-        </button>
-        <button class="session-card session-card-disabled" onclick="showComingSoon()">
-          <div class="session-card-badge session-card-badge-soon">Coming soon</div>
-          <div class="session-card-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-          <div class="session-card-title">Take a timed mini-test</div>
-          <div class="session-card-desc">10 problems, exam-style, no hints. Get a score and personalized review at the end.</div>
-        </button>
-      </div>
-
-      <!-- Secondary: classic open-ended starter prompts -->
-      <div class="starter-divider"><span>or jump straight in with</span></div>
       <div class="starter-grid">
         <button class="starter-card" onclick="sendStarter(this.innerText)">I'm stuck on a problem — can you help me work through it?</button>
         <button class="starter-card" onclick="sendStarter(this.innerText)">Can you explain what a derivative actually means?</button>
@@ -2457,9 +2215,8 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Quiz state ────────────────────────────────────────────────────────────────
-// Tracks answers per quiz instance (keyed by message index).
-// Declared with let (not const) so it can be reset on session change.
-let quizAnswers = {};
+// Tracks answers per quiz instance (keyed by message index)
+const quizAnswers = {};
 
 function renderQuizBlock(quizData, msgIdx) {
   const questions = quizData.questions || [];
@@ -2538,10 +2295,28 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 
   // Show full feedback
   if (feedback) {
-    feedback.textContent = isCorrect
-      ? `✓ ${q.explanation}`
-      : `✗ ${q.explanation}`;
+    // Use innerHTML so the explanation can contain math wrapped in $...$ —
+    // textContent was treating the dollar signs as literal text.
+    const prefix = isCorrect ? '✓ ' : '✗ ';
+    feedback.innerHTML = '';
+    feedback.appendChild(document.createTextNode(prefix));
+    const span = document.createElement('span');
+    span.textContent = q.explanation;
+    feedback.appendChild(span);
     feedback.className = `quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    // Render any LaTeX math in the explanation. Without this, $...$ shows as
+    // literal text since the original renderMessages() pass already finished.
+    if (window.renderMathInElement) {
+      renderMathInElement(feedback, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$',  right: '$',  display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false
+      });
+    }
   }
 
   // Update progress (only counting truly-finalized questions, not _wrongAttempts)
@@ -2575,234 +2350,6 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
     // Small delay so student sees their score before Kay responds
     setTimeout(() => sendMessage(resultMsg), 1200);
   }
-}
-
-// ── Practice mode (SAT/ACT) — single MCQ card with one-click locking ──────────
-// Tracks answers per practice card (keyed by message index).
-// Declared with let so it can be reset on session change.
-let practiceAnswers = {};
-
-function renderPracticeCard(p, msgIdx) {
-  if (!p || !Array.isArray(p.options)) return '';
-  const letters = ['A', 'B', 'C', 'D'];
-  // Check if this card was already answered. If so, render in locked state
-  // with the proper visual highlight and explanation already showing. This
-  // handles re-renders triggered when Kay's next response arrives.
-  const priorAnswer = practiceAnswers[msgIdx];
-  const wasAnswered = priorAnswer !== undefined;
-  const wasCorrect = wasAnswered && (priorAnswer === p.correct);
-
-  const optsHTML = p.options.map((opt, oi) => {
-    const letter = letters[oi] || String(oi + 1);
-    let stateClass = '';
-    if (wasAnswered) {
-      if (oi === priorAnswer) stateClass = wasCorrect ? ' correct' : ' incorrect';
-      else if (oi === p.correct && !wasCorrect) stateClass = ' reveal-correct';
-    }
-    const disabledAttr = wasAnswered ? 'disabled' : '';
-    return `<button class="practice-option${stateClass}" id="popt-${msgIdx}-${oi}" ${disabledAttr} onclick="handlePracticeAnswer(${msgIdx}, ${oi}, ${p.correct})">
-      <span class="practice-option-letter">${letter}</span>
-      <span class="practice-option-text">${escapeAndFormat(String(opt))}</span>
-    </button>`;
-  }).join('');
-
-  // Pre-render explanation if already answered
-  let feedbackHTML = '';
-  if (wasAnswered) {
-    const headerHTML = wasCorrect
-      ? `<div class="practice-feedback-header practice-feedback-correct">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Correct!</span>
-        </div>`
-      : `<div class="practice-feedback-header practice-feedback-wrong">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          <span>The correct answer is ${letters[p.correct]}.</span>
-        </div>`;
-    const explanationHTML = p.explanation
-      ? `<div class="practice-explanation">${escapeAndFormat(String(p.explanation))}</div>`
-      : '';
-    feedbackHTML = headerHTML + explanationHTML +
-      `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
-  }
-
-  return `<div class="practice-card" id="practice-${msgIdx}">
-    <div class="practice-header">
-      <span class="practice-header-label">📝 Practice problem</span>
-      ${p.topic ? `<span class="practice-topic">${escapeAndFormat(p.topic)}</span>` : ''}
-    </div>
-    <div class="practice-question">${escapeAndFormat(p.question || '')}</div>
-    <div class="practice-options">${optsHTML}</div>
-    <div class="practice-feedback${wasAnswered ? ' visible' : ''}" id="pfeedback-${msgIdx}">${feedbackHTML}</div>
-  </div>`;
-}
-
-function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
-  // Already answered? Ignore subsequent clicks (one-click lock).
-  if (practiceAnswers[msgIdx] !== undefined) return;
-  practiceAnswers[msgIdx] = selectedOi;
-
-  const msg = messages[msgIdx];
-  if (!msg || !msg._practiceData) return;
-  const p = msg._practiceData;
-  const isCorrect = selectedOi === correctOi;
-  const letters = ['A', 'B', 'C', 'D'];
-
-  // Lock and visually mark all options
-  for (let oi = 0; oi < p.options.length; oi++) {
-    const btn = document.getElementById(`popt-${msgIdx}-${oi}`);
-    if (!btn) continue;
-    btn.disabled = true;
-    if (oi === selectedOi) {
-      btn.classList.add(isCorrect ? 'correct' : 'incorrect');
-    } else if (oi === correctOi && !isCorrect) {
-      btn.classList.add('reveal-correct');
-    }
-  }
-
-  // Show inline feedback with explanation + Next button
-  const feedback = document.getElementById(`pfeedback-${msgIdx}`);
-  if (feedback) {
-    const headerHTML = isCorrect
-      ? `<div class="practice-feedback-header practice-feedback-correct">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Correct!</span>
-        </div>`
-      : `<div class="practice-feedback-header practice-feedback-wrong">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          <span>The correct answer is ${letters[correctOi]}.</span>
-        </div>`;
-    const explanationHTML = p.explanation
-      ? `<div class="practice-explanation">${escapeAndFormat(String(p.explanation))}</div>`
-      : '';
-    feedback.innerHTML = headerHTML + explanationHTML +
-      `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
-    feedback.className = 'practice-feedback visible';
-    // Render math in the feedback area (explanation may contain math)
-    if (window.renderMathInElement) {
-      renderMathInElement(feedback, {
-        delimiters: [
-          { left: '\\(', right: '\\)', display: false },
-          { left: '\\[', right: '\\]', display: true },
-        ],
-        throwOnError: false
-      });
-    }
-  }
-}
-
-function requestNextProblem(msgIdx) {
-  // User clicked "Next problem" — send a control message to Kay to generate
-  // the next problem. We tell Kay whether the answer was correct or not.
-  const ans = practiceAnswers[msgIdx];
-  const msg = messages[msgIdx];
-  if (ans === undefined || !msg || !msg._practiceData) return;
-  const p = msg._practiceData;
-  const isCorrect = ans === p.correct;
-  const letters = ['A', 'B', 'C', 'D'];
-  const trigger = isCorrect
-    ? `[PRACTICE_ANSWER] I picked ${letters[ans]}. Correct.`
-    : `[PRACTICE_ANSWER] I picked ${letters[ans]}. The correct answer was ${letters[p.correct]}.`;
-  // Disable the button to prevent double-clicks
-  const btn = document.querySelector(`#pfeedback-${msgIdx} .practice-next-btn`);
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Loading next problem…';
-  }
-  sendMessage(trigger);
-}
-
-// ── Practice session recap card ───────────────────────────────────────────────
-// Renders the celebratory "session complete" summary card shown when a
-// student ends a practice session. Style matches the dark achievement card
-// from concept tutoring for visual consistency.
-function renderPracticeRecapCard(recap) {
-  const { total, correct, strong, revisit } = recap;
-  if (total === 0) {
-    // Empty session (ended without answering anything) — minimal card
-    return `<div class="message kay practice-recap-message">
-      <div class="practice-recap-card">
-        <div class="achievement-header">
-          <div class="achievement-icon">🎯</div>
-          <div>
-            <div class="achievement-title">Practice session complete</div>
-            <div class="achievement-subtitle">Session summary</div>
-          </div>
-        </div>
-        <div class="achievement-body">
-          <div class="achievement-note">No problems answered this session — pick a card above whenever you're ready to dive in.</div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  const pct = Math.round((correct / total) * 100);
-  // Choose accuracy bar color based on performance band
-  // 80%+ = green, 50-79% = amber, <50% = red-tinted accent
-  const barColor = pct >= 80 ? '#6abf69' : pct >= 50 ? '#e8a530' : '#d97757';
-
-  // Warm closing sentence based on accuracy
-  let closingNote;
-  if (pct === 100) {
-    closingNote = `Perfect run — ${total} for ${total}. That's exam-level confidence right there.`;
-  } else if (pct >= 80) {
-    closingNote = `Strong session. You're tracking the kind of accuracy that translates to real exam scores.`;
-  } else if (pct >= 60) {
-    closingNote = `Good consistency. Keep building reps — the patterns will become automatic.`;
-  } else if (pct >= 40) {
-    closingNote = `Practice is working — every miss is a topic you've now seen. Come back tomorrow.`;
-  } else if (pct > 0) {
-    closingNote = `Tough one, but every session sharpens your eye for the SAT's traps. Keep at it.`;
-  } else {
-    closingNote = `Tough session — but each problem leaves a fingerprint. You'll see these patterns again.`;
-  }
-
-  const strongHTML = strong.length
-    ? `<div class="achievement-section">
-        <span class="achievement-section-label">✓ Strong topics</span>
-        <div class="achievement-items">${strong.map(s =>
-          `<div class="achievement-item">
-            <div class="achievement-item-dot green"></div>
-            <span>${escapeAndFormat(s.topic)} <span class="recap-topic-score">${s.correct}/${s.total}</span></span>
-          </div>`
-        ).join('')}</div>
-      </div>` : '';
-
-  const revisitHTML = revisit.length
-    ? `<div class="achievement-section">
-        <span class="achievement-section-label">↻ Worth revisiting</span>
-        <div class="achievement-items">${revisit.map(r =>
-          `<div class="achievement-item">
-            <div class="achievement-item-dot amber"></div>
-            <span>${escapeAndFormat(r.topic)} <span class="recap-topic-score">${r.correct}/${r.total}</span></span>
-          </div>`
-        ).join('')}</div>
-      </div>` : '';
-
-  return `<div class="message kay practice-recap-message">
-    <div class="practice-recap-card">
-      <div class="achievement-header">
-        <div class="achievement-icon">🎯</div>
-        <div>
-          <div class="achievement-title">Practice session complete</div>
-          <div class="achievement-subtitle">Session summary</div>
-        </div>
-      </div>
-      <div class="achievement-body">
-        <div class="recap-tally">
-          You answered <strong class="recap-number">${total}</strong>
-          problem${total === 1 ? '' : 's'} and got
-          <strong class="recap-number recap-number-correct">${correct}</strong> correct.
-        </div>
-        <div class="recap-accuracy-bar">
-          <div class="recap-accuracy-fill" style="width: ${pct}%; background: ${barColor};"></div>
-          <div class="recap-accuracy-label">${pct}% accuracy</div>
-        </div>
-        ${strongHTML}
-        ${revisitHTML}
-        <div class="achievement-note">${closingNote}</div>
-      </div>
-    </div>
-  </div>`;
 }
 
 // ── Parse Kay's response for special blocks ───────────────────────────────────
@@ -2902,82 +2449,7 @@ function parseKayResponse(text) {
     cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  // practice block — single MCQ for SAT/ACT practice mode (clickable answer card)
-  // Robust to: multiple blocks (we take the LAST one, since Kay sometimes writes
-  // a block, then writes another after self-correction), trailing whitespace,
-  // and Windows line endings. ALL blocks are stripped from the prose.
-  let practiceData = null;
-  const practiceRegex = /```practice[ \t]*\r?\n([\s\S]*?)```/g;
-  const allPracticeMatches = [...text.matchAll(practiceRegex)];
-  if (allPracticeMatches.length > 0) {
-    // Take the LAST block — Kay's final answer after any self-correction
-    const lastMatch = allPracticeMatches[allPracticeMatches.length - 1];
-    try { practiceData = JSON.parse(lastMatch[1].trim()); } catch(e) {
-      console.warn('Practice block parse failed:', e);
-    }
-    // Strip ALL practice blocks from the prose so abandoned attempts don't leak
-    cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/g, '').trim();
-
-    // Filter the surrounding prose to prevent leaks of Kay's internal thinking
-    // (verification reasoning, topic deliberation, "let me try X" drafting).
-    // Kay's LLM nature is to think out loud — we honor that backstage but never
-    // show it to the student when there's a practice card to display.
-    //
-    // Allowlist approach: keep prose only if it's short, contains no problem
-    // values or math, and isn't deliberation language. Otherwise strip entirely.
-    cleanText = filterPracticeProse(cleanText);
-  }
-
-  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData, practiceData };
-}
-
-// Filter prose around a practice block so internal reasoning (verification
-// reasoning, topic deliberation, "let me try" drafts) never reaches the
-// student. Returns either the prose unchanged (if it's a clean short
-// acknowledgment) or empty string (if it leaks any internal thinking).
-function filterPracticeProse(prose) {
-  const trimmed = (prose || '').trim();
-  if (!trimmed) return '';
-
-  // Length gate: anything over 80 chars is almost certainly leaked thinking.
-  // Real acknowledgments ("Nice.", "Let's start.", "Let's keep going.",
-  // "Next one — quick one.") are all well under this.
-  if (trimmed.length > 80) return '';
-
-  const lower = trimmed.toLowerCase();
-
-  // Deliberation words — Kay narrating her topic choice or planning process.
-  // If any of these appear, the prose is internal thinking, not acknowledgment.
-  const deliberationMarkers = [
-    'hmm', 'actually', 'let me try', 'let me pick', 'let me do',
-    'let me switch', 'let me shift', 'let me move', 'let me give',
-    'let me make', 'let me set', 'let me redo', 'let me replace',
-    'let me find', 'let me think', 'let me change',
-    'something less', 'something more', 'something different',
-    'a different', 'this time', 'next topic', 'less standard',
-    'more challenging', 'straightforward problem', 'clean problem',
-    'good — solutions', 'good - solutions',
-    'verified', 'verifying', 'checked', 'confirms',
-    'solutions are', 'solution is', 'answer is',
-    'will ask for', 'will test', 'will check',
-    'one problem at a time', 'four choices', 'mix of topics',
-    'i' + "'" + 'll throw', 'we' + "'" + 'll try',
-  ];
-  for (const marker of deliberationMarkers) {
-    if (lower.includes(marker)) return '';
-  }
-
-  // Math/equation indicators — any specific value from the upcoming problem.
-  // Numbers, equations, math delimiters, or variable assignments leak content.
-  if (/\d/.test(trimmed)) return '';                     // any digit
-  if (/[=<>]/.test(trimmed)) return '';                   // equation/inequality
-  if (/\\\(|\\\[/.test(trimmed)) return '';               // math delimiters
-  if (/[a-zA-Z]\s*\^/.test(trimmed)) return '';           // exponents like x^2
-  if (/[²³⁴⁵⁶⁷⁸⁹]/.test(trimmed)) return '';            // unicode superscripts
-  if (/\b(x|y|z|n|p|t)\s*[=+\-*/]/.test(trimmed)) return ''; // variable arithmetic
-
-  // Passed all filters — looks like a clean acknowledgment, keep it.
-  return trimmed;
+  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData };
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
@@ -2988,9 +2460,11 @@ function renderMessages() {
   container.style.display = 'block';
   empty.style.display = 'none';
   container.innerHTML = messages.map((m, i) => messageHTML(m, i)).join('');
-  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms, .practice-card').forEach(el => {
+  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms').forEach(el => {
     renderMathInElement(el, {
       delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$',  right: '$',  display: false },
         { left: '\\(', right: '\\)', display: false },
         { left: '\\[', right: '\\]', display: true },
       ],
@@ -3006,13 +2480,7 @@ function renderMessages() {
         tab.classList.add('active');
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
-        renderMathInElement(body, {
-          delimiters: [
-            { left: '\\(', right: '\\)', display: false },
-            { left: '\\[', right: '\\]', display: true },
-          ],
-          throwOnError: false
-        });
+        renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
       });
     });
   });
@@ -3061,12 +2529,6 @@ function messageHTML(m, idx) {
   // Don't render hidden system trigger messages
   if (m.hidden) return '';
 
-  // Practice session recap card — synthetic message with _recapData
-  // Render as a standalone card (no avatar/bubble wrapper)
-  if (m._recapData) {
-    return renderPracticeRecapCard(m._recapData);
-  }
-
   const isKay = m.role === 'assistant';
   const rawContent = m.role === 'user' ? convertMathNotation(m.content) : m.content;
   let bubbleContent = escapeAndFormat(rawContent);
@@ -3085,8 +2547,6 @@ function messageHTML(m, idx) {
     if (parsed.graphData) m._graphData = parsed.graphData;
     // Store quiz data so answer handler can access it
     if (parsed.quizData) m._quizData = parsed.quizData;
-    // Store practice data so click handler can access it
-    if (parsed.practiceData) m._practiceData = parsed.practiceData;
 
     const msgType = classifyMessage(parsed.cleanText, idx);
     if (msgType === 'question') {
@@ -3172,10 +2632,6 @@ function messageHTML(m, idx) {
       extraHTML += renderQuizBlock(parsed.quizData, idx);
     }
 
-    if (parsed.practiceData) {
-      extraHTML += renderPracticeCard(parsed.practiceData, idx);
-    }
-
     // Note: diagram SVG is added to extraHTML (not bubbleContent) so it
     // bypasses escapeAndFormat and renders correctly
 
@@ -3184,14 +2640,12 @@ function messageHTML(m, idx) {
       const formKeys = Object.keys(forms);
       const firstKey = formKeys[0];
       const firstVal = forms[firstKey];
-      // Wrap each equation form in \(...\) so KaTeX renders it as math.
-      // (Dollar signs are no longer math delimiters — currency only.)
       const tabsHTML = formKeys.map((k, i) =>
-        `<button class="eq-form-tab${i===0?' active':''}" data-content="\\(${forms[k]}\\)">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
+        `<button class="eq-form-tab${i===0?' active':''}" data-content="$${forms[k]}$">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
       ).join('');
       extraHTML += `<div class="eq-forms">
         <div class="eq-forms-header">${tabsHTML}</div>
-        <div class="eq-form-body" data-content="\\(${firstVal}\\)">\\(${firstVal}\\)</div>
+        <div class="eq-form-body" data-content="$${firstVal}$">$${firstVal}$</div>
       </div>`;
     }
 
@@ -3249,35 +2703,34 @@ function messageHTML(m, idx) {
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
       <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
-      ${(bubbleContent.trim() || imageHTML) ? `<div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>` : ''}
+      <div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>
       ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
 }
 
 function convertMathNotation(text) {
-  // Skip if user already wrote LaTeX delimiters (don't double-wrap)
-  if (text.includes('\\(') || text.includes('\\[')) return text;
+  if (text.includes('$')) return text;
 
   let result = text;
   let changed = false;
 
-  // x^2, x^n — exponents with caret, wrap just that token in \(...\)
+  // x^2, x^n — exponents with caret, wrap just that token in $...$
   result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, (match) => {
     changed = true;
-    return '\\(' + match + '\\)';
+    return '$' + match + '$';
   });
 
-  // sqrt(expr) → \(\sqrt{expr}\)
+  // sqrt(expr) → $\sqrt{expr}$
   result = result.replace(/sqrt\(([^)]+)\)/gi, (match, expr) => {
     changed = true;
-    return '\\(\\sqrt{' + expr + '}\\)';
+    return '$\\sqrt{' + expr + '}$';
   });
 
-  // Simple numeric fraction: 3/4 → \(\frac{3}{4}\)
+  // Simple numeric fraction: 3/4 → $\frac{3}{4}$
   result = result.replace(/\b(\d+)\/(\d+)\b/g, (match, a, b) => {
     changed = true;
-    return '\\(\\frac{' + a + '}{' + b + '}\\)';
+    return '$\\frac{' + a + '}{' + b + '}$';
   });
 
   return changed ? result : text;
@@ -3285,12 +2738,10 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
-  // Stash ALL math first — both display and inline — before any processing.
-  // We use \(...\) for inline math and \[...\] for display math (matching the
-  // KaTeX delimiters config). Dollar signs are NEVER math — they're literal $.
+  // Stash ALL math first — both display and inline — before any processing
   let s = text
-    .replace(/\\\[([\s\S]+?)\\\]/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
-    .replace(/\\\(([\s\S]+?)\\\)/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
+    .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
+    .replace(/\$([^\$\n]+?)\$/g,    (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
   // Now safe to process text — math is fully protected in stash
   s = s
@@ -3321,10 +2772,7 @@ function addTypingIndicator() {
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
 // ── API ──────────────────────────────────────────────────────────────────────
-// NOTE: This file is for the test-prep-pilot (staging) branch.
-// BACKEND_URL points at the staging Render service.
-// Before merging to main, change this to https://math-tutor-kay.onrender.com
-const BACKEND_URL = 'https://math-tutor-kay-staging.onrender.com';
+const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
 
 async function callKay() {
   // Build API messages — convert any with images to multimodal content blocks
@@ -3370,18 +2818,15 @@ async function sendMessage(overrideText) {
   const msgImageDataURL = pendingImageDataURL;
   if (pendingImageBase64) clearImage();
 
-  const isControlMessage = text.startsWith('[END_SESSION]')
-    || text.startsWith('[QUIZ_RESULTS]')
-    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
-    || text.startsWith('[PRACTICE_ANSWER]');
+  const isEndSession = text.startsWith('[END_SESSION]') || text.startsWith('[QUIZ_RESULTS]');
 
   // Ping stats counter for every real student message
-  if (!isControlMessage) pingQuestion();
+  if (!isEndSession) pingQuestion();
 
   const userMsg = {
     role: 'user',
     content: text || '',
-    hidden: isControlMessage, // flag to hide from display
+    hidden: isEndSession, // flag to hide from display
     ...(msgImageBase64 ? { imageBase64: msgImageBase64, imageMediaType: msgImageMediaType, imageDataURL: msgImageDataURL } : {})
   };
   messages.push(userMsg);
@@ -3414,50 +2859,6 @@ async function sendMessage(overrideText) {
 }
 
 function sendStarter(t) { sendMessage(t); }
-
-// ── Session-type entry points (home screen cards) ─────────────────────────────
-function startLearnMode() {
-  // "Understand a concept" — focuses the input with a custom placeholder
-  const input = document.getElementById('msg-input');
-  if (input) {
-    input.placeholder = 'What math concept would you like to understand?';
-    input.focus();
-  }
-}
-
-// SAT/ACT Math subtopic categories used for opener variety.
-// Each session starts with a randomly-chosen subtopic so students don't see
-// the same problem type twice in a row across sessions.
-const PRACTICE_OPENER_TOPICS = [
-  'linear equations',
-  'quadratic equations',
-  'systems of equations',
-  'functions and function notation',
-  'exponential expressions and rules',
-  'percentages and percent change',
-  'ratios and proportions',
-  'coordinate geometry (lines, slopes, distance)',
-  'triangles and special right triangles',
-  'circles (area, circumference, equations)',
-  'data interpretation (tables, graphs, statistics)',
-  'basic trigonometry (sin, cos, tan)',
-];
-
-function startPracticeMode() {
-  // "Practice SAT/ACT problems" — inject the practice mode marker as the
-  // first user message. The backend detects [SAT_ACT_PRACTICE_MODE] and
-  // applies the practice-mode system prompt addition.
-  // Frontend picks a random opener topic so sessions don't all start with
-  // the same problem type. Kay honors this in the system prompt.
-  const openerTopic = PRACTICE_OPENER_TOPICS[Math.floor(Math.random() * PRACTICE_OPENER_TOPICS.length)];
-  document.getElementById('topic-label').textContent = 'Practice mode · SAT/ACT Math';
-  sendMessage(`[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. For the first problem, pick a question about: ${openerTopic}.`);
-}
-
-function showComingSoon() {
-  // "Take a timed mini-test" — Phase 2 feature, not built yet.
-  showAlert('Timed mini-tests are coming soon! For now, try Practice mode for unlimited problems with feedback.', 'info', 4000);
-}
 function sendHint() {
   if (messages.length === 0) { showAlert('Start a problem first, then ask for a hint.', 'info', 2500); return; }
   sendMessage("I'm stuck — can you give me a hint without giving away the answer?");
@@ -3465,32 +2866,6 @@ function sendHint() {
 function endSession() {
   if (messages.length === 0) { showAlert('Start a session first before ending it.', 'info', 2500); return; }
   if (isLoading) return;
-
-  // Detect practice mode by checking if any user message contains the marker
-  const isPracticeSession = messages.some(m =>
-    m.role === 'user' && typeof m.content === 'string' && m.content.includes('[SAT_ACT_PRACTICE_MODE]')
-  );
-
-  if (isPracticeSession) {
-    // Practice mode: skip the end-session quiz (the whole session was already
-    // a quiz). Compute summary stats and inject a recap card as a final
-    // assistant message, so the student sees a proper session ending in the
-    // chat flow rather than a transient toast.
-    const recap = computePracticeSummary();
-    const recapMessage = {
-      role: 'assistant',
-      content: '', // No prose — the card is rendered from _recapData
-      _recapData: recap,
-    };
-    messages.push(recapMessage);
-    renderMessages();
-    saveCurrentSession();
-    // Don't auto-reset to home — let the student admire their recap
-    // and choose when to start a new session via the New session button.
-    return;
-  }
-
-  // Standard end-session behavior: trigger the quiz flow
   const trigger = `[END_SESSION] The student has ended this session. You MUST respond with a quiz block in this EXACT format — no plain text questions, no numbered lists:
 
 \`\`\`quiz
@@ -3509,56 +2884,10 @@ function endSession() {
 Generate 2-3 questions based on what was covered in this conversation. The quiz block is REQUIRED. Do not write plain numbered questions.`;
   sendMessage(trigger);
 }
-
-// Compute summary stats from a practice session.
-// Returns total/correct counts plus per-topic stats for the recap card.
-function computePracticeSummary() {
-  let total = 0, correct = 0;
-  const topicStats = {}; // { topicName: { total, correct } }
-
-  Object.keys(practiceAnswers).forEach(idxStr => {
-    const idx = parseInt(idxStr, 10);
-    const msg = messages[idx];
-    if (!msg || !msg._practiceData) return;
-    const p = msg._practiceData;
-    const isCorrect = practiceAnswers[idxStr] === p.correct;
-    total++;
-    if (isCorrect) correct++;
-    const topic = (p.topic || 'Other').trim();
-    if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
-    topicStats[topic].total++;
-    if (isCorrect) topicStats[topic].correct++;
-  });
-
-  // Strong topics: > 50% correct (and at least 1 problem on that topic)
-  // Worth revisiting: < 50% correct
-  // Topics with exactly 50% (single-problem 1/2, etc.) get bucketed by overall trend
-  const strong = [];
-  const revisit = [];
-  Object.keys(topicStats).forEach(topic => {
-    const t = topicStats[topic];
-    const pct = t.correct / t.total;
-    if (pct > 0.5) {
-      strong.push({ topic, correct: t.correct, total: t.total });
-    } else if (pct < 0.5) {
-      revisit.push({ topic, correct: t.correct, total: t.total });
-    }
-    // Exactly 0.5 — neutral, don't list
-  });
-
-  // Sort by total problems descending so most-practiced topics appear first
-  strong.sort((a, b) => b.total - a.total);
-  revisit.sort((a, b) => b.total - a.total);
-
-  return { total, correct, strong, revisit };
-}
-
 function clearChat() {
   if (isListening) stopVoice();
   clearImage();
-  messages = []; currentSessionId = null;
-  quizAnswers = {}; practiceAnswers = {};
-  renderMessages();
+  messages = []; currentSessionId = null; renderMessages();
   document.getElementById('topic-label').textContent = 'Ready to learn';
   clearAlert();
 }
@@ -3569,7 +2898,6 @@ function newSession() {
   clearImage();
   currentSessionId = Date.now().toString();
   messages = [];
-  quizAnswers = {}; practiceAnswers = {};
   renderMessages();
   renderSessions();
   document.getElementById('topic-label').textContent = 'Ready to learn';
@@ -3579,21 +2907,7 @@ function newSession() {
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
   const firstUser = messages.find(m => m.role === 'user');
-  // Build a friendly title for the sidebar list.
-  // For practice sessions, the first user message is the [SAT_ACT_PRACTICE_MODE]
-  // control marker — replace it with a clean label that reflects the session's
-  // type and progress, rather than showing the raw bracketed marker.
-  let title;
-  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
-    const answeredCount = Object.keys(practiceAnswers).length;
-    title = answeredCount > 0
-      ? `SAT/ACT Practice · ${answeredCount} problem${answeredCount === 1 ? '' : 's'}`
-      : 'SAT/ACT Practice';
-  } else if (firstUser) {
-    title = firstUser.content.slice(0, 48);
-  } else {
-    title = 'Untitled';
-  }
+  const title = firstUser ? firstUser.content.slice(0, 48) : 'Untitled';
   const idx = sessions.findIndex(s => s.id === currentSessionId);
   const obj = { id: currentSessionId, title, messages: [...messages] };
   if (idx >= 0) sessions[idx] = obj; else sessions.unshift(obj);
@@ -3603,21 +2917,9 @@ function saveCurrentSession() {
 function loadSession(id) {
   if (currentSessionId && messages.length > 0) saveCurrentSession();
   const s = sessions.find(s => s.id === id); if (!s) return;
-  currentSessionId = id; messages = [...s.messages];
-  quizAnswers = {}; practiceAnswers = {};
-  renderMessages(); renderSessions();
-  // Set topic-label cleanly — practice sessions get a friendly label instead
-  // of the raw [SAT_ACT_PRACTICE_MODE] marker
+  currentSessionId = id; messages = [...s.messages]; renderMessages(); renderSessions();
   const firstUser = messages.find(m => m.role === 'user');
-  let topicLabel;
-  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
-    topicLabel = 'Practice mode · SAT/ACT Math';
-  } else if (firstUser) {
-    topicLabel = firstUser.content.slice(0, 40) + '…';
-  } else {
-    topicLabel = 'Session';
-  }
-  document.getElementById('topic-label').textContent = topicLabel;
+  document.getElementById('topic-label').textContent = firstUser ? firstUser.content.slice(0,40)+'…' : 'Session';
   autoCloseSidebarOnMobile();
 }
 function renderSessions() {
