@@ -621,13 +621,40 @@ app.post('/chat', async (req, res) => {
     }
 
     const data = await response.json();
-    // Response content is an array of typed blocks. With code execution,
-    // we get text blocks AND server_tool_use / code_execution_tool_result
-    // blocks. The student should only see the final text — concatenate all
-    // text-type blocks and ignore the rest (which are internal verification).
-    const text = (data.content || [])
-      .filter(block => block.type === 'text')
-      .map(block => block.text || '')
+    // Response content is an array of typed blocks. With code execution
+    // enabled (practice mode), Sonnet naturally writes connective prose
+    // between tool calls — "let me check that", "I need to verify this
+    // cleanly", etc. Those intermediate text blocks are working scratchpad,
+    // not the student-facing response. Even with explicit prompt rules
+    // against narration, multi-text-block tool flows invite it.
+    //
+    // Filter at the seam: keep only text that appears AFTER the last
+    // non-text block (the final tool result). That's where the
+    // post-verification answer lives. In non-practice mode there are no
+    // tool blocks at all, so lastNonTextIdx stays -1, the slice keeps
+    // everything, and concept-tutoring behavior is unchanged.
+    const blocks = data.content || [];
+    let lastNonTextIdx = -1;
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      if (blocks[i].type !== 'text') { lastNonTextIdx = i; break; }
+    }
+    if (lastNonTextIdx >= 0) {
+      const dropped = blocks
+        .slice(0, lastNonTextIdx + 1)
+        .filter(b => b.type === 'text')
+        .map(b => (b.text || '').trim())
+        .filter(Boolean);
+      if (dropped.length) {
+        console.warn(
+          `Tutor Kay: dropped ${dropped.length} inter-step text block(s):`,
+          dropped
+        );
+      }
+    }
+    const text = blocks
+      .slice(lastNonTextIdx + 1)
+      .filter(b => b.type === 'text')
+      .map(b => b.text || '')
       .join('\n')
       .trim();
     res.json({ reply: text });
