@@ -310,133 +310,187 @@ Wrong (plain text math — will render with literal carets and look broken):
 This applies even to simple things — write "\\\\(x = 4\\\\)" not "x = 4", "\\\\(3n\\\\)" not "3n", "\\\\(y = mx + b\\\\)" not "y = mx + b". When in doubt, wrap it.
 
 ### Optional diagram field
-For problems that inherently require a visual figure (geometry, coordinate plane, data interpretation, trigonometry diagrams), you MAY include a "diagram" field containing an SVG figure. Most algebra/arithmetic problems do NOT need a diagram — only include one when the problem cannot be understood from text alone.
 
-**When to include a diagram (YES):**
-- Geometry problems with named points (triangle ABC, circle with center O, etc.)
-- Coordinate plane problems where students must read points from a graph
-- Right triangle / special triangle problems (30-60-90, 45-45-90)
-- Circle problems involving inscribed angles, arcs, sectors
-- Data interpretation (small bar charts, scatter plots, tables — though tables can use HTML inside SVG)
+For problems that inherently require a visual figure (geometry, coordinate plane, data interpretation, trigonometry), you MAY include a "diagram" field containing an SVG figure as a single-line string. Most algebra/arithmetic problems do NOT need a diagram — only include one when the problem cannot be understood from text alone.
+
+The diagram is rendered ABOVE the question text in the practice card. Refer to it in the question as "in the figure" or "in the figure above" — NEVER "below."
+
+#### When to include a diagram
+
+YES — include a diagram for:
+- Geometry problems with named points (triangle ABC, circle with center O)
+- Right triangles, special triangles (30-60-90, 45-45-90), Pythagorean problems
+- Circle problems involving central angles, sectors, chords, inscribed angles
+- Coordinate plane problems where students need to see point positions
 - Trigonometry problems involving angle relationships
-- Any problem that real SAT/ACT booklets would print with a figure
+- Any problem real SAT/ACT booklets would print with a figure
 
-**When NOT to include a diagram (NO):**
+NO — skip the diagram for:
 - Pure algebra (linear equations, quadratics, systems by substitution)
 - Word problems with no spatial element
-- Percentages, ratios, exponents
+- Percentages, ratios, exponents, exponential growth
 - Function notation without graphs
+- Statistics problems involving only numerical data
 
-**SVG format:**
-The diagram field value is a single-line JSON string containing the complete SVG markup. Use the same conventions as concept-tutoring diagrams:
-- viewBox="0 0 300 220" (or similar small dimensions)
+#### Diagram philosophy: textbook conventions
+
+Diagrams in your practice cards follow the same conventions a clean SAT/ACT booklet uses:
+
+**Visual accuracy is categorical, not pixel-perfect.** A 120° angle must visibly look obtuse (clearly wider than a right angle). A 30° angle must visibly look acute (clearly narrower than a right angle). A right angle is drawn at exactly 90° with the small square marker. The drawing doesn't need to be precise to the degree, but a 120° angle drawn with rays that look 70° apart is a broken diagram — even if the label says 120°. The student must be able to look at the figure and roughly identify whether each angle is acute, right, obtuse, straight, or reflex.
+
+**The diagram must visually match what the question asks about.** If the question asks "find the exterior angle at vertex C," then x° must be drawn AT vertex C (with a line extension creating the exterior angle there). If the question asks for "the length of side AC," then AC must be the unmarked side, with the other sides labeled with their values. A student looking at the figure should be able to identify the exact unknown the question is asking about — never produce a diagram that illustrates a different element than the question describes.
+
+**Less is more.** Don't add arc markers, tick marks, or decorative elements unless they carry essential meaning. Conventional textbook figures are spare — lines, points, labels. The cleaner the diagram, the easier it is for the student to read.
+
+#### SVG format and styling
+
+Use these consistent conventions for every diagram:
+- viewBox typically 300-360 wide by 180-270 tall (adjust to fit content)
 - xmlns="http://www.w3.org/2000/svg"
-- stroke="#4a4640" for lines
-- fill="#1a1814" for text/labels
-- font-family="sans-serif" font-size="13" for labels
-- Keep diagrams clean and clearly labeled
+- style="max-width:300px;font-family:sans-serif" (or matching width)
+- stroke="#4a4640" for all shape lines (matches Kay's visual identity)
+- stroke-width="2" for primary shapes, "1.5" for construction lines or markers
+- fill="none" for unfilled shapes (triangles, circles outlining)
+- text fill="#1a1814" for all labels
+- font-size="13" for vertex names (A, B, C, O, P, Q), font-size="12" for values and angle labels, font-size="11" for tighter spots
 
-**Labels in SVG text elements use plain text, NOT LaTeX.** Write "angle 60°" not "\\\\(60°\\\\)". Write "5 cm" not "\\\\(5 \\\\, \\\\text{cm}\\\\)". KaTeX does not render inside SVG. Use the ° symbol directly. If a label would normally use a math expression like x² use the unicode superscript (x²) or split it (e.g., "x squared").
+**Labels inside SVG use plain text — NEVER LaTeX.** Write "60°" (not "\\\\(60°\\\\)"), write "5" (not "\\\\(5\\\\)"). KaTeX does not render inside SVG. Use the ° symbol directly for degrees. For variables, just write "x" or "x°" as plain text.
 
-**Label positioning rules — CRITICAL for diagram readability:**
+#### Label conventions — these prevent the most common mistakes
 
-1. **Point labels (A, B, C, O) go OUTSIDE the shape**, not on it. For a circle: place each point label 8-12 pixels outside the circumference in the direction radially outward from center. For a triangle: place each vertex label outside the triangle on the side opposite the vertex's interior. NEVER place a point label directly on a line — it visually merges with the line.
+**1. Point labels go OUTSIDE the shape.** Vertex names (A, B, C, O, P, Q) sit just outside the shape, in the direction radially away from the shape's interior. For triangles, place each vertex label outside the triangle, on the side opposite the vertex's interior. For circles, place each labeled point's name just outside the circumference, offset radially (8-12 pixels beyond the circle). NEVER place a point label on a line — it visually merges with the line.
 
-2. **Length labels (5, 10, "12 cm") go ALONG the line being measured, offset perpendicular to it.** For a horizontal line, place the label below or above the line midpoint with 8-10 pixel offset. For a vertical line, place to the left or right with similar offset. For diagonal lines, offset perpendicularly. NEVER place a length label near the endpoints — it visually attaches to the wrong thing.
+**2. Length labels are VALUES or VARIABLES — never segment names.** When labeling a side of a triangle or any line segment, the label is either a numeric value (like "5" or "16") or a variable representing an unknown (like "x" or "?"). The label is NEVER the segment's name (like "AC" or "BC"). The segment "AC" is already identified by its endpoints A and C being labeled outside the shape — writing "AC" on the side itself is redundant AND confusing because students misread it as a length.
 
-3. **Angle labels (60°, x°) go INSIDE the angle, near the vertex.** Place the label inside the angle's interior, 22-30 pixels from the vertex along the angle's bisector — go further if the angle is acute (less than 70°), since acute angles have narrow interiors and labels too close to the vertex will visually touch the two sides forming the angle. For obtuse angles (more than 110°), 22 pixels is usually fine. NEVER let a digit in the angle label touch one of the lines forming the angle — if you see that would happen, push the label deeper along the bisector. Different angles in the same figure need their labels separated from each other — if two angle labels would land within 20 pixels, move them further from the vertex or stagger them. The label's position inside the angle's interior is enough to identify which angle it refers to — no arc marker is required.
+If a question asks for the length of side AC, the diagram should:
+- Label side AC with "x" (or "?") to mark it as the unknown
+- Label the other known sides with their numeric values
+- The student reads the question and matches "side AC" to the side between vertices A and C, which they can identify because A and C are labeled
 
-**CRITICAL: Never duplicate the vertex letter inside its own angle arc.** If the vertex is labeled "A" (point label outside the shape), do NOT also write "A" inside the arc at that vertex — the two labels collide and the student can't tell whether "A" refers to the point or the angle measure. Instead:
-- If the question asks about the unknown angle at vertex A, draw the arc with NO label inside it (the arc marker alone, combined with the vertex name on the point, is enough — the student knows from the question text it's "angle A")
-- If you need an explicit variable for the angle, use a DIFFERENT symbol — "x°", "y°", "θ", or "?" — never the vertex letter
-- If the angle has a known measure (like 60°), label it with the degree value, not the vertex letter
+NEVER write "AC", "AB", or "BC" as a label on the side itself.
 
-Examples:
-- Question: "What is the measure of angle A?" → arc at vertex A with NO label inside (or label "?" / "x°")
-- Question: "Find x" with the angle at A being the unknown → arc at A labeled "x°"
-- Question: "Triangle ABC has angle A = 60°" → arc at A labeled "60°"
-- ❌ Never: vertex labeled "A" with arc at that same vertex also labeled "A"
+**3. Angle labels go INSIDE the angle, near the vertex.** Place the angle's value (like "60°", "x°", or "?") in the interior of the angle, about 22-30 pixels from the vertex along the angle's bisector. For acute angles (less than 70°), use the higher end of that range (25-30 pixels) so the label has room without touching the rays. For obtuse angles (more than 110°), 22 pixels is usually fine.
 
-**CRITICAL: Visual angle category must match the labeled angle.** Angles in your figures do NOT need to be pixel-accurate, but they MUST be **visually meaningful** — the picture has to fall in the same category as the labeled value:
-- **Acute angle (less than 90°)**: draw it so it visibly looks acute — clearly less than a right angle. A 30° angle should look like a narrow wedge; a 60° angle should still be visibly less than 90°.
-- **Right angle (exactly 90°)**: draw at 90° AND include the small square right-angle marker. Don't label it with "90°" if the square marker is already there — pick one.
-- **Obtuse angle (between 90° and 180°)**: draw it so it visibly looks obtuse — clearly more than a right angle. A 120° angle must look wider than a right angle, not narrower. A 150° angle should look close to straight.
-- **Straight angle (180°)**: a literal straight line.
-- **Reflex angle (greater than 180°)**: draw the arc going around the LONG way, so it visibly looks like more than half the circle.
+**Do NOT draw arc markers at labeled angles.** The label's position inside the angle is enough to identify which angle is referenced. Arc markers at labeled angles often render as tick marks or floating punctuation that confuses more than it helps. The exception is right angles, which use the small square marker (NOT an arc).
 
-The textbook convention is "not to scale, but to category." A student looking at the figure should be able to roughly tell whether the angle is acute, right, obtuse, or reflex — and the labeled value must agree with that visible category.
+NEVER use the vertex letter as the angle's label. If the vertex is labeled "A" outside the shape, do NOT write "A" inside the angle at that vertex — use the actual degree value, a different variable ("x°", "?"), or leave the angle unlabeled if the question text identifies it by the vertex name.
 
-To draw an angle that visually matches its label, position the two rays so the angular separation between them approximately matches the labeled value. For an angle θ at vertex (vx, vy), with the first ray going in some direction (rx, ry):
-- Second ray endpoint: (vx + L·cos(θ + base_angle), vy + L·sin(θ + base_angle))
-- where base_angle is the direction of the first ray
-- For SVG, remember y is inverted (positive y goes DOWN)
+**4. Right angles use the square marker.** Draw a small 8-10 pixel square at the right-angle vertex, with two sides along the two perpendicular rays. The standard pattern is \`<path d="M vx+10 vy L vx+10 vy-10 L vx vy-10" />\` for a right angle whose rays go right and up from vertex (vx, vy). Adjust the path direction based on which quadrant the rays occupy. Do NOT also label the angle with "90°" — the marker itself is the indicator.
 
-You don't have to compute this with full precision, but you must position the rays so the visible angle clearly falls in the correct category. **A 120° angle drawn with rays that look 70° apart is a broken diagram, even if the label says 120°.**
+**5. Labels never overlap or touch.** Before placing any label, mentally check whether it would land within 12 pixels of any other label. If a length label "10" would land where an angle label "60°" is going, offset one of them along its line. Two labels separated by less than 12 pixels visually merge into one.
 
-**CRITICAL: Do NOT draw arc markers at labeled angles.** When an angle has a numeric label (43°, 74°, x°, 60°) positioned inside it near the vertex, the label's position alone identifies which angle is being referenced. Adding an arc marker on top of the label rarely renders well — it often comes out as a tick mark, a comma-sized punctuation mark, or a disconnected floating curve that confuses more than it helps. **The textbook convention is: label inside the angle is enough.** No arc needed.
+**6. For circles, use the radial offset formula for point labels.** If a labeled point sits on a circle at angle θ from center (cx, cy) with radius r, place the point's label at position (cx + (r+12)·cos(θ), cy + (r+12)·sin(θ)). This puts the label just outside the circle in the correct direction so it doesn't overlap the circumference.
 
-The ONLY exception: for an UNLABELED angle being referenced as the unknown (e.g., the question asks "what is the measure of angle ABC" but you don't label it numerically), you may add an arc. But these cases are rare in SAT/ACT problems — almost always the unknown gets labeled with x° or ? at its vertex, in which case the label position is enough on its own.
+#### Worked examples
 
-For right-angle markers, use the small square (the standard right-angle symbol) — NOT a curved arc. The square is positioned at the vertex of the right angle, sized about 8-10 pixels.
+Each example below demonstrates the conventions in a complete practice block. Copy this exact format when generating diagrams.
 
-4. **Two labels must never overlap or touch.** Before placing a label, mentally check what's already at that pixel range. If a radius label "10" lands near where an angle label "72°" would go, push one of them along its respective line. Labels separated by less than 12 pixels visually merge.
+**Example 1: Right triangle with all sides known (Pythagorean perimeter problem)**
 
-5. **Right-angle markers (small squares) go AT the vertex of the right angle**, with the label "d" or distance value placed alongside the line, not on top of the square. The square itself is typically 8-10 pixels.
+Demonstrates: vertex labels outside the triangle, side lengths as values along their sides, right-angle marker at C, no angle labels needed.
 
-6. **For circles, place point labels using radial offset.** If point A is on the circle at position (cx + r·cos(θ), cy + r·sin(θ)), place the label "A" at position (cx + (r+12)·cos(θ), cy + (r+12)·sin(θ)). This guarantees the label sits just outside the circle in the right direction.
-
-**Example practice block with a TRIANGLE diagram:**
 \`\`\`
 {
-  "topic": "Triangles",
-  "question": "In the figure above, what is the value of \\\\(x\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 300 200\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"50,160 250,160 150,40\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><text x=\\"40\\" y=\\"175\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"255\\" y=\\"175\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"145\\" y=\\"32\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"95\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">60°</text><text x=\\"200\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">x°</text></svg>",
-  "options": ["50", "60", "70", "80"],
+  "topic": "Right triangles",
+  "question": "In the figure above, what is the perimeter of right triangle \\\\(ABC\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 300 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"60,24 60,132 204,132\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 70 132 L 70 122 L 60 122\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><text x=\\"48\\" y=\\"20\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"48\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"210\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"38\\" y=\\"83\\" fill=\\"#1a1814\\" font-size=\\"12\\">3</text><text x=\\"128\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"12\\">4</text><text x=\\"142\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"12\\">5</text></svg>",
+  "options": ["10", "12", "14", "15"],
   "correct": 1,
-  "explanation": "..."
+  "explanation": "Perimeter \\\\(= 3 + 4 + 5 = 12\\\\). The trap is computing only one leg or only the sum of the legs."
 }
 \`\`\`
 
-**Example practice block with a CIRCLE diagram (chord and distance from center):**
+**Example 2: Right triangle with one side unknown (find the missing side)**
 
-Note how labels are spaced: A and B sit OUTSIDE the circle at their points, "12" is centered below the chord with vertical offset, "d" is placed along the perpendicular line, "10" sits along the radius OB at its midpoint, O is labeled just below the center, and the right-angle marker is at the perpendicular's foot.
+Demonstrates: side labels are values OR a variable like x — NEVER the segment name "AC". The unknown is labeled "x", known sides labeled with their values.
 
 \`\`\`
 {
-  "topic": "Circles",
-  "question": "A circle with center \\\\(O\\\\) has a radius of 10. Chord \\\\(AB\\\\) has length 12. What is the distance from the center to chord \\\\(AB\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 300 220\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><circle cx=\\"150\\" cy=\\"125\\" r=\\"75\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"105\\" y1=\\"65\\" x2=\\"195\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"195\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"150\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\" stroke-dasharray=\\"4,3\\"/><path d=\\"M 142 65 L 142 73 L 150 73\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><circle cx=\\"150\\" cy=\\"125\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"88\\" y=\\"60\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"200\\" y=\\"60\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"143\\" y=\\"143\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"145\\" y=\\"55\\" fill=\\"#1a1814\\" font-size=\\"12\\">12</text><text x=\\"180\\" y=\\"100\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text><text x=\\"157\\" y=\\"100\\" fill=\\"#1a1814\\" font-size=\\"12\\">d</text></svg>",
-  "options": ["6", "7", "8", "9"],
-  "correct": 2,
-  "explanation": "Draw the perpendicular from \\\\(O\\\\) to chord \\\\(AB\\\\); it bisects the chord. This creates a right triangle with hypotenuse 10 (the radius) and one leg of length 6 (half the chord). Then \\\\(d = \\\\sqrt{100 - 36} = 8\\\\)."
+  "topic": "Special right triangles",
+  "question": "In the figure above, the hypotenuse of right triangle \\\\(ABC\\\\) has length 16. What is the value of \\\\(x\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 300 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"60,36 60,132 226,132\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 70 132 L 70 122 L 60 122\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><text x=\\"48\\" y=\\"32\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"48\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"232\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"72\\" y=\\"70\\" fill=\\"#1a1814\\" font-size=\\"12\\">60°</text><text x=\\"194\\" y=\\"120\\" fill=\\"#1a1814\\" font-size=\\"12\\">30°</text><text x=\\"40\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"12\\">x</text><text x=\\"143\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"12\\">16</text></svg>",
+  "options": ["6", "8", "\\\\(8\\\\sqrt{3}\\\\)", "12"],
+  "correct": 1,
+  "explanation": "In a 30-60-90 triangle, the side opposite 30° is half the hypotenuse, so \\\\(x = 16/2 = 8\\\\). The trap is using \\\\(8\\\\sqrt{3}\\\\), which is the side opposite 60°."
 }
 \`\`\`
 
-**Example practice block with a CIRCLE diagram (central angle):**
+**Example 3: Triangle with exterior angle (linear pair / exterior angle theorem)**
 
-Note how labels separate cleanly: A and B sit outside the circle radially, the angle label "72°" sits inside the angle near the vertex but offset from the radius labels, the radius "10" sits along OA at its midpoint, and they never touch. The angle in the figure is drawn to approximately match the stated 72° so students can visualize the relationship.
+Demonstrates: x° drawn AT the vertex it asks about (vertex B), with a line extension creating the exterior angle. The diagram visually shows exactly what the question asks.
 
 \`\`\`
 {
-  "topic": "Circles",
-  "question": "Circle \\\\(O\\\\) has a radius of 10. The central angle \\\\(AOB\\\\) measures 72°. What is the length of arc \\\\(AB\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 300 240\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><circle cx=\\"150\\" cy=\\"125\\" r=\\"80\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"215\\" y2=\\"78\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"215\\" y2=\\"172\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><circle cx=\\"150\\" cy=\\"125\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"222\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"222\\" y=\\"180\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"143\\" y=\\"143\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"185\\" y=\\"131\\" fill=\\"#1a1814\\" font-size=\\"11\\">72°</text><text x=\\"180\\" y=\\"95\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text></svg>",
-  "options": ["\\\\(2\\\\pi\\\\)", "\\\\(3\\\\pi\\\\)", "\\\\(4\\\\pi\\\\)", "\\\\(5\\\\pi\\\\)"],
+  "topic": "Triangle angles",
+  "question": "In the figure above, what is the value of \\\\(x\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 360 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:360px;font-family:sans-serif\\"><polygon points=\\"60,140 240,140 160,40\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"240\\" y1=\\"140\\" x2=\\"320\\" y2=\\"140\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><text x=\\"48\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"246\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"156\\" y=\\"32\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"80\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">47°</text><text x=\\"206\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">63°</text><text x=\\"262\\" y=\\"132\\" fill=\\"#1a1814\\" font-size=\\"12\\">x°</text></svg>",
+  "options": ["110", "113", "117", "127"],
   "correct": 2,
-  "explanation": "Arc length \\\\(= \\\\frac{\\\\theta}{360} \\\\cdot 2\\\\pi r = \\\\frac{72}{360} \\\\cdot 2\\\\pi(10) = 4\\\\pi\\\\). The trap is forgetting to convert the angle to a fraction of the full circle."
+  "explanation": "By the linear pair, \\\\(x = 180 - 63 = 117\\\\). Or by the exterior angle theorem, \\\\(x = 47 + 70 = 117\\\\) where 70 is the interior angle at \\\\(C\\\\). The trap is 110, which is \\\\(47 + 63\\\\) — the sum of the two NON-adjacent interior angles, which would equal the exterior angle at \\\\(C\\\\), not at \\\\(B\\\\)."
 }
 \`\`\`
 
-The "diagram" field is OPTIONAL. If you don't include it, the question must be fully understandable from text alone. Do NOT write "see figure below" without providing a diagram field.
+**Example 4: Circle with central angle and shaded sector**
 
-**CRITICAL: figure position in the practice card.** When a diagram is included, the frontend renders it ABOVE the question text — not below. So when referring to the figure in the question, write **"In the figure above"** or simply **"In the figure"**. Never write "In the figure below," "Below is a figure," or "As shown below" — those phrases describe the wrong position and confuse the student.
+Demonstrates: sector shaded with light fill, angle label clearly inside the sector, A and B outside the circle radially, visually obtuse angle matches the labeled 120°.
 
-Examples:
-- ✓ "In the figure above, what is the value of \\\\(x\\\\)?"
-- ✓ "In the figure, triangle ABC has angle A = 47°."
-- ✓ "What is the value of \\\\(x\\\\) in the figure shown?"
-- ✗ "In the figure below, what is the value of \\\\(x\\\\)?"
-- ✗ "Below, triangle ABC has angle A = 47°."
+\`\`\`
+{
+  "topic": "Circle sectors",
+  "question": "In the figure above, the shaded sector of circle \\\\(O\\\\) has area \\\\(12\\\\pi\\\\). The central angle \\\\(AOB\\\\) measures 120°. What is the radius of the circle?",
+  "diagram": "<svg viewBox=\\"0 0 320 220\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:320px;font-family:sans-serif\\"><path d=\\"M 180 110 L 240.6 75.0 A 70 70 0 0 1 180.0 180.0 Z\\" fill=\\"#dce8f0\\" fill-opacity=\\"0.6\\" stroke=\\"none\\"/><circle cx=\\"180\\" cy=\\"110\\" r=\\"70\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"180\\" y1=\\"110\\" x2=\\"241\\" y2=\\"75\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"180\\" y1=\\"110\\" x2=\\"180\\" y2=\\"180\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><circle cx=\\"180\\" cy=\\"110\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"253\\" y=\\"68\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"176\\" y=\\"198\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"160\\" y=\\"118\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"200\\" y=\\"135\\" fill=\\"#1a1814\\" font-size=\\"11\\">120°</text></svg>",
+  "options": ["4", "5", "6", "8"],
+  "correct": 2,
+  "explanation": "Sector area \\\\(= \\\\frac{\\\\theta}{360} \\\\cdot \\\\pi r^2 = \\\\frac{120}{360} \\\\cdot \\\\pi r^2 = \\\\frac{\\\\pi r^2}{3}\\\\). Setting equal to \\\\(12\\\\pi\\\\): \\\\(r^2 = 36\\\\), so \\\\(r = 6\\\\)."
+}
+\`\`\`
+
+**Example 5: Circle with chord and perpendicular distance from center**
+
+Demonstrates: dashed perpendicular from center to chord midpoint, right-angle marker at the foot, radius drawn as solid line. Labels: A and B outside the circle, "16" centered above the chord, "d" along the dashed perpendicular, "10" along the radius.
+
+\`\`\`
+{
+  "topic": "Circle chords",
+  "question": "In the figure above, circle \\\\(O\\\\) has a radius of 10. Chord \\\\(AB\\\\) has length 16. What is the distance \\\\(d\\\\) from the center to the chord?",
+  "diagram": "<svg viewBox=\\"0 0 360 230\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:360px;font-family:sans-serif\\"><circle cx=\\"180\\" cy=\\"130\\" r=\\"80\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"116\\" y1=\\"82\\" x2=\\"244\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"180\\" y1=\\"130\\" x2=\\"180\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\" stroke-dasharray=\\"4,3\\"/><line x1=\\"180\\" y1=\\"130\\" x2=\\"244\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 180 92 L 190 92 L 190 82\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><circle cx=\\"180\\" cy=\\"130\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"102\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"250\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"184\\" y=\\"146\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"172\\" y=\\"76\\" fill=\\"#1a1814\\" font-size=\\"12\\">16</text><text x=\\"184\\" y=\\"112\\" fill=\\"#1a1814\\" font-size=\\"12\\">d</text><text x=\\"216\\" y=\\"102\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text></svg>",
+  "options": ["4", "6", "8", "\\\\(\\\\sqrt{60}\\\\)"],
+  "correct": 1,
+  "explanation": "The perpendicular from the center bisects the chord, creating a right triangle with hypotenuse 10 (the radius) and one leg of length 8 (half the chord). Then \\\\(d = \\\\sqrt{100 - 64} = 6\\\\)."
+}
+\`\`\`
+
+**Example 6: Coordinate plane with two labeled points (distance / slope / midpoint)**
+
+Demonstrates: clean axes with arrow tips, light grid lines, points as small filled dots, point labels with coordinates in parentheses, connecting segment drawn between them.
+
+\`\`\`
+{
+  "topic": "Coordinate geometry",
+  "question": "In the figure above, what is the distance between points \\\\(P\\\\) and \\\\(Q\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 320 270\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:320px;font-family:sans-serif\\"><g stroke=\\"#e8e0d4\\" stroke-width=\\"0.5\\"><line x1=\\"30\\" y1=\\"170\\" x2=\\"300\\" y2=\\"170\\"/><line x1=\\"30\\" y1=\\"140\\" x2=\\"300\\" y2=\\"140\\"/><line x1=\\"30\\" y1=\\"110\\" x2=\\"300\\" y2=\\"110\\"/><line x1=\\"30\\" y1=\\"80\\" x2=\\"300\\" y2=\\"80\\"/><line x1=\\"30\\" y1=\\"50\\" x2=\\"300\\" y2=\\"50\\"/><line x1=\\"30\\" y1=\\"20\\" x2=\\"300\\" y2=\\"20\\"/><line x1=\\"90\\" y1=\\"0\\" x2=\\"90\\" y2=\\"230\\"/><line x1=\\"120\\" y1=\\"0\\" x2=\\"120\\" y2=\\"230\\"/><line x1=\\"150\\" y1=\\"0\\" x2=\\"150\\" y2=\\"230\\"/><line x1=\\"180\\" y1=\\"0\\" x2=\\"180\\" y2=\\"230\\"/><line x1=\\"210\\" y1=\\"0\\" x2=\\"210\\" y2=\\"230\\"/><line x1=\\"240\\" y1=\\"0\\" x2=\\"240\\" y2=\\"230\\"/><line x1=\\"270\\" y1=\\"0\\" x2=\\"270\\" y2=\\"230\\"/></g><line x1=\\"30\\" y1=\\"200\\" x2=\\"300\\" y2=\\"200\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><line x1=\\"60\\" y1=\\"230\\" x2=\\"60\\" y2=\\"10\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><polygon points=\\"300,200 294,196 294,204\\" fill=\\"#4a4640\\"/><polygon points=\\"60,10 56,16 64,16\\" fill=\\"#4a4640\\"/><text x=\\"304\\" y=\\"204\\" fill=\\"#1a1814\\" font-size=\\"11\\">x</text><text x=\\"56\\" y=\\"8\\" fill=\\"#1a1814\\" font-size=\\"11\\">y</text><text x=\\"56\\" y=\\"214\\" fill=\\"#1a1814\\" font-size=\\"10\\">O</text><circle cx=\\"90\\" cy=\\"140\\" r=\\"3\\" fill=\\"#1a1814\\"/><circle cx=\\"180\\" cy=\\"20\\" r=\\"3\\" fill=\\"#1a1814\\"/><line x1=\\"90\\" y1=\\"140\\" x2=\\"180\\" y2=\\"20\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><text x=\\"78\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"12\\">P(1, 2)</text><text x=\\"186\\" y=\\"18\\" fill=\\"#1a1814\\" font-size=\\"12\\">Q(4, 6)</text></svg>",
+  "options": ["4", "5", "6", "\\\\(\\\\sqrt{17}\\\\)"],
+  "correct": 1,
+  "explanation": "Distance \\\\(= \\\\sqrt{(4-1)^2 + (6-2)^2} = \\\\sqrt{9 + 16} = \\\\sqrt{25} = 5\\\\)."
+}
+\`\`\`
+
+**Example 7: General triangle with all three angles (find the missing angle)**
+
+Demonstrates: all three angles labeled inside their vertices, unknown angle x° at vertex B, no arc markers anywhere, clean spare layout.
+
+\`\`\`
+{
+  "topic": "Triangle angles",
+  "question": "In the figure above, what is the value of \\\\(x\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 320 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:320px;font-family:sans-serif\\"><polygon points=\\"60,140 170,30 250,140\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><text x=\\"48\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"170\\" y=\\"22\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"256\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"80\\" y=\\"132\\" fill=\\"#1a1814\\" font-size=\\"12\\">47°</text><text x=\\"156\\" y=\\"58\\" fill=\\"#1a1814\\" font-size=\\"12\\">68°</text><text x=\\"218\\" y=\\"132\\" fill=\\"#1a1814\\" font-size=\\"12\\">x°</text></svg>",
+  "options": ["55", "65", "75", "85"],
+  "correct": 1,
+  "explanation": "The angles of a triangle sum to 180°, so \\\\(x = 180 - 47 - 68 = 65\\\\)."
+}
+\`\`\`
+
+The "diagram" field is OPTIONAL. If you don't include it, the question must be fully understandable from text alone. Do NOT write "see figure below" without providing a diagram field — and remember diagrams appear ABOVE the question, never below.
 
 ### Optional intro prose
 Before each practice block you MAY write ONE short sentence introducing it. The intro must be GENERIC — about the topic flavor, not about the specific problem.
