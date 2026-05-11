@@ -705,6 +705,25 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .practice-next-btn:hover { background: var(--accent); }
 .practice-next-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: default; }
 
+/* Markdown pipe tables — parsed by escapeAndFormat, rendered everywhere
+   Kay's text appears (practice questions, chat bubbles, recap items, etc.).
+   Inherits parent typography so it sizes correctly in each context. */
+.md-table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+.md-table th,
+.md-table td {
+  border: 1px solid rgba(46, 42, 37, 0.18);
+  padding: 5px 10px;
+  text-align: left;
+}
+.md-table th {
+  background: rgba(46, 42, 37, 0.06);
+  font-weight: 600;
+}
+
 /* Sidebar stats */
 .sidebar-stats-row {
   display: flex; align-items: center; gap: 6px;
@@ -3722,7 +3741,40 @@ function escapeAndFormat(text) {
     .replace(/\\\[([\s\S]+?)\\\]/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
     .replace(/\\\(([\s\S]+?)\\\)/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
-  // Now safe to process text — math is fully protected in stash
+  // Stash markdown pipe tables BEFORE the line-break processing turns their
+  // newlines into <br> and their pipes into raw |. A valid table is:
+  //   header row  — |...|...|
+  //   separator   — |---|---| (dashes, optional colons for alignment)
+  //   data row(s) — |...|...|
+  // Math placeholders already in the cells are resolved IN-LINE during
+  // escaping (the final restore pass is single-pass, so anything nested
+  // inside a stashed entry would otherwise be left as raw control chars).
+  s = s.replace(
+    /(^|\n)((?:\|[^\n]*\|[ \t]*\n)(?:\|[\s:|-]+\|[ \t]*\n)(?:\|[^\n]*\|[ \t]*\n?)+)/g,
+    (_match, prefix, block) => {
+      const lines = block.trim().split('\n');
+      const splitRow = (line) => line
+        .replace(/^\|/, '').replace(/\|\s*$/, '')
+        .split('|').map(c => c.trim());
+      const escapeCell = (c) => c
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Resolve nested math placeholders here so KaTeX can render them.
+        .replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+      const headerCells = splitRow(lines[0]);
+      const bodyRows = lines.slice(2).map(splitRow);
+      const ths = headerCells.map(c => `<th>${escapeCell(c)}</th>`).join('');
+      const trs = bodyRows.map(r =>
+        `<tr>${r.map(c => `<td>${escapeCell(c)}</td>`).join('')}</tr>`
+      ).join('');
+      const html = `<table class="md-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+      stash.push(html);
+      return prefix + '\u0002' + (stash.length-1) + '\u0003';
+    }
+  );
+
+  // Now safe to process text — math and tables are fully protected in stash
   s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
@@ -3736,7 +3788,7 @@ function escapeAndFormat(text) {
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
 
-  // Restore stashed math — untouched
+  // Restore stashed math and tables — untouched
   return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
 }
 
