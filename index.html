@@ -128,7 +128,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .msg-bubble { font-size: 14px; line-height: 1.75; color: var(--ink); }
 .message.user .msg-bubble { background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 2px 11px 11px 11px; padding: 10px 14px; display: inline-block; max-width: 82%; }
 .message.user .msg-bubble .katex-display { margin: 4px 0; }
-.msg-bubble .katex-display { margin: 10px 0; overflow-x: auto; }
+/* overflow-x: auto on a block forces overflow-y to behave as auto too in some
+   browsers, which clips KaTeX's tall constructs (numerators of fractions,
+   superscripts on top of stacked tokens). Explicitly allow y-overflow and add
+   small top padding so character ascenders never get cut. */
+.msg-bubble .katex-display { margin: 10px 0; overflow-x: auto; overflow-y: visible; padding: 4px 0; }
 .msg-bubble .katex { font-size: 1.05em; }
 .msg-bubble code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
 
@@ -624,6 +628,20 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   margin-left: auto; padding: 2px 7px;
   background: var(--paper-3); border-radius: 8px;
 }
+/* Diagram inside a practice card — sits above the question, matching SAT booklet style.
+   Bordered container with subtle background so the figure reads as separate from prose. */
+.practice-diagram {
+  margin: 10px 14px 0;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid var(--paper-3);
+  border-radius: 8px;
+  display: flex; justify-content: center; align-items: center;
+  overflow-x: auto;
+}
+.practice-diagram svg {
+  display: block; max-width: 100%; height: auto;
+}
 .practice-question {
   padding: 12px 14px 10px;
   font-size: 13px; color: var(--ink); line-height: 1.55;
@@ -739,19 +757,30 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; display: block; }
 .alert.info  { background: var(--paper-2); border: 1px solid var(--paper-3); color: var(--ink-2); display: block; }
 
-/* ── Sidebar layout fix — three regions: sessions (capped), mastery (scrollable, fills), footer (pinned) ── */
+/* ── Sidebar layout — four scroll regions, sessions capped, two progress sections share remaining space, footer pinned ── */
 .sessions { flex: 0 0 auto; max-height: 30vh; }
-.sidebar-mastery-wrap {
-  flex: 1 1 auto; min-height: 60px; overflow-y: auto;
+/* Each progress section gets equal share of remaining vertical space.
+   flex-basis: 0 + flex-grow: 1 means both grow from zero together; when one
+   has more content than fits, the other still gets its fair half (then both
+   scroll internally). This prevents one big section from squeezing the other. */
+.sidebar-mastery-wrap, .sidebar-practice-wrap {
+  flex: 1 1 0; min-height: 40px; overflow-y: auto;
   padding-right: 4px; margin-right: -4px;
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
-.sidebar-mastery-wrap::-webkit-scrollbar { width: 4px; }
-.sidebar-mastery-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
-.sidebar-mastery-wrap::-webkit-scrollbar-track { background: transparent; }
+.sidebar-mastery-wrap::-webkit-scrollbar,
+.sidebar-practice-wrap::-webkit-scrollbar { width: 4px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-thumb,
+.sidebar-practice-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-track,
+.sidebar-practice-wrap::-webkit-scrollbar-track { background: transparent; }
 .sidebar-mastery-privacy { font-size: 9.5px; color: rgba(245,240,232,0.4); line-height: 1.5; margin-top: 6px; padding: 0 2px; }
 #sidebar-stats { flex-shrink: 0; }
 .sidebar > .support-btn, .sidebar > .sidebar-divider { flex-shrink: 0; }
+
+/* Clickable progress rows — subtle hover state hints they're interactive */
+.clickable-stat-row { cursor: pointer; padding: 2px 4px; margin-left: -4px; margin-right: -4px; border-radius: 5px; transition: background 0.12s; }
+.clickable-stat-row:hover { background: rgba(255,255,255,0.05); }
 
 /* ── Quick actions row (above input bar) ── */
 .quick-actions {
@@ -854,6 +883,117 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .feedback-link:hover { background: rgba(255,255,255,0.06); color: #f5f0e8; border-color: rgba(255,255,255,0.2); }
 
 /* ── Feedback modal ── */
+/* ── Progress detail modal — opens when a sidebar progress row is clicked ── */
+.pd-overlay {
+  display: none; position: fixed; inset: 0; z-index: 955;
+  background: rgba(26, 24, 20, 0.55);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.pd-overlay.open { display: flex; }
+.pd-modal {
+  position: relative;
+  background: #2e2a25; color: #f5f0e8;
+  border: 1px solid rgba(196,96,42,0.4);
+  border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 480px; max-height: 86vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.32);
+  animation: fbRise 0.2s ease;
+}
+.pd-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: rgba(245,240,232,0.6); transition: all 0.15s; z-index: 1;
+}
+.pd-close:hover { background: rgba(255,255,255,0.12); color: #f5f0e8; }
+.pd-body {
+  padding: 22px 22px 20px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.pd-body::-webkit-scrollbar { width: 4px; }
+.pd-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+.pd-title {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.pd-kind {
+  font-size: 10px; color: rgba(245,240,232,0.4);
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px;
+}
+.pd-stat-big {
+  font-family: var(--serif); font-size: 38px;
+  color: var(--accent-2); letter-spacing: -0.5px;
+  line-height: 1; margin-bottom: 2px;
+}
+.pd-stat-sub {
+  font-size: 12px; color: rgba(245,240,232,0.55); margin-bottom: 14px;
+}
+.pd-accuracy-bar {
+  position: relative;
+  height: 24px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden; margin-bottom: 16px;
+}
+.pd-accuracy-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.5s ease;
+}
+.pd-accuracy-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+  color: rgba(245,240,232,0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+.pd-meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 14px;
+}
+.pd-meta-cell {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 10px 12px;
+}
+.pd-meta-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(245,240,232,0.4); margin-bottom: 3px;
+}
+.pd-meta-value {
+  font-size: 13px; color: rgba(245,240,232,0.85);
+}
+.pd-section-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(245,240,232,0.4); margin: 14px 0 8px;
+}
+.pd-history-row {
+  display: flex; gap: 4px; align-items: center;
+  flex-wrap: wrap;
+}
+.pd-history-dot {
+  width: 14px; height: 14px; border-radius: 3px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; color: white; flex-shrink: 0;
+}
+.pd-history-dot.correct { background: #6abf69; }
+.pd-history-dot.wrong   { background: #d97757; }
+.pd-history-empty {
+  font-size: 11px; color: rgba(245,240,232,0.4);
+  font-style: italic;
+}
+.pd-note {
+  font-size: 12px; color: rgba(245,240,232,0.55);
+  font-style: italic; line-height: 1.55;
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
 .fb-overlay {
   display: none; position: fixed; inset: 0; z-index: 950;
   background: rgba(26, 24, 20, 0.5);
@@ -1230,13 +1370,21 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div class="sidebar-label">Recent sessions</div>
     <div class="sessions" id="sessions-list"></div>
     <div class="sidebar-divider"></div>
-    <!-- ── Mastery section in sidebar ── -->
+    <!-- ── Mastery section in sidebar (concept tutoring progress) ── -->
     <div class="sidebar-label" style="display:flex;align-items:center;justify-content:space-between;">
-      <span>My Progress</span>
+      <span>Concept Mastery</span>
       <button onclick="resetMastery()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset progress">Reset</button>
     </div>
     <div class="sidebar-mastery-wrap">
       <div id="sidebar-mastery"></div>
+    </div>
+    <!-- ── SAT/ACT Practice accuracy section ── -->
+    <div class="sidebar-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+      <span>SAT/ACT Practice</span>
+      <button onclick="resetPracticeStats()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset practice stats">Reset</button>
+    </div>
+    <div class="sidebar-practice-wrap">
+      <div id="sidebar-practice-stats"></div>
       <div class="sidebar-mastery-privacy">
         🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
       </div>
@@ -1507,6 +1655,18 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <span class="fb-status" id="fb-status"></span>
       <button class="fb-submit" id="fb-submit" onclick="submitFeedback()">Send</button>
     </div>
+  </div>
+</div>
+
+<!-- Progress detail modal — shows topic-specific summary when a sidebar row is clicked.
+     Content is built dynamically by openProgressDetail() for both concept mastery
+     and SAT/ACT practice progress; same modal, different content based on kind. -->
+<div class="pd-overlay" id="pd-overlay" onclick="if(event.target===this) closeProgressDetail()">
+  <div class="pd-modal" role="dialog" aria-label="Progress detail">
+    <button class="pd-close" onclick="closeProgressDetail()" title="Close" aria-label="Close detail">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="pd-body" id="pd-body"></div>
   </div>
 </div>
 
@@ -2097,7 +2257,10 @@ function renderSidebarMastery() {
   el.innerHTML = sorted.map(topic => {
     const status = getMasteryStatus(topic.pct);
     const label = getMasteryLabel(topic.pct);
-    return `<div class="mastery-topic-row">
+    const safeKey = (typeof escapeAttr === 'function')
+      ? escapeAttr(topic.key)
+      : String(topic.key).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    return `<div class="mastery-topic-row clickable-stat-row" onclick="openProgressDetail('mastery', '${safeKey}')" title="Click for details">
       <div class="mastery-topic-top">
         <span class="mastery-topic-name" title="${topic.label}">${topic.label}</span>
         <span class="mastery-badge ${status}">${label}</span>
@@ -2113,6 +2276,228 @@ function resetMastery() {
   if (!confirm('Reset all mastery progress? This cannot be undone.')) return;
   localStorage.removeItem(MASTERY_KEY);
   renderSidebarMastery();
+}
+
+// ── SAT/ACT Practice progress tracking ──────────────────────────────────────
+// Tracks cumulative accuracy per topic across all practice sessions.
+// Stored privately in localStorage, never sent anywhere.
+// Schema: { "topic name": { total, correct, lastSeen, firstSeen, history: [...] } }
+const PRACTICE_STATS_KEY = 'kay_practice_stats';
+
+function loadPracticeStats() {
+  try { return JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function savePracticeStats(data) {
+  try { localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+// Called from handlePracticeAnswer every time a student answers a problem.
+function recordPracticeResult(topic, isCorrect) {
+  const cleanTopic = String(topic || 'Other').trim() || 'Other';
+  const data = loadPracticeStats();
+  const now = Date.now();
+  if (!data[cleanTopic]) {
+    data[cleanTopic] = { total: 0, correct: 0, firstSeen: now, lastSeen: now, history: [] };
+  }
+  if (!data[cleanTopic].history) data[cleanTopic].history = [];
+  data[cleanTopic].total += 1;
+  if (isCorrect) data[cleanTopic].correct += 1;
+  data[cleanTopic].lastSeen = now;
+  // Keep last 20 outcomes per topic (chronological, oldest first)
+  data[cleanTopic].history.push({ t: now, c: isCorrect ? 1 : 0 });
+  if (data[cleanTopic].history.length > 20) {
+    data[cleanTopic].history = data[cleanTopic].history.slice(-20);
+  }
+  savePracticeStats(data);
+  renderSidebarPracticeStats();
+}
+
+// Color thresholds match the recap card: green ≥80%, amber 50-79%, red <50%.
+// Reuses mastery CSS classes (mastered/developing/learning) for consistent visuals.
+function getPracticeStatus(pct) {
+  if (pct >= 80) return 'mastered';
+  if (pct >= 50) return 'developing';
+  return 'learning';
+}
+
+function renderSidebarPracticeStats() {
+  const el = document.getElementById('sidebar-practice-stats');
+  if (!el) return;
+  const data = loadPracticeStats();
+  const keys = Object.keys(data);
+
+  if (keys.length === 0) {
+    el.innerHTML = '<div class="sidebar-mastery-empty">Complete a practice problem to see your accuracy here.</div>';
+    return;
+  }
+
+  // Only show topics with ≥3 problems answered — fewer is too noisy (one
+  // right/wrong swings the percentage wildly).
+  const visibleTopics = keys
+    .map(k => ({ topic: k, ...data[k], pct: Math.round((data[k].correct / data[k].total) * 100) }))
+    .filter(t => t.total >= 3)
+    .sort((a, b) => b.total - a.total);
+
+  const fewProblemsCount = keys.filter(k => data[k].total < 3).length;
+
+  if (visibleTopics.length === 0) {
+    const hint = fewProblemsCount > 0
+      ? 'Keep practicing — topics show after 3+ problems. (' + fewProblemsCount + ' in progress.)'
+      : 'Complete a practice problem to see your accuracy here.';
+    el.innerHTML = '<div class="sidebar-mastery-empty">' + hint + '</div>';
+    return;
+  }
+
+  el.innerHTML = visibleTopics.map(t => {
+    const status = getPracticeStatus(t.pct);
+    const safeTopic = escapeAttr(t.topic);
+    // Each row is clickable — opens the detail summary modal for this topic.
+    return '<div class="mastery-topic-row clickable-stat-row" onclick="openProgressDetail(\'practice\', \'' + safeTopic + '\')" title="Click for details">' +
+      '<div class="mastery-topic-top">' +
+        '<span class="mastery-topic-name">' + t.topic + '</span>' +
+        '<span class="mastery-badge ' + status + '">' + t.pct + '%</span>' +
+      '</div>' +
+      '<div class="mastery-bar-track">' +
+        '<div class="mastery-bar-fill ' + status + '" style="width:' + t.pct + '%"></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function resetPracticeStats() {
+  if (!confirm('Reset all practice accuracy data? This cannot be undone.')) return;
+  localStorage.removeItem(PRACTICE_STATS_KEY);
+  renderSidebarPracticeStats();
+}
+
+// Small helper to safely escape attribute values for the onclick string.
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// ── Progress detail modal — opens when a sidebar row is clicked ──────────────
+// Single modal serves both kinds of progress: 'mastery' (concept tutoring) and
+// 'practice' (SAT/ACT accuracy). Content is built per-kind from the matching
+// localStorage record. The HTML modal element is shared (#pd-overlay / #pd-body).
+function openProgressDetail(kind, topicKey) {
+  const body = document.getElementById('pd-body');
+  if (!body) return;
+
+  // Decode any HTML entities introduced by escapeAttr when serializing onclick
+  const decoded = (typeof topicKey === 'string')
+    ? topicKey.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+    : String(topicKey);
+
+  let html = '';
+  if (kind === 'practice') {
+    const stats = loadPracticeStats();
+    const t = stats[decoded];
+    if (!t) {
+      html = '<div class="pd-title">Topic not found</div>' +
+             '<div class="pd-stat-sub">This topic data is no longer available.</div>';
+    } else {
+      const pct = Math.round((t.correct / t.total) * 100);
+      const barColor = pct >= 80 ? '#6abf69' : pct >= 50 ? '#e8a530' : '#d97757';
+      const firstSeen = t.firstSeen ? new Date(t.firstSeen) : null;
+      const lastSeen  = t.lastSeen  ? new Date(t.lastSeen)  : null;
+      const recent    = Array.isArray(t.history) ? t.history.slice(-12) : [];
+
+      // Friendly relative time for "last practiced"
+      const lastSeenLabel = lastSeen ? formatRelativeTime(lastSeen) : '—';
+      const firstSeenLabel = firstSeen ? formatRelativeTime(firstSeen) : '—';
+
+      // Closing note keyed to current performance band
+      let note;
+      if (pct >= 80)      note = 'Strong consistency here — this is the kind of accuracy that holds up on test day.';
+      else if (pct >= 50) note = 'You\'re building reliability. Keep practicing to push past the inconsistency.';
+      else                note = 'This topic is worth more reps — a few focused sessions will move this number.';
+
+      const recentHTML = recent.length === 0
+        ? '<div class="pd-history-empty">No problem history yet.</div>'
+        : '<div class="pd-history-row">' + recent.map(h =>
+            '<span class="pd-history-dot ' + (h.c ? 'correct' : 'wrong') + '" title="' + (h.c ? 'Correct' : 'Wrong') + '">' +
+              (h.c ? '✓' : '✗') +
+            '</span>'
+          ).join('') + '</div>';
+
+      html =
+        '<div class="pd-title">' + escapeHTML(decoded) + '</div>' +
+        '<div class="pd-kind">SAT/ACT Practice</div>' +
+        '<div class="pd-stat-big">' + pct + '%</div>' +
+        '<div class="pd-stat-sub">' + t.correct + ' correct out of ' + t.total + ' problems</div>' +
+        '<div class="pd-accuracy-bar">' +
+          '<div class="pd-accuracy-fill" style="width:' + pct + '%; background:' + barColor + ';"></div>' +
+          '<div class="pd-accuracy-label">' + pct + '% accuracy</div>' +
+        '</div>' +
+        '<div class="pd-meta-grid">' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Last practiced</div><div class="pd-meta-value">' + lastSeenLabel + '</div></div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">First seen</div><div class="pd-meta-value">' + firstSeenLabel + '</div></div>' +
+        '</div>' +
+        '<div class="pd-section-label">Recent results (oldest → newest)</div>' +
+        recentHTML +
+        '<div class="pd-note">' + note + '</div>';
+    }
+  } else if (kind === 'mastery') {
+    const stats = loadMasteryData();
+    const t = stats[decoded];
+    if (!t) {
+      html = '<div class="pd-title">Topic not found</div>' +
+             '<div class="pd-stat-sub">This topic data is no longer available.</div>';
+    } else {
+      const pct = t.pct || 0;
+      const barColor = pct >= 75 ? '#6abf69' : pct >= 40 ? '#7dd3fc' : '#fbbf24';
+      const statusLabel = getMasteryLabel(pct);
+      const sessionsLabel = (t.sessions === 1) ? '1 session' : (t.sessions + ' sessions');
+
+      let note;
+      if (pct >= 75)      note = 'You\'ve internalized this topic — concepts and applications are sticking.';
+      else if (pct >= 40) note = 'Solid foundation forming. Keep returning to this topic to push toward mastery.';
+      else                note = 'Early days here — more sessions on this topic will deepen understanding.';
+
+      html =
+        '<div class="pd-title">' + escapeHTML(t.label || decoded) + '</div>' +
+        '<div class="pd-kind">Concept Mastery</div>' +
+        '<div class="pd-stat-big">' + statusLabel + '</div>' +
+        '<div class="pd-stat-sub">' + pct + '% • ' + sessionsLabel + '</div>' +
+        '<div class="pd-accuracy-bar">' +
+          '<div class="pd-accuracy-fill" style="width:' + pct + '%; background:' + barColor + ';"></div>' +
+          '<div class="pd-accuracy-label">' + pct + '% progress</div>' +
+        '</div>' +
+        '<div class="pd-meta-grid">' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Concepts understood</div><div class="pd-meta-value">' + (t.masteredCount || 0) + '</div></div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Worth revisiting</div><div class="pd-meta-value">' + (t.reviewCount || 0) + '</div></div>' +
+        '</div>' +
+        '<div class="pd-note">' + note + '</div>';
+    }
+  }
+
+  body.innerHTML = html;
+  document.getElementById('pd-overlay').classList.add('open');
+}
+
+function closeProgressDetail() {
+  document.getElementById('pd-overlay').classList.remove('open');
+}
+
+// Helper: friendly relative time strings ("2 hours ago", "3 days ago")
+function formatRelativeTime(d) {
+  const ms = Date.now() - d.getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min' + (mins === 1 ? '' : 's') + ' ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return weeks + ' week' + (weeks === 1 ? '' : 's') + ' ago';
+  const months = Math.floor(days / 30);
+  return months + ' month' + (months === 1 ? '' : 's') + ' ago';
+}
+
+// Helper: escape text for safe insertion (avoid using innerHTML to inject user data)
+function escapeHTML(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function initDesmos() {
@@ -2447,6 +2832,7 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('fb-overlay')?.classList.contains('open')) closeFeedback();
     if (document.getElementById('cam-overlay')?.classList.contains('open')) closeCamera();
     if (document.getElementById('img-chooser-overlay')?.classList.contains('open')) closeImageChooser();
+    if (document.getElementById('pd-overlay')?.classList.contains('open')) closeProgressDetail();
     if (document.getElementById('sidebar')?.classList.contains('open')) closeMobileSidebar();
     closeQuickMenu();
   }
@@ -2621,11 +3007,18 @@ function renderPracticeCard(p, msgIdx) {
       `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
   }
 
+  // Diagram (if present) — render raw SVG so it bypasses escapeAndFormat.
+  // The diagram field comes from Kay as a single-line SVG string.
+  const diagramHTML = p.diagram
+    ? `<div class="practice-diagram">${p.diagram}</div>`
+    : '';
+
   return `<div class="practice-card" id="practice-${msgIdx}">
     <div class="practice-header">
       <span class="practice-header-label">📝 Practice problem</span>
       ${p.topic ? `<span class="practice-topic">${escapeAndFormat(p.topic)}</span>` : ''}
     </div>
+    ${diagramHTML}
     <div class="practice-question">${escapeAndFormat(p.question || '')}</div>
     <div class="practice-options">${optsHTML}</div>
     <div class="practice-feedback${wasAnswered ? ' visible' : ''}" id="pfeedback-${msgIdx}">${feedbackHTML}</div>
@@ -2642,6 +3035,10 @@ function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
   const p = msg._practiceData;
   const isCorrect = selectedOi === correctOi;
   const letters = ['A', 'B', 'C', 'D'];
+
+  // Record this result in the cumulative practice stats (sidebar updates).
+  // Tracked per-topic so accuracy aggregates across sessions.
+  recordPracticeResult(p.topic, isCorrect);
 
   // Lock and visually mark all options
   for (let oi = 0; oi < p.options.length; oi++) {
@@ -3678,6 +4075,7 @@ initVoice();
 renderSessions();
 renderMessages();
 renderSidebarMastery();
+renderSidebarPracticeStats();
 fetchStats();
 setInterval(fetchStats, 60000); // refresh stats every 60s
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
