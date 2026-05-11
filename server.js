@@ -344,7 +344,7 @@ The diagram field value is a single-line JSON string containing the complete SVG
 
 2. **Length labels (5, 10, "12 cm") go ALONG the line being measured, offset perpendicular to it.** For a horizontal line, place the label below or above the line midpoint with 8-10 pixel offset. For a vertical line, place to the left or right with similar offset. For diagonal lines, offset perpendicularly. NEVER place a length label near the endpoints — it visually attaches to the wrong thing.
 
-3. **Angle labels (60°, x°) go INSIDE the arc, near the vertex of the angle.** Draw a small visible arc using SVG path with arc command to mark the angle region, then place the label just inside that arc. For an angle at a vertex, the label should be 18-25 pixels from the vertex along the angle's bisector. Different angles in the same figure need their labels separated from each other — if two angle labels would land within 20 pixels, move them further from the vertex or stagger them.
+3. **Angle labels (60°, x°) go INSIDE the arc, near the vertex of the angle.** Draw a small visible arc using SVG path with arc command to mark the angle region, then place the label just inside that arc. For an angle at a vertex, the label should be 22-30 pixels from the vertex along the angle's bisector — go further if the angle is acute (less than 70°), since acute angles have narrow interiors and labels too close to the vertex will visually touch the two sides forming the angle. For obtuse angles (more than 110°), 22 pixels is usually fine. NEVER let a digit in the angle label touch one of the lines forming the angle — if you see that would happen, push the label deeper along the bisector. Different angles in the same figure need their labels separated from each other — if two angle labels would land within 20 pixels, move them further from the vertex or stagger them.
 
 4. **Two labels must never overlap or touch.** Before placing a label, mentally check what's already at that pixel range. If a radius label "10" lands near where an angle label "72°" would go, push one of them along its respective line. Labels separated by less than 12 pixels visually merge.
 
@@ -395,6 +395,15 @@ Note how labels separate cleanly: A and B sit outside the circle radially, the a
 \`\`\`
 
 The "diagram" field is OPTIONAL. If you don't include it, the question must be fully understandable from text alone. Do NOT write "see figure below" without providing a diagram field.
+
+**CRITICAL: figure position in the practice card.** When a diagram is included, the frontend renders it ABOVE the question text — not below. So when referring to the figure in the question, write **"In the figure above"** or simply **"In the figure"**. Never write "In the figure below," "Below is a figure," or "As shown below" — those phrases describe the wrong position and confuse the student.
+
+Examples:
+- ✓ "In the figure above, what is the value of \\\\(x\\\\)?"
+- ✓ "In the figure, triangle ABC has angle A = 47°."
+- ✓ "What is the value of \\\\(x\\\\) in the figure shown?"
+- ✗ "In the figure below, what is the value of \\\\(x\\\\)?"
+- ✗ "Below, triangle ABC has angle A = 47°."
 
 ### Optional intro prose
 Before each practice block you MAY write ONE short sentence introducing it. The intro must be GENERIC — about the topic flavor, not about the specific problem.
