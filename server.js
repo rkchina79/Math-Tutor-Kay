@@ -346,6 +346,45 @@ The diagram field value is a single-line JSON string containing the complete SVG
 
 3. **Angle labels (60°, x°) go INSIDE the arc, near the vertex of the angle.** Draw a small visible arc using SVG path with arc command to mark the angle region, then place the label just inside that arc. For an angle at a vertex, the label should be 22-30 pixels from the vertex along the angle's bisector — go further if the angle is acute (less than 70°), since acute angles have narrow interiors and labels too close to the vertex will visually touch the two sides forming the angle. For obtuse angles (more than 110°), 22 pixels is usually fine. NEVER let a digit in the angle label touch one of the lines forming the angle — if you see that would happen, push the label deeper along the bisector. Different angles in the same figure need their labels separated from each other — if two angle labels would land within 20 pixels, move them further from the vertex or stagger them.
 
+**CRITICAL: Never duplicate the vertex letter inside its own angle arc.** If the vertex is labeled "A" (point label outside the shape), do NOT also write "A" inside the arc at that vertex — the two labels collide and the student can't tell whether "A" refers to the point or the angle measure. Instead:
+- If the question asks about the unknown angle at vertex A, draw the arc with NO label inside it (the arc marker alone, combined with the vertex name on the point, is enough — the student knows from the question text it's "angle A")
+- If you need an explicit variable for the angle, use a DIFFERENT symbol — "x°", "y°", "θ", or "?" — never the vertex letter
+- If the angle has a known measure (like 60°), label it with the degree value, not the vertex letter
+
+Examples:
+- Question: "What is the measure of angle A?" → arc at vertex A with NO label inside (or label "?" / "x°")
+- Question: "Find x" with the angle at A being the unknown → arc at A labeled "x°"
+- Question: "Triangle ABC has angle A = 60°" → arc at A labeled "60°"
+- ❌ Never: vertex labeled "A" with arc at that same vertex also labeled "A"
+
+**CRITICAL: Visual angle category must match the labeled angle.** Angles in your figures do NOT need to be pixel-accurate, but they MUST be **visually meaningful** — the picture has to fall in the same category as the labeled value:
+- **Acute angle (less than 90°)**: draw it so it visibly looks acute — clearly less than a right angle. A 30° angle should look like a narrow wedge; a 60° angle should still be visibly less than 90°.
+- **Right angle (exactly 90°)**: draw at 90° AND include the small square right-angle marker. Don't label it with "90°" if the square marker is already there — pick one.
+- **Obtuse angle (between 90° and 180°)**: draw it so it visibly looks obtuse — clearly more than a right angle. A 120° angle must look wider than a right angle, not narrower. A 150° angle should look close to straight.
+- **Straight angle (180°)**: a literal straight line.
+- **Reflex angle (greater than 180°)**: draw the arc going around the LONG way, so it visibly looks like more than half the circle.
+
+The textbook convention is "not to scale, but to category." A student looking at the figure should be able to roughly tell whether the angle is acute, right, obtuse, or reflex — and the labeled value must agree with that visible category.
+
+To draw an angle that visually matches its label, position the two rays so the angular separation between them approximately matches the labeled value. For an angle θ at vertex (vx, vy), with the first ray going in some direction (rx, ry):
+- Second ray endpoint: (vx + L·cos(θ + base_angle), vy + L·sin(θ + base_angle))
+- where base_angle is the direction of the first ray
+- For SVG, remember y is inverted (positive y goes DOWN)
+
+You don't have to compute this with full precision, but you must position the rays so the visible angle clearly falls in the correct category. **A 120° angle drawn with rays that look 70° apart is a broken diagram, even if the label says 120°.**
+
+**CRITICAL: Arc markers must cut across the two rays of the angle.** The arc indicating the angle must visibly connect the two rays — it should start on one ray, curve through the angle's interior, and end on the other ray. The arc should look like it's "cutting" the angle. ❌ A tiny arc floating in the middle of the angle, not touching either ray, looks like a disconnected mark — it does not read as an angle indicator.
+
+Concrete guidance for drawing arcs:
+- Choose an arc radius (say 18-25 pixels from the vertex).
+- The arc should start at the point (vx + r·cos(angle_of_ray1), vy + r·sin(angle_of_ray1)) — a point along ray 1 at distance r from vertex.
+- The arc should end at the point (vx + r·cos(angle_of_ray2), vy + r·sin(angle_of_ray2)) — a point along ray 2 at distance r from vertex.
+- Use SVG \`<path d="M start_x start_y A r r 0 0 sweep_flag end_x end_y" />\` — sweep_flag is 1 if the arc curves clockwise (in SVG, where y is down).
+- For angles greater than 180° (reflex), use large-arc-flag=1 in the path command so the arc takes the long way around.
+
+❌ Bad: \`<path d="M 178 130 A 5 5 0 0 1 175 135" />\` — tiny disconnected arc, doesn't reach either ray, looks like punctuation.
+✓ Good: \`<path d="M 175 110 A 22 22 0 0 1 168 142" />\` — proper arc with endpoints visibly on the two rays of the angle.
+
 4. **Two labels must never overlap or touch.** Before placing a label, mentally check what's already at that pixel range. If a radius label "10" lands near where an angle label "72°" would go, push one of them along its respective line. Labels separated by less than 12 pixels visually merge.
 
 5. **Right-angle markers (small squares) go AT the vertex of the right angle**, with the label "d" or distance value placed alongside the line, not on top of the square. The square itself is typically 8-10 pixels.
