@@ -2920,10 +2920,27 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 
   // Show full feedback
   if (feedback) {
-    feedback.textContent = isCorrect
-      ? `✓ ${q.explanation}`
-      : `✗ ${q.explanation}`;
+    // Use innerHTML so the explanation can contain math wrapped in \(...\)
+    // delimiters and have KaTeX render it. textContent was treating delimiters
+    // as literal text since renderMathInElement only runs during the initial
+    // renderMessages() pass — this dynamically-injected text needs a fresh pass.
+    const prefix = isCorrect ? '✓ ' : '✗ ';
+    feedback.innerHTML = '';
+    feedback.appendChild(document.createTextNode(prefix));
+    const span = document.createElement('span');
+    span.textContent = q.explanation;
+    feedback.appendChild(span);
     feedback.className = `quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    // Render any LaTeX math in the explanation
+    if (window.renderMathInElement) {
+      renderMathInElement(feedback, {
+        delimiters: [
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false
+      });
+    }
   }
 
   // Update progress (only counting truly-finalized questions, not _wrongAttempts)
@@ -3638,11 +3655,31 @@ function messageHTML(m, idx) {
       : 'msg-bubble')
     : 'msg-bubble';
 
+  // Check whether this message has any actually-visible content. The
+  // msg-type-badge in extraHTML is just a small inline badge that gets pulled
+  // into the name area, so it doesn't count as visible body content. If the
+  // bubble is empty AND there's no real extra content, suppress the entire
+  // message wrapper — otherwise an orphan avatar + "KAY" name renders with
+  // nothing underneath. This happens occasionally when Kay's response after
+  // a [PRACTICE_ANSWER] returns only a practice block with no surrounding
+  // prose, and somehow gets pushed as two assistant messages.
+  const hasBubbleBody = !!bubbleContent.trim() || !!imageHTML;
+  const extraStripped = extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '').trim();
+  const hasExtraBody = !!extraStripped;
+  if (!hasBubbleBody && !hasExtraBody) {
+    // Diagnostic warning so we can catch the underlying cause next time:
+    // an assistant message arrived with no displayable content at all.
+    if (isKay) {
+      console.warn('Tutor Kay: suppressed empty assistant message at index', idx, '— raw content was:', JSON.stringify(m.content).slice(0, 200));
+    }
+    return '';
+  }
+
   return `<div class="message ${isKay ? 'kay' : 'user'}">
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
       <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
-      ${(bubbleContent.trim() || imageHTML) ? `<div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>` : ''}
+      ${hasBubbleBody ? `<div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>` : ''}
       ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
