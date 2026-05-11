@@ -323,7 +323,21 @@ The diagram field value is a single-line JSON string containing the complete SVG
 
 **Labels in SVG text elements use plain text, NOT LaTeX.** Write "angle 60°" not "\\\\(60°\\\\)". Write "5 cm" not "\\\\(5 \\\\, \\\\text{cm}\\\\)". KaTeX does not render inside SVG. Use the ° symbol directly. If a label would normally use a math expression like x² use the unicode superscript (x²) or split it (e.g., "x squared").
 
-**Example practice block with a diagram:**
+**Label positioning rules — CRITICAL for diagram readability:**
+
+1. **Point labels (A, B, C, O) go OUTSIDE the shape**, not on it. For a circle: place each point label 8-12 pixels outside the circumference in the direction radially outward from center. For a triangle: place each vertex label outside the triangle on the side opposite the vertex's interior. NEVER place a point label directly on a line — it visually merges with the line.
+
+2. **Length labels (5, 10, "12 cm") go ALONG the line being measured, offset perpendicular to it.** For a horizontal line, place the label below or above the line midpoint with 8-10 pixel offset. For a vertical line, place to the left or right with similar offset. For diagonal lines, offset perpendicularly. NEVER place a length label near the endpoints — it visually attaches to the wrong thing.
+
+3. **Angle labels (60°, x°) go INSIDE the arc, near the vertex of the angle.** Draw a small visible arc using SVG path with arc command to mark the angle region, then place the label just inside that arc. For an angle at a vertex, the label should be 18-25 pixels from the vertex along the angle's bisector. Different angles in the same figure need their labels separated from each other — if two angle labels would land within 20 pixels, move them further from the vertex or stagger them.
+
+4. **Two labels must never overlap or touch.** Before placing a label, mentally check what's already at that pixel range. If a radius label "10" lands near where an angle label "72°" would go, push one of them along its respective line. Labels separated by less than 12 pixels visually merge.
+
+5. **Right-angle markers (small squares) go AT the vertex of the right angle**, with the label "d" or distance value placed alongside the line, not on top of the square. The square itself is typically 8-10 pixels.
+
+6. **For circles, place point labels using radial offset.** If point A is on the circle at position (cx + r·cos(θ), cy + r·sin(θ)), place the label "A" at position (cx + (r+12)·cos(θ), cy + (r+12)·sin(θ)). This guarantees the label sits just outside the circle in the right direction.
+
+**Example practice block with a TRIANGLE diagram:**
 \`\`\`
 {
   "topic": "Triangles",
@@ -332,6 +346,36 @@ The diagram field value is a single-line JSON string containing the complete SVG
   "options": ["50", "60", "70", "80"],
   "correct": 1,
   "explanation": "..."
+}
+\`\`\`
+
+**Example practice block with a CIRCLE diagram (chord and distance from center):**
+
+Note how labels are spaced: A and B sit OUTSIDE the circle at their points, "12" is centered below the chord with vertical offset, "d" is placed along the perpendicular line, "10" sits along the radius OB at its midpoint, O is labeled just below the center, and the right-angle marker is at the perpendicular's foot.
+
+\`\`\`
+{
+  "topic": "Circles",
+  "question": "A circle with center \\\\(O\\\\) has a radius of 10. Chord \\\\(AB\\\\) has length 12. What is the distance from the center to chord \\\\(AB\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 300 220\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><circle cx=\\"150\\" cy=\\"125\\" r=\\"75\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"105\\" y1=\\"65\\" x2=\\"195\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"195\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"150\\" y2=\\"65\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\" stroke-dasharray=\\"4,3\\"/><path d=\\"M 142 65 L 142 73 L 150 73\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><circle cx=\\"150\\" cy=\\"125\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"88\\" y=\\"60\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"200\\" y=\\"60\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"143\\" y=\\"143\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"145\\" y=\\"55\\" fill=\\"#1a1814\\" font-size=\\"12\\">12</text><text x=\\"180\\" y=\\"100\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text><text x=\\"157\\" y=\\"100\\" fill=\\"#1a1814\\" font-size=\\"12\\">d</text></svg>",
+  "options": ["6", "7", "8", "9"],
+  "correct": 2,
+  "explanation": "Draw the perpendicular from \\\\(O\\\\) to chord \\\\(AB\\\\); it bisects the chord. This creates a right triangle with hypotenuse 10 (the radius) and one leg of length 6 (half the chord). Then \\\\(d = \\\\sqrt{100 - 36} = 8\\\\)."
+}
+\`\`\`
+
+**Example practice block with a CIRCLE diagram (central angle):**
+
+Note how labels separate cleanly: A and B sit outside the circle radially, the angle label "72°" sits inside the angle near the vertex but offset from the radius labels, the radius "10" sits along OA at its midpoint, and they never touch. The angle in the figure is drawn to approximately match the stated 72° so students can visualize the relationship.
+
+\`\`\`
+{
+  "topic": "Circles",
+  "question": "Circle \\\\(O\\\\) has a radius of 10. The central angle \\\\(AOB\\\\) measures 72°. What is the length of arc \\\\(AB\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 300 240\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><circle cx=\\"150\\" cy=\\"125\\" r=\\"80\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"215\\" y2=\\"78\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"150\\" y1=\\"125\\" x2=\\"215\\" y2=\\"172\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 174 107 A 30 30 0 0 1 174 143\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><circle cx=\\"150\\" cy=\\"125\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"222\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"222\\" y=\\"180\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"143\\" y=\\"143\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"183\\" y=\\"129\\" fill=\\"#1a1814\\" font-size=\\"11\\">72°</text><text x=\\"180\\" y=\\"95\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text></svg>",
+  "options": ["\\\\(2\\\\pi\\\\)", "\\\\(3\\\\pi\\\\)", "\\\\(4\\\\pi\\\\)", "\\\\(5\\\\pi\\\\)"],
+  "correct": 2,
+  "explanation": "Arc length \\\\(= \\\\frac{\\\\theta}{360} \\\\cdot 2\\\\pi r = \\\\frac{72}{360} \\\\cdot 2\\\\pi(10) = 4\\\\pi\\\\). The trap is forgetting to convert the angle to a fraction of the full circle."
 }
 \`\`\`
 
