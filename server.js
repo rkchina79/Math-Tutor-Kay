@@ -129,6 +129,22 @@ Each question needs exactly 4 options with exactly one correct answer (0-indexed
 }
 \`\`\`
 
+**CRITICAL — math formatting in quiz fields.** All math expressions in "q", "options", and "explanation" MUST be wrapped in \\\\(...\\\\) for inline or \\\\[...\\\\] for display. Plain text math like \$x^2\$ or 3^(2x) will render as literal raw text with visible dollar signs and carets. Use proper LaTeX syntax: exponents need curly braces (\\\\(x^2\\\\) not x^2), fractions use \\\\frac, set notation needs LaTeX commands.
+
+Examples — correct vs wrong:
+
+Correct (math wrapped in \\\\(...\\\\)):
+\`\`\`
+"explanation": "Closure fails because \\\\(2 \\\\times 2 = 4\\\\), which is not in the set \\\\(\\\\{1, -1, 2\\\\}\\\\)."
+\`\`\`
+
+Wrong (uses old \$...\$ delimiters — will display as literal raw text):
+\`\`\`
+"explanation": "Closure fails because \$2 \\\\times 2 = 4\$, which is not in the set \$\\\\{1, -1, 2\\\\}\$."
+\`\`\`
+
+The KaTeX renderer in this app ONLY recognizes \\\\(...\\\\) and \\\\[...\\\\]. Dollar signs are reserved for currency only. This applies to every math expression in the quiz, no matter how simple.
+
 Do NOT generate the achievements block yet — wait for the quiz results.
 
 IF the most recent user message contains [QUIZ_RESULTS]:
@@ -262,6 +278,7 @@ Rules for the block:
 - "options" — array of EXACTLY 4 SHORT answer strings (1-15 chars each ideally). Wrap math expressions in \\\\(...\\\\) here too — e.g., "\\\\(\\\\frac{3}{2}\\\\)" not "3/2".
 - "correct" — 0-indexed integer (0, 1, 2, or 3) for the correct option
 - "explanation" — one to two sentences. MUST explain why the answer is right AND include the test-taking insight when relevant. **All math in the explanation MUST be wrapped in \\\\(...\\\\) delimiters** — the explanation is rendered as KaTeX-formatted prose, and unwrapped math will display as raw text with literal carets and parentheses. Use proper LaTeX syntax: exponents need curly braces (\\\\(3^{2x}\\\\) not 3^(2x)), fractions use \\\\frac, etc.
+- "diagram" — OPTIONAL. SVG markup as a single-line string. Only include for problems that inherently require a visual figure (geometry, coordinate plane, data interpretation). See "Optional diagram field" section below for full rules and example.
 
 **Explanation formatting examples:**
 
@@ -276,6 +293,49 @@ Wrong (plain text math — will render with literal carets and look broken):
 \`\`\`
 
 This applies even to simple things — write "\\\\(x = 4\\\\)" not "x = 4", "\\\\(3n\\\\)" not "3n", "\\\\(y = mx + b\\\\)" not "y = mx + b". When in doubt, wrap it.
+
+### Optional diagram field
+For problems that inherently require a visual figure (geometry, coordinate plane, data interpretation, trigonometry diagrams), you MAY include a "diagram" field containing an SVG figure. Most algebra/arithmetic problems do NOT need a diagram — only include one when the problem cannot be understood from text alone.
+
+**When to include a diagram (YES):**
+- Geometry problems with named points (triangle ABC, circle with center O, etc.)
+- Coordinate plane problems where students must read points from a graph
+- Right triangle / special triangle problems (30-60-90, 45-45-90)
+- Circle problems involving inscribed angles, arcs, sectors
+- Data interpretation (small bar charts, scatter plots, tables — though tables can use HTML inside SVG)
+- Trigonometry problems involving angle relationships
+- Any problem that real SAT/ACT booklets would print with a figure
+
+**When NOT to include a diagram (NO):**
+- Pure algebra (linear equations, quadratics, systems by substitution)
+- Word problems with no spatial element
+- Percentages, ratios, exponents
+- Function notation without graphs
+
+**SVG format:**
+The diagram field value is a single-line JSON string containing the complete SVG markup. Use the same conventions as concept-tutoring diagrams:
+- viewBox="0 0 300 220" (or similar small dimensions)
+- xmlns="http://www.w3.org/2000/svg"
+- stroke="#4a4640" for lines
+- fill="#1a1814" for text/labels
+- font-family="sans-serif" font-size="13" for labels
+- Keep diagrams clean and clearly labeled
+
+**Labels in SVG text elements use plain text, NOT LaTeX.** Write "angle 60°" not "\\\\(60°\\\\)". Write "5 cm" not "\\\\(5 \\\\, \\\\text{cm}\\\\)". KaTeX does not render inside SVG. Use the ° symbol directly. If a label would normally use a math expression like x² use the unicode superscript (x²) or split it (e.g., "x squared").
+
+**Example practice block with a diagram:**
+\`\`\`
+{
+  "topic": "Triangles",
+  "question": "In the figure above, what is the value of \\\\(x\\\\)?",
+  "diagram": "<svg viewBox=\\"0 0 300 200\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"50,160 250,160 150,40\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><text x=\\"40\\" y=\\"175\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"255\\" y=\\"175\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"145\\" y=\\"32\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"95\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">60°</text><text x=\\"200\\" y=\\"130\\" fill=\\"#1a1814\\" font-size=\\"12\\">x°</text></svg>",
+  "options": ["50", "60", "70", "80"],
+  "correct": 1,
+  "explanation": "..."
+}
+\`\`\`
+
+The "diagram" field is OPTIONAL. If you don't include it, the question must be fully understandable from text alone. Do NOT write "see figure below" without providing a diagram field.
 
 ### Optional intro prose
 Before each practice block you MAY write ONE short sentence introducing it. The intro must be GENERIC — about the topic flavor, not about the specific problem.
