@@ -4691,6 +4691,13 @@ function escapeAndFormat(text) {
     .replace(/\\\[([\s\S]+?)\\\]/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
     .replace(/\\\(([\s\S]+?)\\\)/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
+  // Kay's LaTeX habit: she sometimes writes "\$68" expecting LaTeX-style
+  // dollar-sign escaping. But outside math (which we just stashed above),
+  // we render as plain text — \$ would display as literal backslash-dollar.
+  // Normalize to a plain $ so prices render as "$68" not "\$68". Math contents
+  // are safe because they live in the stash placeholders.
+  s = s.replace(/\\\$/g, '$');
+
   // Stash markdown pipe tables BEFORE the line-break processing turns their
   // newlines into <br> and their pipes into raw |. A valid table is:
   //   header row  — |...|...|
