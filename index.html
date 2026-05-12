@@ -3481,14 +3481,55 @@ function computeSideLabelPos(p1, p2, interiorRef, offset = 16) {
 // SAT textbook convention. Kay's prompt teaches her to name vertices to fit.
 
 function renderGeneralTriangleTemplate(d) {
-  const solved = solveGeneralTriangle({
+  // Parse optional altitude config — a perpendicular dropped from a vertex
+  // to the opposite side. Used for area problems, similar-triangle problems
+  // with heights, etc.
+  let altitude = null;
+  if (d.altitude) {
+    if (!['A','B','C'].includes(d.altitude.from)) {
+      throw new Error('general_triangle: altitude.from must be "A", "B", or "C"');
+    }
+    const altValue = Number(d.altitude.value);
+    if (!Number.isFinite(altValue) || altValue <= 0) {
+      throw new Error('general_triangle: altitude.value must be a positive number');
+    }
+    altitude = { from: d.altitude.from, value: altValue, label: d.altitude.label };
+  }
+
+  // Triangle inputs from Kay
+  const triangleInput = {
     AB:   d.sides  && d.sides.AB,
     BC:   d.sides  && d.sides.BC,
     CA:   d.sides  && d.sides.CA,
     angA: d.angles && d.angles.A,
     angB: d.angles && d.angles.B,
     angC: d.angles && d.angles.C,
-  });
+  };
+
+  // Isoceles fallback: when altitude is provided and the triangle would
+  // otherwise be under-determined, assume the two sides adjacent to the
+  // altitude's vertex are equal (apex directly above the base midpoint).
+  // This is the canonical SAT presentation for "given base and height" area
+  // problems. Computes the equal side length from base and altitude:
+  //     other_side = sqrt((base/2)^2 + altitude^2)
+  if (altitude) {
+    const piecesGiven = Object.values(triangleInput).filter(v => v != null).length;
+    if (piecesGiven < 3) {
+      const oppositeKey = altitude.from === 'A' ? 'BC' : altitude.from === 'B' ? 'CA' : 'AB';
+      const adjacentKeys = altitude.from === 'A' ? ['AB','CA']
+                         : altitude.from === 'B' ? ['AB','BC']
+                         : ['BC','CA'];
+      const baseLen = triangleInput[oppositeKey];
+      if (baseLen != null) {
+        const adjLen = Math.sqrt((baseLen/2)*(baseLen/2) + altitude.value*altitude.value);
+        for (const k of adjacentKeys) {
+          if (triangleInput[k] == null) triangleInput[k] = adjLen;
+        }
+      }
+    }
+  }
+
+  const solved = solveGeneralTriangle(triangleInput);
   const labels = d.labels || {};
   const { AB: c, BC: a, CA: b, angA, angB, angC } = solved;
 
@@ -3542,9 +3583,61 @@ function renderGeneralTriangleTemplate(d) {
   const angB_pos = labels.angle_B ? computeAngleLabelPos({ vx: B.x, vy: B.y, neighbor1: A, neighbor2: C, angleDeg: angB, text: labels.angle_B }) : null;
   const angC_pos = labels.angle_C ? computeAngleLabelPos({ vx: C.x, vy: C.y, neighbor1: A, neighbor2: B, angleDeg: angC, text: labels.angle_C }) : null;
 
+  // Altitude: compute foot of perpendicular from `altitude.from` onto the
+  // opposite side, validate length, and prepare drawing data.
+  let altGeom = null;
+  if (altitude) {
+    const V  = altitude.from === 'A' ? A : altitude.from === 'B' ? B : C;
+    const P1 = altitude.from === 'A' ? B : altitude.from === 'B' ? C : A;
+    const P2 = altitude.from === 'A' ? C : altitude.from === 'B' ? A : B;
+    const sx = P2.x - P1.x, sy = P2.y - P1.y;
+    const t  = ((V.x - P1.x)*sx + (V.y - P1.y)*sy) / (sx*sx + sy*sy);
+    const F  = { x: P1.x + t*sx, y: P1.y + t*sy };
+    const computedAlt = Math.hypot(V.x - F.x, V.y - F.y) / scale;
+    if (Math.abs(computedAlt - altitude.value) > Math.max(0.05, altitude.value * 0.01)) {
+      throw new Error(
+        `general_triangle: altitude from ${altitude.from} computed as ${computedAlt.toFixed(3)} ` +
+        `but altitude.value = ${altitude.value} was provided — the rest of the triangle forces a different altitude`
+      );
+    }
+    // Right-angle marker at foot: a small square in the corner formed by the
+    // altitude and the opposite side. Direction along the side (unit) and
+    // along the altitude (back toward V).
+    const sLen = Math.hypot(sx, sy);
+    const sUx = sx / sLen,           sUy = sy / sLen;          // along side
+    const aUx = (V.x - F.x) / (computedAlt * scale),
+          aUy = (V.y - F.y) / (computedAlt * scale);           // toward V
+    // Foot may land outside the segment (t < 0 or t > 1) for obtuse triangles
+    // — we still draw the perpendicular, but the right-angle marker only
+    // makes sense when the foot is actually on the segment.
+    const footOnSegment = t >= -0.001 && t <= 1.001;
+    const altMid = { x: (V.x + F.x) / 2, y: (V.y + F.y) / 2 };
+    // Altitude label position: perpendicular to the altitude segment (i.e.,
+    // parallel to the base), offset toward whichever side of the altitude
+    // has more space. Default: to the right (away from B in canonical setup).
+    const altLabelDir = { x: -aUy, y: aUx };  // 90° rotation of altitude direction
+    const altLabelPos = altitude.label ? {
+      x: altMid.x + altLabelDir.x * 10,
+      y: altMid.y + altLabelDir.y * 10 + 4,
+    } : null;
+    const footLabelPos = labels.foot ? { x: F.x + 12, y: F.y + 14 } : null;
+    altGeom = { V, F, footOnSegment, sUx, sUy, aUx, aUy, altLabelPos, footLabelPos };
+  }
+
   const E = svgEscapeLabel;
   let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
   svg += `<polygon points="${A.x.toFixed(2)},${A.y.toFixed(2)} ${B.x.toFixed(2)},${B.y.toFixed(2)} ${C.x.toFixed(2)},${C.y.toFixed(2)}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Altitude segment (dashed) + right-angle marker at foot
+  if (altGeom) {
+    svg += `<line x1="${altGeom.V.x.toFixed(2)}" y1="${altGeom.V.y.toFixed(2)}" x2="${altGeom.F.x.toFixed(2)}" y2="${altGeom.F.y.toFixed(2)}" stroke="#4a4640" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    if (altGeom.footOnSegment) {
+      const ms = 9;
+      const p1 = { x: altGeom.F.x + altGeom.sUx * ms,                   y: altGeom.F.y + altGeom.sUy * ms };
+      const p2 = { x: p1.x         + altGeom.aUx * ms,                   y: p1.y         + altGeom.aUy * ms };
+      const p3 = { x: altGeom.F.x + altGeom.aUx * ms,                   y: altGeom.F.y + altGeom.aUy * ms };
+      svg += `<path d="M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} L ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+    }
+  }
   // Vertex labels
   svg += `<text x="${Alab.x.toFixed(2)}" y="${Alab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.A || 'A')}</text>`;
   svg += `<text x="${Blab.x.toFixed(2)}" y="${Blab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.B || 'B')}</text>`;
@@ -3557,6 +3650,13 @@ function renderGeneralTriangleTemplate(d) {
   if (angA_pos) svg += `<text x="${angA_pos.x.toFixed(2)}" y="${angA_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_A)}</text>`;
   if (angB_pos) svg += `<text x="${angB_pos.x.toFixed(2)}" y="${angB_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_B)}</text>`;
   if (angC_pos) svg += `<text x="${angC_pos.x.toFixed(2)}" y="${angC_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_C)}</text>`;
+  // Altitude / foot labels
+  if (altGeom && altGeom.altLabelPos) {
+    svg += `<text x="${altGeom.altLabelPos.x.toFixed(2)}" y="${altGeom.altLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(altitude.label)}</text>`;
+  }
+  if (altGeom && altGeom.footLabelPos) {
+    svg += `<text x="${altGeom.footLabelPos.x.toFixed(2)}" y="${altGeom.footLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.foot)}</text>`;
+  }
   svg += `</svg>`;
   return svg;
 }
