@@ -376,9 +376,9 @@ The diagram is rendered ABOVE the question text in the practice card. Refer to i
 1. **Structured template (REQUIRED for the shape kinds listed below).** The diagram field is a JSON OBJECT. The frontend computes coordinates from problem-space values, so geometric invariants hold by construction and label inconsistencies are rejected before render.
 2. **Raw SVG string (fallback for all other shapes).** The diagram field is a single-line SVG string. The geometric self-verification rules below apply.
 
-#### Structured diagram templates — circle_chord, right_triangle, general_triangle, triangle_with_parallel_line
+#### Structured diagram templates — circle_chord, circle_with_angles, right_triangle, general_triangle, triangle_with_parallel_line
 
-For chord problems, right-triangle problems, general (any-shape) triangle problems, and similar-triangles-with-a-parallel-line problems, you MUST use the structured JSON format below. Raw SVG for these shapes is no longer accepted.
+For these five shape kinds, you MUST use the structured JSON format below. Raw SVG for these shapes is no longer accepted.
 
 When using a template, the "diagram" field is a JSON OBJECT (not a string). Example shape:
 
@@ -502,7 +502,34 @@ Example — the canonical similar-triangles problem (answer is BC = 20):
   "labels": { "ad": "6", "db": "9", "de": "8", "bc": "x" } }
 \`\`\`
 
-For any OTHER geometry shape — sectors, inscribed angles, quadrilaterals, coordinate-plane figures, number lines — continue with the raw-SVG rules below.
+**Template: circle_with_angles**
+
+A circle with a central angle, an inscribed angle, or both — the classic inscribed-angle-theorem pattern. Canonical placement: two endpoint points (default A, B) at the top of the circle symmetric about the vertical axis; inscribed vertex (default C) at the bottom of the circle. Radii are drawn when central is provided; chords from the inscribed vertex are drawn when inscribed is provided. When both are provided, the inscribed-angle theorem is enforced (inscribed = central / 2).
+
+Provide one or both of:
+- "central": { value: number, label: string, endpoints: [string, string] (optional, default ["A","B"]) }
+- "inscribed": { value: number, label: string, vertex: string (optional, default "C"), endpoints: [string, string] (optional, default ["A","B"]) }
+
+Also optional: "center_label" (default "O").
+
+Restrictions: central.value must be in (0, 180), inscribed.value must be in (0, 90). For reflex central angles, the degenerate diameter case (central = 180°), or the semicircle inscribed-angle case (inscribed = 90°), fall back to raw SVG.
+
+Three example diagrams:
+\`\`\`json
+"diagram": { "kind": "circle_with_angles",
+  "central":   { "value": 110, "label": "110°" },
+  "inscribed": { "value": 55,  "label": "x°"  } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "circle_with_angles",
+  "central": { "value": 90, "label": "90°" } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "circle_with_angles",
+  "inscribed": { "value": 40, "label": "40°" } }
+\`\`\`
+
+For any OTHER geometry shape — sectors with shading, quadrilaterals, coordinate-plane figures, number lines, exterior-angle figures with line extensions, reflex/semicircle inscribed-angle cases — continue with the raw-SVG rules below.
 
 #### When to include a diagram
 
