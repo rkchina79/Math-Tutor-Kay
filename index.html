@@ -3017,8 +3017,10 @@ function renderDiagramFromTemplate(d) {
       throw new Error('diagram object missing or has no "kind"');
     }
     switch (d.kind) {
-      case 'circle_chord':    return renderCircleChordTemplate(d);
-      case 'right_triangle':  return renderRightTriangleTemplate(d);
+      case 'circle_chord':                return renderCircleChordTemplate(d);
+      case 'right_triangle':              return renderRightTriangleTemplate(d);
+      case 'general_triangle':            return renderGeneralTriangleTemplate(d);
+      case 'triangle_with_parallel_line': return renderTriangleWithParallelLineTemplate(d);
       default:
         throw new Error(`unknown diagram kind: "${d.kind}"`);
     }
@@ -3175,9 +3177,15 @@ function renderRightTriangleTemplate(d) {
   const bcLx = (cx + bx) / 2,   bcLy = cy + 16;             // below BC
   const abLx = (ax + bx) / 2 + 8, abLy = (ay + by) / 2 - 6; // upper-right of hypotenuse
 
-  // Angle labels — just inside the vertex, in the interior direction.
-  const angALx = ax + 6,  angALy = ay + 18;     // below-right of A (interior)
-  const angBLx = bx - 30, angBLy = by - 6;      // above-left of B (interior)
+  // Angle label placement — adaptive to the angle's narrowness. See the
+  // shared helper computeAngleLabelPos below for the math.
+  const angA_pos = labels.angle_A
+    ? computeAngleLabelPos({ vx: ax, vy: ay, neighbor1: {x: cx, y: cy}, neighbor2: {x: bx, y: by}, angleDeg: solved.angA, text: labels.angle_A })
+    : null;
+  const angB_pos = labels.angle_B
+    ? computeAngleLabelPos({ vx: bx, vy: by, neighbor1: {x: cx, y: cy}, neighbor2: {x: ax, y: ay}, angleDeg: solved.angB, text: labels.angle_B })
+    : null;
+  const ANGLE_FONT = 11;
 
   const ms = 12;
   const E = svgEscapeLabel;
@@ -3194,9 +3202,10 @@ function renderRightTriangleTemplate(d) {
   if (labels.AC) svg += `<text x="${acLx}" y="${acLy}" fill="#1a1814" font-size="12" text-anchor="end">${E(labels.AC)}</text>`;
   if (labels.BC) svg += `<text x="${bcLx}" y="${bcLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.BC)}</text>`;
   if (labels.AB) svg += `<text x="${abLx}" y="${abLy}" fill="#1a1814" font-size="12">${E(labels.AB)}</text>`;
-  // Angle labels
-  if (labels.angle_A) svg += `<text x="${angALx}" y="${angALy}" fill="#1a1814" font-size="11">${E(labels.angle_A)}</text>`;
-  if (labels.angle_B) svg += `<text x="${angBLx}" y="${angBLy}" fill="#1a1814" font-size="11">${E(labels.angle_B)}</text>`;
+  // Angle labels — text-anchor=middle + dominant-baseline=central centers the
+  // label exactly on (x, y) computed from the bisector.
+  if (angA_pos) svg += `<text x="${angA_pos.x.toFixed(2)}" y="${angA_pos.y.toFixed(2)}" fill="#1a1814" font-size="${ANGLE_FONT}" text-anchor="middle" dominant-baseline="central">${E(labels.angle_A)}</text>`;
+  if (angB_pos) svg += `<text x="${angB_pos.x.toFixed(2)}" y="${angB_pos.y.toFixed(2)}" fill="#1a1814" font-size="${ANGLE_FONT}" text-anchor="middle" dominant-baseline="central">${E(labels.angle_B)}</text>`;
   svg += `</svg>`;
   return svg;
 }
@@ -3269,6 +3278,357 @@ function solveRightTriangle(input) {
     }
   }
   return { AB, AC, BC, angA, angB };
+}
+
+// ── Shared geometry helpers (used by multiple triangle templates) ────────────
+
+// Place an angle label along the bisector of a vertex angle, at a distance
+// adapted to the angle's narrowness. For narrow angles the wedge near the
+// vertex is too tight to contain text without crossing the rays — push the
+// label further out where the wedge widens.
+//
+//   d = max(18, (halfDiagOfText + margin) / sin(angle/2))
+//
+// Returns {x, y} suitable for text-anchor=middle + dominant-baseline=central.
+function computeAngleLabelPos({ vx, vy, neighbor1, neighbor2, angleDeg, text, fontSize = 11 }) {
+  const d1x = neighbor1.x - vx, d1y = neighbor1.y - vy;
+  const d2x = neighbor2.x - vx, d2y = neighbor2.y - vy;
+  const len1 = Math.hypot(d1x, d1y) || 1;
+  const len2 = Math.hypot(d2x, d2y) || 1;
+  let bisX = d1x / len1 + d2x / len2;
+  let bisY = d1y / len1 + d2y / len2;
+  const bisLen = Math.hypot(bisX, bisY) || 1;
+  bisX /= bisLen; bisY /= bisLen;
+
+  const textW = String(text).length * fontSize * 0.55 + 4;
+  const textH = fontSize * 0.9;
+  const halfDiag = 0.5 * Math.hypot(textW, textH);
+  const margin = 5;
+  const halfAngRad = angleDeg * Math.PI / 360;
+  const dist = Math.max(18, (halfDiag + margin) / Math.sin(halfAngRad));
+  return { x: vx + bisX * dist, y: vy + bisY * dist };
+}
+
+// Place a side label OUTSIDE the triangle at the side's midpoint, offset
+// perpendicular to the side. "Outside" is the direction AWAY from the third
+// vertex (passed in as `interiorRef`, typically the centroid).
+function computeSideLabelPos(p1, p2, interiorRef, offset = 16) {
+  const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+  const sx = p2.x - p1.x, sy = p2.y - p1.y;
+  const sLen = Math.hypot(sx, sy) || 1;
+  let perpX = -sy / sLen, perpY = sx / sLen;
+  // Flip perpendicular to point away from the interior reference
+  const toIntX = interiorRef.x - midX, toIntY = interiorRef.y - midY;
+  if (perpX * toIntX + perpY * toIntY > 0) { perpX = -perpX; perpY = -perpY; }
+  return { x: midX + perpX * offset, y: midY + perpY * offset + 4 };
+}
+
+// ── general_triangle template ────────────────────────────────────────────────
+// An arbitrary triangle with vertices labeled A (top-ish), B (bottom-left),
+// C (bottom-right). Accepts any subset of sides {AB, BC, CA} and angles
+// {A, B, C} that determines the triangle (≥3 pieces of info, ≥1 must be a
+// side; AAA falls back to a unit scale). Validates all redundant inputs.
+//
+// Canonical placement: BC horizontal at the bottom, A above. This matches
+// SAT textbook convention. Kay's prompt teaches her to name vertices to fit.
+
+function renderGeneralTriangleTemplate(d) {
+  const solved = solveGeneralTriangle({
+    AB:   d.sides  && d.sides.AB,
+    BC:   d.sides  && d.sides.BC,
+    CA:   d.sides  && d.sides.CA,
+    angA: d.angles && d.angles.A,
+    angB: d.angles && d.angles.B,
+    angC: d.angles && d.angles.C,
+  });
+  const labels = d.labels || {};
+  const { AB: c, BC: a, CA: b, angA, angB, angC } = solved;
+
+  // Place in problem coords (math convention: +y up). B at origin, C along +x.
+  // A computed from c (=AB) and angle at B.
+  const bpX = 0,                                        bpY = 0;
+  const cpX = a,                                        cpY = 0;
+  const apX = c * Math.cos(angB * Math.PI / 180);
+  const apY = c * Math.sin(angB * Math.PI / 180);
+
+  // Canvas + fit-with-margin scaling
+  const W = 320, H = 240;
+  const marginX = 40, marginY = 35;
+  const minX = Math.min(bpX, cpX, apX), maxX = Math.max(bpX, cpX, apX);
+  const minY = Math.min(bpY, cpY, apY), maxY = Math.max(bpY, cpY, apY);
+  const extX = Math.max(maxX - minX, 1e-6);
+  const extY = Math.max(maxY - minY, 1e-6);
+  const scale = Math.min((W - 2*marginX) / extX, (H - 2*marginY) / extY);
+
+  // Center within canvas, flip y for SVG
+  const scaledW = extX * scale, scaledH = extY * scale;
+  const offsetX = marginX + ((W - 2*marginX) - scaledW) / 2;
+  const offsetYbot = H - marginY - ((H - 2*marginY) - scaledH) / 2;
+  const toSvg = (px, py) => ({
+    x: offsetX + (px - minX) * scale,
+    y: offsetYbot - (py - minY) * scale,
+  });
+  const A = toSvg(apX, apY);
+  const B = toSvg(bpX, bpY);
+  const C = toSvg(cpX, cpY);
+
+  // Centroid for outward direction
+  const centroid = { x: (A.x+B.x+C.x)/3, y: (A.y+B.y+C.y)/3 };
+
+  // Vertex labels — outside the triangle, radially outward from centroid
+  const vertexLabel = (v) => {
+    const dx = v.x - centroid.x, dy = v.y - centroid.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const off = 14;
+    return { x: v.x + dx/len * off, y: v.y + dy/len * off + 4 };
+  };
+  const Alab = vertexLabel(A), Blab = vertexLabel(B), Clab = vertexLabel(C);
+
+  // Side label positions (only computed if labeled)
+  const abLab = labels.AB ? computeSideLabelPos(A, B, centroid) : null;
+  const bcLab = labels.BC ? computeSideLabelPos(B, C, centroid) : null;
+  const caLab = labels.CA ? computeSideLabelPos(C, A, centroid) : null;
+
+  // Angle label positions
+  const angA_pos = labels.angle_A ? computeAngleLabelPos({ vx: A.x, vy: A.y, neighbor1: B, neighbor2: C, angleDeg: angA, text: labels.angle_A }) : null;
+  const angB_pos = labels.angle_B ? computeAngleLabelPos({ vx: B.x, vy: B.y, neighbor1: A, neighbor2: C, angleDeg: angB, text: labels.angle_B }) : null;
+  const angC_pos = labels.angle_C ? computeAngleLabelPos({ vx: C.x, vy: C.y, neighbor1: A, neighbor2: B, angleDeg: angC, text: labels.angle_C }) : null;
+
+  const E = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<polygon points="${A.x.toFixed(2)},${A.y.toFixed(2)} ${B.x.toFixed(2)},${B.y.toFixed(2)} ${C.x.toFixed(2)},${C.y.toFixed(2)}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Vertex labels
+  svg += `<text x="${Alab.x.toFixed(2)}" y="${Alab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.A || 'A')}</text>`;
+  svg += `<text x="${Blab.x.toFixed(2)}" y="${Blab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.B || 'B')}</text>`;
+  svg += `<text x="${Clab.x.toFixed(2)}" y="${Clab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.C || 'C')}</text>`;
+  // Side labels
+  if (abLab) svg += `<text x="${abLab.x.toFixed(2)}" y="${abLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.AB)}</text>`;
+  if (bcLab) svg += `<text x="${bcLab.x.toFixed(2)}" y="${bcLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.BC)}</text>`;
+  if (caLab) svg += `<text x="${caLab.x.toFixed(2)}" y="${caLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.CA)}</text>`;
+  // Angle labels
+  if (angA_pos) svg += `<text x="${angA_pos.x.toFixed(2)}" y="${angA_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_A)}</text>`;
+  if (angB_pos) svg += `<text x="${angB_pos.x.toFixed(2)}" y="${angB_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_B)}</text>`;
+  if (angC_pos) svg += `<text x="${angC_pos.x.toFixed(2)}" y="${angC_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_C)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// Solve an arbitrary triangle from any subset of {AB=c, BC=a, CA=b, angA,
+// angB, angC} (≥3 pieces, ≥1 must be a side; AAA falls back to a=100 scale).
+// Iteratively applies angle sum, law of cosines, law of sines until fully
+// determined. Validates all provided values against the canonical solution.
+function solveGeneralTriangle(input) {
+  const num = v => (v == null || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+  let a = num(input.BC), b = num(input.CA), c = num(input.AB);    // sides
+  let A = num(input.angA), B = num(input.angB), C = num(input.angC); // angles
+  const orig = { a, b, c, A, B, C };
+
+  const provided = [a, b, c, A, B, C].filter(v => v != null).length;
+  if (provided < 3) {
+    throw new Error('general_triangle: need at least 3 of {AB, BC, CA, angle_A, angle_B, angle_C} to determine the triangle');
+  }
+  // Reject any angle outside (0, 180)
+  for (const [name, v] of [['angle_A', A], ['angle_B', B], ['angle_C', C]]) {
+    if (v != null && (v <= 0 || v >= 180)) {
+      throw new Error(`general_triangle: ${name} (${v}°) must be strictly between 0 and 180`);
+    }
+  }
+  // AAA fallback: scale by a = 100
+  const sidesGiven = [a, b, c].filter(v => v != null).length;
+  if (sidesGiven === 0) { a = 100; }
+
+  // Up-front consistency checks for fully-specified subsets. The solver loop
+  // below only enforces rules when filling unknowns — when ALL three angles
+  // or ALL three sides are provided, the loop never invokes those rules at
+  // all and any inconsistency would slip through.
+  if (orig.A != null && orig.B != null && orig.C != null) {
+    if (Math.abs(orig.A + orig.B + orig.C - 180) > 0.1) {
+      throw new Error(
+        `general_triangle: provided angles (${orig.A}°, ${orig.B}°, ${orig.C}°) ` +
+        `sum to ${(orig.A+orig.B+orig.C).toFixed(2)}°, must equal 180°`
+      );
+    }
+  }
+  if (orig.a != null && orig.b != null && orig.c != null) {
+    // Pre-check SSS-derived angles against any provided angles
+    const cosA = (orig.b*orig.b + orig.c*orig.c - orig.a*orig.a) / (2*orig.b*orig.c);
+    const cosB = (orig.a*orig.a + orig.c*orig.c - orig.b*orig.b) / (2*orig.a*orig.c);
+    const cosC = (orig.a*orig.a + orig.b*orig.b - orig.c*orig.c) / (2*orig.a*orig.b);
+    if (Math.abs(cosA) > 1 || Math.abs(cosB) > 1 || Math.abs(cosC) > 1) {
+      throw new Error(`general_triangle: sides (${orig.a}, ${orig.b}, ${orig.c}) don't form a valid triangle`);
+    }
+    const Aimp = Math.acos(cosA) * 180 / Math.PI;
+    const Bimp = Math.acos(cosB) * 180 / Math.PI;
+    const Cimp = Math.acos(cosC) * 180 / Math.PI;
+    for (const [name, prov, imp] of [['angle_A', orig.A, Aimp], ['angle_B', orig.B, Bimp], ['angle_C', orig.C, Cimp]]) {
+      if (prov != null && Math.abs(prov - imp) > 0.1) {
+        throw new Error(
+          `general_triangle: inconsistent labels — ${name} provided as ${prov}° ` +
+          `but the three sides force ${name} = ${imp.toFixed(3)}°`
+        );
+      }
+    }
+  }
+
+  const rad = x => x * Math.PI / 180;
+  const deg = x => x * 180 / Math.PI;
+
+  // Iterative solver
+  for (let iter = 0; iter < 8; iter++) {
+    // Angle sum
+    if (A != null && B != null && C == null) C = 180 - A - B;
+    if (A != null && C != null && B == null) B = 180 - A - C;
+    if (B != null && C != null && A == null) A = 180 - B - C;
+    // Law of sines (need at least one side-angle pair)
+    const k =
+      (a != null && A != null) ? a / Math.sin(rad(A)) :
+      (b != null && B != null) ? b / Math.sin(rad(B)) :
+      (c != null && C != null) ? c / Math.sin(rad(C)) : null;
+    if (k != null) {
+      if (a == null && A != null) a = k * Math.sin(rad(A));
+      if (b == null && B != null) b = k * Math.sin(rad(B));
+      if (c == null && C != null) c = k * Math.sin(rad(C));
+    }
+    // Law of cosines for unknown side from two sides + included angle
+    if (a == null && b != null && c != null && A != null) a = Math.sqrt(b*b + c*c - 2*b*c*Math.cos(rad(A)));
+    if (b == null && a != null && c != null && B != null) b = Math.sqrt(a*a + c*c - 2*a*c*Math.cos(rad(B)));
+    if (c == null && a != null && b != null && C != null) c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(rad(C)));
+    // Law of cosines for unknown angle from three sides
+    if (A == null && a != null && b != null && c != null) A = deg(Math.acos((b*b + c*c - a*a) / (2*b*c)));
+    if (B == null && a != null && b != null && c != null) B = deg(Math.acos((a*a + c*c - b*b) / (2*a*c)));
+    if (C == null && a != null && b != null && c != null) C = deg(Math.acos((a*a + b*b - c*c) / (2*a*b)));
+    if (a != null && b != null && c != null && A != null && B != null && C != null) break;
+  }
+  if ([a, b, c, A, B, C].some(v => v == null || !Number.isFinite(v))) {
+    throw new Error('general_triangle: insufficient information (couldn\'t solve — likely SSA-ambiguous or non-triangle inputs)');
+  }
+  // Triangle inequality
+  if (a + b <= c + 1e-6 || a + c <= b + 1e-6 || b + c <= a + 1e-6) {
+    throw new Error(`general_triangle: sides (${a.toFixed(2)}, ${b.toFixed(2)}, ${c.toFixed(2)}) violate the triangle inequality`);
+  }
+  // Validate redundant inputs
+  const TOL_LEN = 0.01, TOL_DEG = 0.1;
+  const checks = [
+    [orig.a, a, 'BC',      TOL_LEN], [orig.b, b, 'CA',      TOL_LEN], [orig.c, c, 'AB',      TOL_LEN],
+    [orig.A, A, 'angle_A', TOL_DEG], [orig.B, B, 'angle_B', TOL_DEG], [orig.C, C, 'angle_C', TOL_DEG],
+  ];
+  for (const [provided_v, computed, name, tol] of checks) {
+    if (provided_v != null && Math.abs(provided_v - computed) > tol) {
+      throw new Error(
+        `general_triangle: inconsistent labels — ${name} provided as ${provided_v} ` +
+        `but the rest of the triangle forces ${name} = ${computed.toFixed(3)}`
+      );
+    }
+  }
+  return { AB: c, BC: a, CA: b, angA: A, angB: B, angC: C };
+}
+
+// ── triangle_with_parallel_line template ─────────────────────────────────────
+// Outer triangle ABC with D on AB and E on AC such that DE is parallel to BC.
+// The classic SAT similar-triangles configuration: "AD = 6, DB = 9, DE = 8,
+// find BC". Validates the similar-triangles constraint DE/BC = AD/(AD+DB).
+//
+// Triangle shape is canonical (not driven by problem-space side lengths) —
+// the SAT figure here is illustrative, and what matters is the RATIO of D's
+// position along AB (which determines E's position along AC, so DE is exactly
+// parallel to BC). The labeled values are display strings.
+
+function renderTriangleWithParallelLineTemplate(d) {
+  const ad = Number(d.ad), db = Number(d.db), de = Number(d.de), bc = Number(d.bc);
+  if (![ad, db, de, bc].every(v => Number.isFinite(v) && v > 0)) {
+    throw new Error('triangle_with_parallel_line: ad, db, de, bc must all be positive numbers');
+  }
+  // Similar-triangles invariant: DE/BC = AD/(AD+DB), so bc = de*(ad+db)/ad
+  const expectedBC = de * (ad + db) / ad;
+  if (Math.abs(expectedBC - bc) / Math.max(bc, expectedBC) > 0.001) {
+    throw new Error(
+      `triangle_with_parallel_line: similar-triangles constraint violated. ` +
+      `Given ad=${ad}, db=${db}, de=${de}, the parallel-line geometry forces ` +
+      `bc=${expectedBC.toFixed(3)}, but ${bc} was provided`
+    );
+  }
+
+  const labels = d.labels || {};
+  const W = 320, H = 250;
+  // Canonical triangle: B at bottom-left, C at bottom-right, A at top center.
+  // Base 200px, height 170px ⇒ apex angle ≈ 60° (typical SAT proportions).
+  const triBaseW = 200, triHeight = 170;
+  const xCenter = W / 2;
+  const yTop = 28, yBot = yTop + triHeight;
+  const A = { x: xCenter,                y: yTop };
+  const B = { x: xCenter - triBaseW/2,   y: yBot };
+  const C = { x: xCenter + triBaseW/2,   y: yBot };
+
+  // D and E at the correct fraction down from A
+  const t = ad / (ad + db);
+  const D = { x: A.x + t * (B.x - A.x), y: A.y + t * (B.y - A.y) };
+  const E = { x: A.x + t * (C.x - A.x), y: A.y + t * (C.y - A.y) };
+
+  // Vertex labels
+  const Alab = { x: A.x,       y: A.y - 8 };       // above A
+  const Blab = { x: B.x - 10,  y: B.y + 14 };      // lower-left of B
+  const Clab = { x: C.x + 10,  y: C.y + 14 };      // lower-right of C
+
+  // Perpendiculars for label placement. For the AB side (A above, B below-
+  // left), "outside the triangle" is up-and-LEFT. For AC (A above, C below-
+  // right), "outside" is up-and-RIGHT. The robust way to pick the outward
+  // direction: compute both perpendicular candidates and choose the one
+  // pointing AWAY from the centroid.
+  const centroidX = (A.x + B.x + C.x) / 3;
+  const centroidY = (A.y + B.y + C.y) / 3;
+  const outwardPerp = (p1, p2) => {
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    let px = -dy / len, py = dx / len;
+    const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+    if (px * (centroidX - midX) + py * (centroidY - midY) > 0) { px = -px; py = -py; }
+    return { x: px, y: py };
+  };
+  const abOut = outwardPerp(A, B);
+  const acOut = outwardPerp(A, C);
+
+  // D and E vertex labels — just outside the triangle along the sides
+  const Dlab = { x: D.x + abOut.x * 11, y: D.y + abOut.y * 11 + 4 };
+  const Elab = { x: E.x + acOut.x * 11, y: E.y + acOut.y * 11 + 4 };
+
+  // Sub-segment labels along AB and AC, perpendicular outward
+  const adMid = { x: (A.x+D.x)/2, y: (A.y+D.y)/2 };
+  const adLab = { x: adMid.x + abOut.x * 14, y: adMid.y + abOut.y * 14 + 4 };
+  const dbMid = { x: (D.x+B.x)/2, y: (D.y+B.y)/2 };
+  const dbLab = { x: dbMid.x + abOut.x * 14, y: dbMid.y + abOut.y * 14 + 4 };
+  const aeMid = { x: (A.x+E.x)/2, y: (A.y+E.y)/2 };
+  const aeLab = { x: aeMid.x + acOut.x * 14, y: aeMid.y + acOut.y * 14 + 4 };
+  const ecMid = { x: (E.x+C.x)/2, y: (E.y+C.y)/2 };
+  const ecLab = { x: ecMid.x + acOut.x * 14, y: ecMid.y + acOut.y * 14 + 4 };
+
+  // DE label: above the parallel segment, lifted clear of the D/E vertex
+  // labels (which sit at y = D.y + 4-ish from the +4 baseline shift).
+  const deMid = { x: (D.x+D.x+(E.x-D.x))/2, y: D.y };
+  const deLab = { x: (D.x+E.x)/2, y: D.y - 4 };
+  // BC label: below the base
+  const bcLab = { x: (B.x+C.x)/2, y: B.y + 22 };
+
+  const Esc = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  // Outer triangle
+  svg += `<polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Parallel segment DE
+  svg += `<line x1="${D.x.toFixed(2)}" y1="${D.y.toFixed(2)}" x2="${E.x.toFixed(2)}" y2="${E.y.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  // Vertex labels (5 of them)
+  svg += `<text x="${Alab.x}" y="${Alab.y}" fill="#1a1814" font-size="13" text-anchor="middle">${Esc(labels.A || 'A')}</text>`;
+  svg += `<text x="${Blab.x}" y="${Blab.y}" fill="#1a1814" font-size="13" text-anchor="end">${Esc(labels.B || 'B')}</text>`;
+  svg += `<text x="${Clab.x}" y="${Clab.y}" fill="#1a1814" font-size="13" text-anchor="start">${Esc(labels.C || 'C')}</text>`;
+  svg += `<text x="${Dlab.x.toFixed(2)}" y="${Dlab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="end">${Esc(labels.D || 'D')}</text>`;
+  svg += `<text x="${Elab.x.toFixed(2)}" y="${Elab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="start">${Esc(labels.E || 'E')}</text>`;
+  // Sub-segment labels
+  if (labels.ad) svg += `<text x="${adLab.x.toFixed(2)}" y="${adLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="end">${Esc(labels.ad)}</text>`;
+  if (labels.db) svg += `<text x="${dbLab.x.toFixed(2)}" y="${dbLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="end">${Esc(labels.db)}</text>`;
+  if (labels.ae) svg += `<text x="${aeLab.x.toFixed(2)}" y="${aeLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="start">${Esc(labels.ae)}</text>`;
+  if (labels.ec) svg += `<text x="${ecLab.x.toFixed(2)}" y="${ecLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="start">${Esc(labels.ec)}</text>`;
+  if (labels.de) svg += `<text x="${deLab.x.toFixed(2)}" y="${deLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.de)}</text>`;
+  if (labels.bc) svg += `<text x="${bcLab.x.toFixed(2)}" y="${bcLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.bc)}</text>`;
+  svg += `</svg>`;
+  return svg;
 }
 
 function renderPracticeCard(p, msgIdx) {
