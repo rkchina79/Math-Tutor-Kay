@@ -3082,6 +3082,13 @@ function renderCircleChordTemplate(d) {
   const halfChordPx = halfChord * scale;
   const perpDistPx  = perpDist  * scale;
 
+  // Cross-validate numeric labels against the geometry. Catches the case
+  // where Kay passes a chord value that doesn't match the labels she put on
+  // the perpendicular and radius.
+  validateNumericLabel(labels.radius,        r,        'radius',        'circle_chord', 0.05);
+  validateNumericLabel(labels.chord,         c,        'chord',         'circle_chord', 0.05);
+  validateNumericLabel(labels.perpendicular, perpDist, 'perpendicular', 'circle_chord', 0.05);
+
   const ax = cx - halfChordPx, ay = cy - perpDistPx;
   const bx = cx + halfChordPx, by = cy - perpDistPx;
   const mx = cx,                my = cy - perpDistPx;
@@ -3199,6 +3206,10 @@ function renderCircleWithAnglesTemplate(d) {
   const bName = cEndpts[1] || iEndpts[1] || 'B';
   const vName = (inscribed && inscribed.vertex) || 'C';
 
+  // Cross-validate numeric labels against the angle values.
+  if (central)   validateNumericLabel(central.label,   centralValue,   'central angle',   'circle_with_angles', 0.5);
+  if (inscribed) validateNumericLabel(inscribed.label, inscribedValue, 'inscribed angle', 'circle_with_angles', 0.5);
+
   // Canvas + circle layout
   const W = 320, H = 260;
   const cx = W / 2, cy = H / 2 + 5;
@@ -3299,6 +3310,13 @@ function renderRightTriangleTemplate(d) {
   });
   const labels = d.labels || {};
   const { AC, BC } = solved;
+
+  // Cross-validate numeric labels against the solved geometry.
+  validateNumericLabel(labels.AB,      solved.AB,   'AB',      'right_triangle', 0.05);
+  validateNumericLabel(labels.AC,      solved.AC,   'AC',      'right_triangle', 0.05);
+  validateNumericLabel(labels.BC,      solved.BC,   'BC',      'right_triangle', 0.05);
+  validateNumericLabel(labels.angle_A, solved.angA, 'angle_A', 'right_triangle', 0.5);
+  validateNumericLabel(labels.angle_B, solved.angB, 'angle_B', 'right_triangle', 0.5);
 
   const W = 320, H = 230;
   const maxLegPx = 150;
@@ -3471,6 +3489,34 @@ function computeSideLabelPos(p1, p2, interiorRef, offset = 16) {
   return { x: midX + perpX * offset, y: midY + perpY * offset + 4 };
 }
 
+// Parse a label STRING and return a numeric value if it looks like a plain
+// number, otherwise return null. Strips degree symbols, whitespace, commas.
+// Variable labels ("x", "d", "r", "5√3", "1/2") return null and are exempt
+// from the cross-validation below — they're intentional non-numeric labels.
+function maybeParseNumericLabel(s) {
+  if (s == null) return null;
+  const stripped = String(s).trim().replace(/[°,\s]/g, '');
+  if (stripped === '' || stripped === '-') return null;
+  const n = Number(stripped);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Cross-check: if a label PARSES AS A NUMBER, it must agree with the value
+// the geometry computed for that quantity. Catches the failure mode where
+// Kay passes a chord input that doesn't match the labels she puts on it —
+// e.g., chord=4 with labels.radius="13", labels.perpendicular="10" (impossible:
+// chord must be ~16.6 for those to agree). Variable labels ("x", "d") are
+// fine; we only validate when the label is an actual number.
+function validateNumericLabel(labelText, expected, name, templateName, tolerance) {
+  const labelNum = maybeParseNumericLabel(labelText);
+  if (labelNum != null && Math.abs(labelNum - expected) > tolerance) {
+    throw new Error(
+      `${templateName}: label for ${name} reads "${labelText}" (${labelNum}) ` +
+      `but the geometry forces ${name} = ${expected.toFixed(3)}`
+    );
+  }
+}
+
 // ── general_triangle template ────────────────────────────────────────────────
 // An arbitrary triangle with vertices labeled A (top-ish), B (bottom-left),
 // C (bottom-right). Accepts any subset of sides {AB, BC, CA} and angles
@@ -3532,6 +3578,17 @@ function renderGeneralTriangleTemplate(d) {
   const solved = solveGeneralTriangle(triangleInput);
   const labels = d.labels || {};
   const { AB: c, BC: a, CA: b, angA, angB, angC } = solved;
+
+  // Cross-validate numeric labels against the solved geometry.
+  validateNumericLabel(labels.AB,      solved.AB,   'AB',      'general_triangle', 0.05);
+  validateNumericLabel(labels.BC,      solved.BC,   'BC',      'general_triangle', 0.05);
+  validateNumericLabel(labels.CA,      solved.CA,   'CA',      'general_triangle', 0.05);
+  validateNumericLabel(labels.angle_A, solved.angA, 'angle_A', 'general_triangle', 0.5);
+  validateNumericLabel(labels.angle_B, solved.angB, 'angle_B', 'general_triangle', 0.5);
+  validateNumericLabel(labels.angle_C, solved.angC, 'angle_C', 'general_triangle', 0.5);
+  if (altitude) {
+    validateNumericLabel(altitude.label, altitude.value, 'altitude', 'general_triangle', 0.05);
+  }
 
   // Place in problem coords (math convention: +y up). B at origin, C along +x.
   // A computed from c (=AB) and angle at B.
@@ -3797,6 +3854,12 @@ function renderTriangleWithParallelLineTemplate(d) {
   }
 
   const labels = d.labels || {};
+  // Cross-validate numeric labels against the four numeric inputs.
+  validateNumericLabel(labels.ad, ad, 'ad', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.db, db, 'db', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.de, de, 'de', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.bc, bc, 'bc', 'triangle_with_parallel_line', 0.05);
+
   const W = 320, H = 250;
   // Canonical triangle: B at bottom-left, C at bottom-right, A at top center.
   // Base 200px, height 170px ⇒ apex angle ≈ 60° (typical SAT proportions).
