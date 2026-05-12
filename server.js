@@ -263,7 +263,7 @@ print(f"Solutions: {solutions}")
 
 In these cases, the math may compute correctly when read from the text alone, but the figure misleads any student who looks at it. **A student looking at the figure should be able to identify the exact unknown the question is asking about.** If they can't, regenerate.
 
-**CRITICAL: geometric self-verification (any problem with a diagram involving named points or labeled measurements).** Coordinate arithmetic and label assignment are error-prone — verify them with code the same way you verify answers. For circles with chords/sectors/inscribed angles, triangles, quadrilaterals, and coordinate-plane figures, you MUST run a verification pass using code execution AFTER drafting the SVG and BEFORE emitting the practice block.
+**CRITICAL: geometric self-verification (RAW-SVG diagrams only).** For circle_chord and right_triangle, the structured template handles all geometric and label-consistency checks automatically — skip this section. For any OTHER shape drawn via raw SVG (sectors, inscribed angles, general triangles, quadrilaterals, coordinate-plane figures), coordinate arithmetic and label assignment remain error-prone — verify them with code the same way you verify answers. You MUST run a verification pass using code execution AFTER drafting the raw-SVG figure and BEFORE emitting the practice block.
 
 The protocol:
 
@@ -368,9 +368,93 @@ This applies even to simple things — write "\\\\(x = 4\\\\)" not "x = 4", "\\\
 
 ### Optional diagram field
 
-For problems that inherently require a visual figure (geometry, coordinate plane, data interpretation, trigonometry), you MAY include a "diagram" field containing an SVG figure as a single-line string. Most algebra/arithmetic problems do NOT need a diagram — only include one when the problem cannot be understood from text alone.
+For problems that inherently require a visual figure (geometry, coordinate plane, data interpretation, trigonometry), you MAY include a "diagram" field. Most algebra/arithmetic problems do NOT need a diagram — only include one when the problem cannot be understood from text alone.
 
 The diagram is rendered ABOVE the question text in the practice card. Refer to it in the question as "in the figure" or "in the figure above" — NEVER "below."
+
+**Two paths for the diagram field:**
+1. **Structured template (REQUIRED for the shape kinds listed below).** The diagram field is a JSON OBJECT. The frontend computes coordinates from problem-space values, so geometric invariants hold by construction and label inconsistencies are rejected before render.
+2. **Raw SVG string (fallback for all other shapes).** The diagram field is a single-line SVG string. The geometric self-verification rules below apply.
+
+#### Structured diagram templates — Phase 1: circle_chord, right_triangle
+
+For chord problems and right-triangle problems, you MUST use the structured JSON format below. Raw SVG for these two shapes is no longer accepted.
+
+When using a template, the "diagram" field is a JSON OBJECT (not a string). Example shape:
+
+\`\`\`practice
+{
+  "topic": "Circle chords",
+  "question": "In the figure above, ...",
+  "options": ["...", "...", "...", "..."],
+  "correct": 0,
+  "diagram": {
+    "kind": "circle_chord",
+    "radius": 10,
+    "chord": 16,
+    "labels": { "chord": "16", "perpendicular": "d", "radius": "10" }
+  },
+  "explanation": "..."
+}
+\`\`\`
+
+**Template: circle_chord**
+
+A circle with center O, chord AB, optional perpendicular from O to the chord's midpoint (with right-angle marker), optional radius from O to B. A and B are placed exactly on the circle.
+
+Required fields:
+- "kind": "circle_chord"
+- "radius": positive number — the ACTUAL radius value (used to scale the figure)
+- "chord": positive number — the ACTUAL chord length (must be ≤ 2·radius)
+
+Optional fields (all strings):
+- labels.center — text for the center label (default "O")
+- labels.a, labels.b — text for the endpoint labels (defaults "A", "B")
+- labels.chord — text along the chord (e.g., "16"). Omit to hide.
+- labels.perpendicular — text along the perpendicular (e.g., "d", "8"). Providing this shows the perpendicular line; omitting hides it.
+- labels.radius — text along the radius to B (e.g., "10", "r"). Providing this shows the radius line; omitting hides it.
+
+Numeric "radius" and "chord" must always be the TRUE values from the problem — even when the student is asked to find one of them. The label strings are display-only: write \`"radius": "r"\` to show the letter r on the figure, while still passing \`radius: 10\` (or whatever the actual value is) as the geometric input. This is what allows the figure to look correct.
+
+Two example diagrams:
+\`\`\`json
+"diagram": { "kind": "circle_chord", "radius": 10, "chord": 16,
+  "labels": { "chord": "16", "perpendicular": "d", "radius": "10" } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "circle_chord", "radius": 10, "chord": 12,
+  "labels": { "chord": "12", "perpendicular": "8", "radius": "r" } }
+\`\`\`
+
+**Template: right_triangle**
+
+A right triangle with the right angle at C, hypotenuse AB, vertical leg AC (from C up to A), horizontal leg BC (from C right to B). The right-angle marker at C is drawn automatically.
+
+Provide at least 2 non-redundant pieces from {AB, AC, BC, angle_A, angle_B}. The frontend computes everything else AND validates that all provided values are mutually consistent. If you label a triangle with hypotenuse 10, leg BC 5, AND angle_A 60° — that's an impossible triangle (the right specification forces angle_A = 30°) — and the diagram will be rejected.
+
+Fields:
+- "kind": "right_triangle"
+- sides.AB, sides.AC, sides.BC — numeric side lengths (any subset)
+- angles.A, angles.B — numeric acute angle values in degrees (0 < value < 90)
+- labels.A, labels.B, labels.C — vertex letters (defaults "A", "B", "C")
+- labels.AB, labels.AC, labels.BC — text along each side (omit a side label to leave that side unmarked)
+- labels.angle_A, labels.angle_B — text inside each acute angle (omit to leave unmarked)
+
+**Only label what the problem actually establishes.** Don't add labels.angle_A just because you happen to know the angle; only add it if the angle is given in the problem statement or relevant to the figure. Same for side labels. Cleaner: provide only sides/angles the problem gives, plus the unknown the problem asks for.
+
+Two example diagrams:
+\`\`\`json
+"diagram": { "kind": "right_triangle",
+  "sides": { "AB": 10, "BC": 5 },
+  "labels": { "AB": "10", "BC": "5", "AC": "x" } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "right_triangle",
+  "sides": { "AB": 10 }, "angles": { "A": 30 },
+  "labels": { "AB": "10", "AC": "x", "angle_A": "30°" } }
+\`\`\`
+
+For any OTHER geometry shape — sectors, inscribed angles, general (non-right) triangles, quadrilaterals, coordinate-plane figures, number lines — continue with the raw-SVG rules below.
 
 #### When to include a diagram
 
@@ -442,30 +526,39 @@ NEVER use the vertex letter as the angle's label. If the vertex is labeled "A" o
 
 Each example below demonstrates the conventions in a complete practice block. Copy this exact format when generating diagrams.
 
-**Example 1: Right triangle with all sides known (Pythagorean perimeter problem)**
+**Example 1: Right triangle with all three sides labeled (Pythagorean perimeter problem)**
 
-Demonstrates: vertex labels outside the triangle, side lengths as values along their sides, right-angle marker at C, no angle labels needed.
+Demonstrates: template form with all three sides provided numerically AND labeled with their values. Over-specifying is fine as long as the values are mutually consistent (Pythagoras holds). No angle labels needed.
 
 \`\`\`
 {
   "topic": "Right triangles",
   "question": "In the figure above, what is the perimeter of right triangle \\\\(ABC\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 300 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"60,24 60,132 204,132\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 70 132 L 70 122 L 60 122\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><text x=\\"48\\" y=\\"20\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"48\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"210\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"38\\" y=\\"83\\" fill=\\"#1a1814\\" font-size=\\"12\\">3</text><text x=\\"128\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"12\\">4</text><text x=\\"142\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"12\\">5</text></svg>",
+  "diagram": {
+    "kind": "right_triangle",
+    "sides": { "AB": 5, "AC": 3, "BC": 4 },
+    "labels": { "AB": "5", "AC": "3", "BC": "4" }
+  },
   "options": ["10", "12", "14", "15"],
   "correct": 1,
   "explanation": "Perimeter \\\\(= 3 + 4 + 5 = 12\\\\). The trap is computing only one leg or only the sum of the legs."
 }
 \`\`\`
 
-**Example 2: Right triangle with one side unknown (find the missing side)**
+**Example 2: Right triangle 30-60-90 (find the missing side)**
 
-Demonstrates: side labels are values OR a variable like x — NEVER the segment name "AC". The unknown is labeled "x", known sides labeled with their values.
+Demonstrates: template form when an unknown is asked for. Numeric values in "sides" and "angles" drive geometry; the label "x" on the unknown side is display-only. Notice how angles.A AND angles.B are both provided as numerics so the validator catches any inconsistency.
 
 \`\`\`
 {
   "topic": "Special right triangles",
   "question": "In the figure above, the hypotenuse of right triangle \\\\(ABC\\\\) has length 16. What is the value of \\\\(x\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 300 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:300px;font-family:sans-serif\\"><polygon points=\\"60,36 60,132 226,132\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 70 132 L 70 122 L 60 122\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><text x=\\"48\\" y=\\"32\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"48\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"232\\" y=\\"148\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"72\\" y=\\"70\\" fill=\\"#1a1814\\" font-size=\\"12\\">60°</text><text x=\\"194\\" y=\\"120\\" fill=\\"#1a1814\\" font-size=\\"12\\">30°</text><text x=\\"40\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"12\\">x</text><text x=\\"143\\" y=\\"74\\" fill=\\"#1a1814\\" font-size=\\"12\\">16</text></svg>",
+  "diagram": {
+    "kind": "right_triangle",
+    "sides": { "AB": 16 },
+    "angles": { "A": 60, "B": 30 },
+    "labels": { "AB": "16", "AC": "x", "angle_A": "60°", "angle_B": "30°" }
+  },
   "options": ["6", "8", "\\\\(8\\\\sqrt{3}\\\\)", "12"],
   "correct": 1,
   "explanation": "In a 30-60-90 triangle, the side opposite 30° is half the hypotenuse, so \\\\(x = 16/2 = 8\\\\). The trap is using \\\\(8\\\\sqrt{3}\\\\), which is the side opposite 60°."
@@ -504,13 +597,18 @@ Demonstrates: sector shaded with light fill, angle label clearly inside the sect
 
 **Example 5: Circle with chord and perpendicular distance from center**
 
-Demonstrates: dashed perpendicular from center to chord midpoint, right-angle marker at the foot, radius drawn as solid line. Labels: A and B outside the circle, "16" centered above the chord, "d" along the dashed perpendicular, "10" along the radius.
+Demonstrates: template form for chord problems. The perpendicular line is drawn because labels.perpendicular is provided; the radius line is drawn because labels.radius is provided. Numeric "radius" and "chord" are the actual values from the problem so the figure scales correctly; labels are display strings (so "10" or "r" both work).
 
 \`\`\`
 {
   "topic": "Circle chords",
   "question": "In the figure above, circle \\\\(O\\\\) has a radius of 10. Chord \\\\(AB\\\\) has length 16. What is the distance \\\\(d\\\\) from the center to the chord?",
-  "diagram": "<svg viewBox=\\"0 0 360 230\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:360px;font-family:sans-serif\\"><circle cx=\\"180\\" cy=\\"130\\" r=\\"80\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"116\\" y1=\\"82\\" x2=\\"244\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><line x1=\\"180\\" y1=\\"130\\" x2=\\"180\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\" stroke-dasharray=\\"4,3\\"/><line x1=\\"180\\" y1=\\"130\\" x2=\\"244\\" y2=\\"82\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><path d=\\"M 180 92 L 190 92 L 190 82\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"1.5\\"/><circle cx=\\"180\\" cy=\\"130\\" r=\\"2.5\\" fill=\\"#1a1814\\"/><text x=\\"102\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"250\\" y=\\"86\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"184\\" y=\\"146\\" fill=\\"#1a1814\\" font-size=\\"13\\">O</text><text x=\\"172\\" y=\\"76\\" fill=\\"#1a1814\\" font-size=\\"12\\">16</text><text x=\\"184\\" y=\\"112\\" fill=\\"#1a1814\\" font-size=\\"12\\">d</text><text x=\\"216\\" y=\\"102\\" fill=\\"#1a1814\\" font-size=\\"12\\">10</text></svg>",
+  "diagram": {
+    "kind": "circle_chord",
+    "radius": 10,
+    "chord": 16,
+    "labels": { "chord": "16", "perpendicular": "d", "radius": "10" }
+  },
   "options": ["4", "6", "8", "\\\\(\\\\sqrt{60}\\\\)"],
   "correct": 1,
   "explanation": "The perpendicular from the center bisects the chord, creating a right triangle with hypotenuse 10 (the radius) and one leg of length 8 (half the chord). Then \\\\(d = \\\\sqrt{100 - 64} = 6\\\\)."
