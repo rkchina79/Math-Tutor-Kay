@@ -649,9 +649,14 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 /* Tighten vertical spacing between consecutive displayed equations
    (e.g. systems of equations). KaTeX's default .katex-display margin
    is 1em top + 1em bottom, which stacks badly when equations are
-   in adjacent paragraphs. */
+   in adjacent paragraphs. We also tighten the wrapping <p> margins —
+   those were the dominant contributor to the gap, since escapeAndFormat
+   splits each \n\n into a new <p> and the browser-default <p> margins
+   are ~1em each. */
 .practice-question .katex-display,
-.practice-explanation .katex-display { margin: 0.35em 0; }
+.practice-explanation .katex-display { margin: 0.5em 0; }
+.practice-question p,
+.practice-explanation p { margin: 0.5em 0 !important; }
 .practice-options {
   padding: 0 14px 12px;
   display: flex; flex-direction: column; gap: 5px;
