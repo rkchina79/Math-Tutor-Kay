@@ -3501,18 +3501,19 @@ function maybeParseNumericLabel(s) {
   return Number.isFinite(n) ? n : null;
 }
 
-// Cross-check: if a label PARSES AS A NUMBER, it must agree with the value
+// Cross-check: if a label PARSES AS A NUMBER, it should agree with the value
 // the geometry computed for that quantity. Catches the failure mode where
-// Kay passes a chord input that doesn't match the labels she puts on it —
-// e.g., chord=4 with labels.radius="13", labels.perpendicular="10" (impossible:
-// chord must be ~16.6 for those to agree). Variable labels ("x", "d") are
-// fine; we only validate when the label is an actual number.
+// Kay passes inputs whose labels don't match (e.g., chord=4 with labels.radius
+// "13" and labels.perpendicular "10" — geometrically impossible). Logs to
+// console but does NOT throw: a figure with mildly-wrong labels is more
+// useful to the student than no figure at all when the question text says
+// "in the figure above". Ms. K spots patterns via Render logs over time.
 function validateNumericLabel(labelText, expected, name, templateName, tolerance) {
   const labelNum = maybeParseNumericLabel(labelText);
   if (labelNum != null && Math.abs(labelNum - expected) > tolerance) {
-    throw new Error(
-      `${templateName}: label for ${name} reads "${labelText}" (${labelNum}) ` +
-      `but the geometry forces ${name} = ${expected.toFixed(3)}`
+    console.warn(
+      `Tutor Kay: ${templateName} label for ${name} reads "${labelText}" (${labelNum}) ` +
+      `but the geometry forces ${name} = ${expected.toFixed(3)} — rendering anyway`
     );
   }
 }
