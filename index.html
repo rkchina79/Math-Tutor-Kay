@@ -240,6 +240,73 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .starter-card { padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 9px; font-size: 12px; color: var(--ink-2); cursor: pointer; text-align: left; line-height: 1.4; transition: all 0.15s; font-family: var(--sans); }
 .starter-card:hover { border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04); }
 
+/* ── Session-type cards (home screen primary entry) ── */
+.session-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 760px; width: 100%;
+  margin-top: 18px;
+}
+.session-card {
+  position: relative;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 18px 16px 16px;
+  background: var(--paper-2); border: 1px solid var(--paper-3);
+  border-radius: 12px; cursor: pointer;
+  text-align: left; font-family: var(--sans);
+  transition: all 0.15s;
+  min-height: 150px;
+}
+.session-card:hover {
+  border-color: var(--accent);
+  background: rgba(196,96,42,0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(196,96,42,0.08);
+}
+.session-card-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--paper-3); color: var(--ink-2);
+  margin-bottom: 4px; transition: all 0.15s;
+}
+.session-card:hover .session-card-icon { background: var(--accent); color: white; }
+.session-card-title { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.3; }
+.session-card-desc { font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
+.session-card-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 10px;
+  background: var(--accent); color: white;
+}
+.session-card-badge-soon { background: var(--paper-3); color: var(--ink-3); }
+.session-card-featured {
+  border-color: rgba(196,96,42,0.35);
+  background: rgba(196,96,42,0.03);
+}
+.session-card-disabled { opacity: 0.65; }
+.session-card-disabled:hover {
+  transform: none; box-shadow: none;
+  border-color: var(--paper-3); background: var(--paper-2);
+}
+.session-card-disabled:hover .session-card-icon {
+  background: var(--paper-3); color: var(--ink-2);
+}
+
+/* "or jump straight in with" divider */
+.starter-divider {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; max-width: 480px; margin: 24px 0 4px;
+}
+.starter-divider::before, .starter-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--paper-3);
+}
+.starter-divider span {
+  font-size: 11px; color: var(--ink-3); font-style: italic;
+  white-space: nowrap;
+}
+
 /* ── Input area ── */
 .input-area { flex-shrink: 0; border-top: 1px solid var(--paper-3); }
 .input-bar { padding: 12px 22px 16px; }
@@ -415,6 +482,58 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   display: block;
 }
 
+/* ── Practice session recap card — extends achievement card styling ── */
+.practice-recap-message {
+  /* Override default .message flex behavior — center the card on its own */
+  justify-content: center;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+.practice-recap-card {
+  margin-top: 12px;
+  background: #2e2a25;
+  border: 1px solid rgba(196,96,42,0.4);
+  border-radius: 12px; overflow: visible;
+  max-width: 560px; width: 100%;
+}
+.recap-tally {
+  font-size: 13px; color: rgba(245,240,232,0.85);
+  line-height: 1.6; margin-bottom: 14px;
+}
+.recap-number {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; font-weight: normal;
+  letter-spacing: -0.5px;
+  display: inline-block; padding: 0 2px;
+}
+.recap-number-correct { color: var(--accent-2); }
+.recap-accuracy-bar {
+  position: relative;
+  height: 26px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden; margin-bottom: 16px;
+}
+.recap-accuracy-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.recap-accuracy-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+  color: rgba(245,240,232,0.85);
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.recap-topic-score {
+  display: inline-block;
+  font-size: 10px; color: rgba(245,240,232,0.45);
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Interactive quiz card ── */
 .quiz-card {
   margin-top: 14px;
@@ -488,6 +607,134 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 }
 .quiz-score-row.visible { display: block; }
 
+/* ── Practice card (SAT/ACT mode) — clickable single-MCQ card ── */
+.practice-card {
+  margin-top: 14px;
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-radius: 12px; overflow: hidden;
+}
+.practice-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--paper-3);
+  display: flex; align-items: center; gap: 8px;
+}
+.practice-header-label {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent);
+}
+.practice-topic {
+  font-size: 9px; color: var(--ink-3);
+  margin-left: auto; padding: 2px 7px;
+  background: var(--paper-3); border-radius: 8px;
+}
+/* Diagram inside a practice card — sits above the question, matching SAT booklet style.
+   Bordered container with subtle background so the figure reads as separate from prose. */
+.practice-diagram {
+  margin: 10px 14px 0;
+  padding: 10px 12px;
+  background: white;
+  border: 1px solid var(--paper-3);
+  border-radius: 8px;
+  display: flex; justify-content: center; align-items: center;
+  overflow-x: auto;
+}
+.practice-diagram svg {
+  display: block; max-width: 100%; height: auto;
+}
+.practice-question {
+  padding: 12px 14px 10px;
+  font-size: 13px; color: var(--ink); line-height: 1.55;
+}
+/* Tighten vertical spacing between consecutive displayed equations
+   (e.g. systems of equations). KaTeX's default .katex-display margin
+   is 1em top + 1em bottom, which stacks badly when equations are
+   in adjacent paragraphs. We also tighten the wrapping <p> margins —
+   those were the dominant contributor to the gap, since escapeAndFormat
+   splits each \n\n into a new <p> and the browser-default <p> margins
+   are ~1em each. */
+.practice-question .katex-display,
+.practice-explanation .katex-display { margin: 0.5em 0; }
+.practice-question p,
+.practice-explanation p { margin: 0.5em 0 !important; }
+.practice-options {
+  padding: 0 14px 12px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.practice-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 7px;
+  border: 1.5px solid var(--paper-3);
+  background: white; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; color: var(--ink-2);
+  transition: all 0.15s; text-align: left; line-height: 1.35;
+}
+.practice-option:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--ink); background: rgba(196,96,42,0.04);
+}
+.practice-option:disabled { cursor: default; }
+.practice-option.correct { border-color: #4ade80; background: #f0fdf4; color: #166534; }
+.practice-option.incorrect { border-color: #f87171; background: #fef2f2; color: #991b1b; }
+.practice-option.reveal-correct { border-color: #4ade80; background: #f0fdf4; color: #166534; opacity: 0.85; }
+.practice-option-letter {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: var(--paper-3); color: var(--ink-3);
+  font-size: 9px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.practice-option-text { flex: 1; min-width: 0; }
+.practice-option.correct .practice-option-letter { background: #4ade80; color: white; }
+.practice-option.incorrect .practice-option-letter { background: #f87171; color: white; }
+.practice-option.reveal-correct .practice-option-letter { background: #4ade80; color: white; }
+.practice-feedback {
+  display: none;
+  padding: 0 14px 12px;
+}
+.practice-feedback.visible { display: block; }
+.practice-feedback-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-radius: 7px;
+  font-size: 12px; font-weight: 500;
+  margin-bottom: 8px;
+}
+.practice-feedback-correct { background: #f0fdf4; color: #166534; }
+.practice-feedback-wrong { background: #fef2f2; color: #991b1b; }
+.practice-explanation {
+  padding: 8px 10px; margin-bottom: 8px;
+  font-size: 12px; color: var(--ink-2); line-height: 1.5;
+  background: var(--paper); border-radius: 7px;
+  border: 1px solid var(--paper-3);
+}
+.practice-next-btn {
+  display: block; width: 100%;
+  padding: 9px 12px; border-radius: 7px;
+  background: var(--ink); color: white; border: none;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+.practice-next-btn:hover { background: var(--accent); }
+.practice-next-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: default; }
+
+/* Markdown pipe tables — parsed by escapeAndFormat, rendered everywhere
+   Kay's text appears (practice questions, chat bubbles, recap items, etc.).
+   Inherits parent typography so it sizes correctly in each context. */
+.md-table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+.md-table th,
+.md-table td {
+  border: 1px solid rgba(46, 42, 37, 0.18);
+  padding: 5px 10px;
+  text-align: left;
+}
+.md-table th {
+  background: rgba(46, 42, 37, 0.06);
+  font-weight: 600;
+}
+
 /* Sidebar stats */
 .sidebar-stats-row {
   display: flex; align-items: center; gap: 6px;
@@ -540,19 +787,30 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; display: block; }
 .alert.info  { background: var(--paper-2); border: 1px solid var(--paper-3); color: var(--ink-2); display: block; }
 
-/* ── Sidebar layout fix — three regions: sessions (capped), mastery (scrollable, fills), footer (pinned) ── */
+/* ── Sidebar layout — four scroll regions, sessions capped, two progress sections share remaining space, footer pinned ── */
 .sessions { flex: 0 0 auto; max-height: 30vh; }
-.sidebar-mastery-wrap {
-  flex: 1 1 auto; min-height: 60px; overflow-y: auto;
+/* Each progress section gets equal share of remaining vertical space.
+   flex-basis: 0 + flex-grow: 1 means both grow from zero together; when one
+   has more content than fits, the other still gets its fair half (then both
+   scroll internally). This prevents one big section from squeezing the other. */
+.sidebar-mastery-wrap, .sidebar-practice-wrap {
+  flex: 1 1 0; min-height: 40px; overflow-y: auto;
   padding-right: 4px; margin-right: -4px;
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
-.sidebar-mastery-wrap::-webkit-scrollbar { width: 4px; }
-.sidebar-mastery-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
-.sidebar-mastery-wrap::-webkit-scrollbar-track { background: transparent; }
+.sidebar-mastery-wrap::-webkit-scrollbar,
+.sidebar-practice-wrap::-webkit-scrollbar { width: 4px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-thumb,
+.sidebar-practice-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+.sidebar-mastery-wrap::-webkit-scrollbar-track,
+.sidebar-practice-wrap::-webkit-scrollbar-track { background: transparent; }
 .sidebar-mastery-privacy { font-size: 9.5px; color: rgba(245,240,232,0.4); line-height: 1.5; margin-top: 6px; padding: 0 2px; }
 #sidebar-stats { flex-shrink: 0; }
 .sidebar > .support-btn, .sidebar > .sidebar-divider { flex-shrink: 0; }
+
+/* Clickable progress rows — subtle hover state hints they're interactive */
+.clickable-stat-row { cursor: pointer; padding: 2px 4px; margin-left: -4px; margin-right: -4px; border-radius: 5px; transition: background 0.12s; }
+.clickable-stat-row:hover { background: rgba(255,255,255,0.05); }
 
 /* ── Quick actions row (above input bar) ── */
 .quick-actions {
@@ -655,6 +913,117 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .feedback-link:hover { background: rgba(255,255,255,0.06); color: #f5f0e8; border-color: rgba(255,255,255,0.2); }
 
 /* ── Feedback modal ── */
+/* ── Progress detail modal — opens when a sidebar progress row is clicked ── */
+.pd-overlay {
+  display: none; position: fixed; inset: 0; z-index: 955;
+  background: rgba(26, 24, 20, 0.55);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.pd-overlay.open { display: flex; }
+.pd-modal {
+  position: relative;
+  background: #2e2a25; color: #f5f0e8;
+  border: 1px solid rgba(196,96,42,0.4);
+  border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 480px; max-height: 86vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.32);
+  animation: fbRise 0.2s ease;
+}
+.pd-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: rgba(245,240,232,0.6); transition: all 0.15s; z-index: 1;
+}
+.pd-close:hover { background: rgba(255,255,255,0.12); color: #f5f0e8; }
+.pd-body {
+  padding: 22px 22px 20px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+.pd-body::-webkit-scrollbar { width: 4px; }
+.pd-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+.pd-title {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.pd-kind {
+  font-size: 10px; color: rgba(245,240,232,0.4);
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px;
+}
+.pd-stat-big {
+  font-family: var(--serif); font-size: 38px;
+  color: var(--accent-2); letter-spacing: -0.5px;
+  line-height: 1; margin-bottom: 2px;
+}
+.pd-stat-sub {
+  font-size: 12px; color: rgba(245,240,232,0.55); margin-bottom: 14px;
+}
+.pd-accuracy-bar {
+  position: relative;
+  height: 24px; border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden; margin-bottom: 16px;
+}
+.pd-accuracy-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.5s ease;
+}
+.pd-accuracy-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500;
+  color: rgba(245,240,232,0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+.pd-meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 14px;
+}
+.pd-meta-cell {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 10px 12px;
+}
+.pd-meta-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(245,240,232,0.4); margin-bottom: 3px;
+}
+.pd-meta-value {
+  font-size: 13px; color: rgba(245,240,232,0.85);
+}
+.pd-section-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(245,240,232,0.4); margin: 14px 0 8px;
+}
+.pd-history-row {
+  display: flex; gap: 4px; align-items: center;
+  flex-wrap: wrap;
+}
+.pd-history-dot {
+  width: 14px; height: 14px; border-radius: 3px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; color: white; flex-shrink: 0;
+}
+.pd-history-dot.correct { background: #6abf69; }
+.pd-history-dot.wrong   { background: #d97757; }
+.pd-history-empty {
+  font-size: 11px; color: rgba(245,240,232,0.4);
+  font-style: italic;
+}
+.pd-note {
+  font-size: 12px; color: rgba(245,240,232,0.55);
+  font-style: italic; line-height: 1.55;
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
 .fb-overlay {
   display: none; position: fixed; inset: 0; z-index: 950;
   background: rgba(26, 24, 20, 0.5);
@@ -981,6 +1350,15 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .starter-grid { grid-template-columns: 1fr 1fr; max-width: 100%; margin-top: 10px; gap: 6px; }
   .starter-card { font-size: 11.5px; padding: 10px 10px; }
 
+  /* Session cards: stack vertically on mobile */
+  .session-cards { grid-template-columns: 1fr; gap: 8px; margin-top: 14px; }
+  .session-card { min-height: auto; padding: 14px; gap: 4px; }
+  .session-card-icon { width: 30px; height: 30px; margin-bottom: 2px; }
+  .session-card-title { font-size: 13px; }
+  .session-card-desc { font-size: 11px; line-height: 1.45; }
+  .session-card-badge { top: 10px; right: 10px; font-size: 8px; padding: 2px 6px; }
+  .starter-divider { margin: 16px 0 4px; }
+
   /* Graph */
   .graph-panel.open { height: 220px; }
   .graph-sidebar { display: none; }
@@ -1022,13 +1400,21 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div class="sidebar-label">Recent sessions</div>
     <div class="sessions" id="sessions-list"></div>
     <div class="sidebar-divider"></div>
-    <!-- ── Mastery section in sidebar ── -->
+    <!-- ── Mastery section in sidebar (concept tutoring progress) ── -->
     <div class="sidebar-label" style="display:flex;align-items:center;justify-content:space-between;">
-      <span>My Progress</span>
+      <span>Concept Mastery</span>
       <button onclick="resetMastery()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset progress">Reset</button>
     </div>
     <div class="sidebar-mastery-wrap">
       <div id="sidebar-mastery"></div>
+    </div>
+    <!-- ── SAT/ACT Practice accuracy section ── -->
+    <div class="sidebar-label" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+      <span>SAT/ACT Practice</span>
+      <button onclick="resetPracticeStats()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset practice stats">Reset</button>
+    </div>
+    <div class="sidebar-practice-wrap">
+      <div id="sidebar-practice-stats"></div>
       <div class="sidebar-mastery-privacy">
         🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
       </div>
@@ -1112,6 +1498,36 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
     <div id="empty-state" class="empty-state">
       <div class="empty-name">Hello, I'm Kay.</div>
       <div class="empty-sub">Today is a great day to learn something new!<br>Where shall we begin?</div>
+
+      <!-- Session-type cards (primary entry point) -->
+      <div class="session-cards">
+        <button class="session-card" onclick="startLearnMode()">
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="session-card-title">Understand a concept</div>
+          <div class="session-card-desc">Work through a math idea step by step with Kay's guided questions. Best for building real understanding.</div>
+        </button>
+        <button class="session-card session-card-featured" onclick="startPracticeMode()">
+          <div class="session-card-badge">Beta</div>
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+          </div>
+          <div class="session-card-title">Practice SAT / ACT problems</div>
+          <div class="session-card-desc">Drill problems at exam difficulty. Kay generates fresh questions, checks your work, and explains each one.</div>
+        </button>
+        <button class="session-card session-card-disabled" onclick="showComingSoon()">
+          <div class="session-card-badge session-card-badge-soon">Coming soon</div>
+          <div class="session-card-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="session-card-title">Take a timed mini-test</div>
+          <div class="session-card-desc">10 problems, exam-style, no hints. Get a score and personalized review at the end.</div>
+        </button>
+      </div>
+
+      <!-- Secondary: classic open-ended starter prompts -->
+      <div class="starter-divider"><span>or jump straight in with</span></div>
       <div class="starter-grid">
         <button class="starter-card" onclick="sendStarter(this.innerText)">I'm stuck on a problem — can you help me work through it?</button>
         <button class="starter-card" onclick="sendStarter(this.innerText)">Can you explain what a derivative actually means?</button>
@@ -1269,6 +1685,18 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <span class="fb-status" id="fb-status"></span>
       <button class="fb-submit" id="fb-submit" onclick="submitFeedback()">Send</button>
     </div>
+  </div>
+</div>
+
+<!-- Progress detail modal — shows topic-specific summary when a sidebar row is clicked.
+     Content is built dynamically by openProgressDetail() for both concept mastery
+     and SAT/ACT practice progress; same modal, different content based on kind. -->
+<div class="pd-overlay" id="pd-overlay" onclick="if(event.target===this) closeProgressDetail()">
+  <div class="pd-modal" role="dialog" aria-label="Progress detail">
+    <button class="pd-close" onclick="closeProgressDetail()" title="Close" aria-label="Close detail">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="pd-body" id="pd-body"></div>
   </div>
 </div>
 
@@ -1859,7 +2287,10 @@ function renderSidebarMastery() {
   el.innerHTML = sorted.map(topic => {
     const status = getMasteryStatus(topic.pct);
     const label = getMasteryLabel(topic.pct);
-    return `<div class="mastery-topic-row">
+    const safeKey = (typeof escapeAttr === 'function')
+      ? escapeAttr(topic.key)
+      : String(topic.key).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    return `<div class="mastery-topic-row clickable-stat-row" onclick="openProgressDetail('mastery', '${safeKey}')" title="Click for details">
       <div class="mastery-topic-top">
         <span class="mastery-topic-name" title="${topic.label}">${topic.label}</span>
         <span class="mastery-badge ${status}">${label}</span>
@@ -1875,6 +2306,228 @@ function resetMastery() {
   if (!confirm('Reset all mastery progress? This cannot be undone.')) return;
   localStorage.removeItem(MASTERY_KEY);
   renderSidebarMastery();
+}
+
+// ── SAT/ACT Practice progress tracking ──────────────────────────────────────
+// Tracks cumulative accuracy per topic across all practice sessions.
+// Stored privately in localStorage, never sent anywhere.
+// Schema: { "topic name": { total, correct, lastSeen, firstSeen, history: [...] } }
+const PRACTICE_STATS_KEY = 'kay_practice_stats';
+
+function loadPracticeStats() {
+  try { return JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function savePracticeStats(data) {
+  try { localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+// Called from handlePracticeAnswer every time a student answers a problem.
+function recordPracticeResult(topic, isCorrect) {
+  const cleanTopic = String(topic || 'Other').trim() || 'Other';
+  const data = loadPracticeStats();
+  const now = Date.now();
+  if (!data[cleanTopic]) {
+    data[cleanTopic] = { total: 0, correct: 0, firstSeen: now, lastSeen: now, history: [] };
+  }
+  if (!data[cleanTopic].history) data[cleanTopic].history = [];
+  data[cleanTopic].total += 1;
+  if (isCorrect) data[cleanTopic].correct += 1;
+  data[cleanTopic].lastSeen = now;
+  // Keep last 20 outcomes per topic (chronological, oldest first)
+  data[cleanTopic].history.push({ t: now, c: isCorrect ? 1 : 0 });
+  if (data[cleanTopic].history.length > 20) {
+    data[cleanTopic].history = data[cleanTopic].history.slice(-20);
+  }
+  savePracticeStats(data);
+  renderSidebarPracticeStats();
+}
+
+// Color thresholds match the recap card: green ≥80%, amber 50-79%, red <50%.
+// Reuses mastery CSS classes (mastered/developing/learning) for consistent visuals.
+function getPracticeStatus(pct) {
+  if (pct >= 80) return 'mastered';
+  if (pct >= 50) return 'developing';
+  return 'learning';
+}
+
+function renderSidebarPracticeStats() {
+  const el = document.getElementById('sidebar-practice-stats');
+  if (!el) return;
+  const data = loadPracticeStats();
+  const keys = Object.keys(data);
+
+  if (keys.length === 0) {
+    el.innerHTML = '<div class="sidebar-mastery-empty">Complete a practice problem to see your accuracy here.</div>';
+    return;
+  }
+
+  // Only show topics with ≥3 problems answered — fewer is too noisy (one
+  // right/wrong swings the percentage wildly).
+  const visibleTopics = keys
+    .map(k => ({ topic: k, ...data[k], pct: Math.round((data[k].correct / data[k].total) * 100) }))
+    .filter(t => t.total >= 3)
+    .sort((a, b) => b.total - a.total);
+
+  const fewProblemsCount = keys.filter(k => data[k].total < 3).length;
+
+  if (visibleTopics.length === 0) {
+    const hint = fewProblemsCount > 0
+      ? 'Keep practicing — topics show after 3+ problems. (' + fewProblemsCount + ' in progress.)'
+      : 'Complete a practice problem to see your accuracy here.';
+    el.innerHTML = '<div class="sidebar-mastery-empty">' + hint + '</div>';
+    return;
+  }
+
+  el.innerHTML = visibleTopics.map(t => {
+    const status = getPracticeStatus(t.pct);
+    const safeTopic = escapeAttr(t.topic);
+    // Each row is clickable — opens the detail summary modal for this topic.
+    return '<div class="mastery-topic-row clickable-stat-row" onclick="openProgressDetail(\'practice\', \'' + safeTopic + '\')" title="Click for details">' +
+      '<div class="mastery-topic-top">' +
+        '<span class="mastery-topic-name">' + t.topic + '</span>' +
+        '<span class="mastery-badge ' + status + '">' + t.pct + '%</span>' +
+      '</div>' +
+      '<div class="mastery-bar-track">' +
+        '<div class="mastery-bar-fill ' + status + '" style="width:' + t.pct + '%"></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function resetPracticeStats() {
+  if (!confirm('Reset all practice accuracy data? This cannot be undone.')) return;
+  localStorage.removeItem(PRACTICE_STATS_KEY);
+  renderSidebarPracticeStats();
+}
+
+// Small helper to safely escape attribute values for the onclick string.
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// ── Progress detail modal — opens when a sidebar row is clicked ──────────────
+// Single modal serves both kinds of progress: 'mastery' (concept tutoring) and
+// 'practice' (SAT/ACT accuracy). Content is built per-kind from the matching
+// localStorage record. The HTML modal element is shared (#pd-overlay / #pd-body).
+function openProgressDetail(kind, topicKey) {
+  const body = document.getElementById('pd-body');
+  if (!body) return;
+
+  // Decode any HTML entities introduced by escapeAttr when serializing onclick
+  const decoded = (typeof topicKey === 'string')
+    ? topicKey.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+    : String(topicKey);
+
+  let html = '';
+  if (kind === 'practice') {
+    const stats = loadPracticeStats();
+    const t = stats[decoded];
+    if (!t) {
+      html = '<div class="pd-title">Topic not found</div>' +
+             '<div class="pd-stat-sub">This topic data is no longer available.</div>';
+    } else {
+      const pct = Math.round((t.correct / t.total) * 100);
+      const barColor = pct >= 80 ? '#6abf69' : pct >= 50 ? '#e8a530' : '#d97757';
+      const firstSeen = t.firstSeen ? new Date(t.firstSeen) : null;
+      const lastSeen  = t.lastSeen  ? new Date(t.lastSeen)  : null;
+      const recent    = Array.isArray(t.history) ? t.history.slice(-12) : [];
+
+      // Friendly relative time for "last practiced"
+      const lastSeenLabel = lastSeen ? formatRelativeTime(lastSeen) : '—';
+      const firstSeenLabel = firstSeen ? formatRelativeTime(firstSeen) : '—';
+
+      // Closing note keyed to current performance band
+      let note;
+      if (pct >= 80)      note = 'Strong consistency here — this is the kind of accuracy that holds up on test day.';
+      else if (pct >= 50) note = 'You\'re building reliability. Keep practicing to push past the inconsistency.';
+      else                note = 'This topic is worth more reps — a few focused sessions will move this number.';
+
+      const recentHTML = recent.length === 0
+        ? '<div class="pd-history-empty">No problem history yet.</div>'
+        : '<div class="pd-history-row">' + recent.map(h =>
+            '<span class="pd-history-dot ' + (h.c ? 'correct' : 'wrong') + '" title="' + (h.c ? 'Correct' : 'Wrong') + '">' +
+              (h.c ? '✓' : '✗') +
+            '</span>'
+          ).join('') + '</div>';
+
+      html =
+        '<div class="pd-title">' + escapeHTML(decoded) + '</div>' +
+        '<div class="pd-kind">SAT/ACT Practice</div>' +
+        '<div class="pd-stat-big">' + pct + '%</div>' +
+        '<div class="pd-stat-sub">' + t.correct + ' correct out of ' + t.total + ' problems</div>' +
+        '<div class="pd-accuracy-bar">' +
+          '<div class="pd-accuracy-fill" style="width:' + pct + '%; background:' + barColor + ';"></div>' +
+          '<div class="pd-accuracy-label">' + pct + '% accuracy</div>' +
+        '</div>' +
+        '<div class="pd-meta-grid">' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Last practiced</div><div class="pd-meta-value">' + lastSeenLabel + '</div></div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">First seen</div><div class="pd-meta-value">' + firstSeenLabel + '</div></div>' +
+        '</div>' +
+        '<div class="pd-section-label">Recent results (oldest → newest)</div>' +
+        recentHTML +
+        '<div class="pd-note">' + note + '</div>';
+    }
+  } else if (kind === 'mastery') {
+    const stats = loadMasteryData();
+    const t = stats[decoded];
+    if (!t) {
+      html = '<div class="pd-title">Topic not found</div>' +
+             '<div class="pd-stat-sub">This topic data is no longer available.</div>';
+    } else {
+      const pct = t.pct || 0;
+      const barColor = pct >= 75 ? '#6abf69' : pct >= 40 ? '#7dd3fc' : '#fbbf24';
+      const statusLabel = getMasteryLabel(pct);
+      const sessionsLabel = (t.sessions === 1) ? '1 session' : (t.sessions + ' sessions');
+
+      let note;
+      if (pct >= 75)      note = 'You\'ve internalized this topic — concepts and applications are sticking.';
+      else if (pct >= 40) note = 'Solid foundation forming. Keep returning to this topic to push toward mastery.';
+      else                note = 'Early days here — more sessions on this topic will deepen understanding.';
+
+      html =
+        '<div class="pd-title">' + escapeHTML(t.label || decoded) + '</div>' +
+        '<div class="pd-kind">Concept Mastery</div>' +
+        '<div class="pd-stat-big">' + statusLabel + '</div>' +
+        '<div class="pd-stat-sub">' + pct + '% • ' + sessionsLabel + '</div>' +
+        '<div class="pd-accuracy-bar">' +
+          '<div class="pd-accuracy-fill" style="width:' + pct + '%; background:' + barColor + ';"></div>' +
+          '<div class="pd-accuracy-label">' + pct + '% progress</div>' +
+        '</div>' +
+        '<div class="pd-meta-grid">' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Concepts understood</div><div class="pd-meta-value">' + (t.masteredCount || 0) + '</div></div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Worth revisiting</div><div class="pd-meta-value">' + (t.reviewCount || 0) + '</div></div>' +
+        '</div>' +
+        '<div class="pd-note">' + note + '</div>';
+    }
+  }
+
+  body.innerHTML = html;
+  document.getElementById('pd-overlay').classList.add('open');
+}
+
+function closeProgressDetail() {
+  document.getElementById('pd-overlay').classList.remove('open');
+}
+
+// Helper: friendly relative time strings ("2 hours ago", "3 days ago")
+function formatRelativeTime(d) {
+  const ms = Date.now() - d.getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min' + (mins === 1 ? '' : 's') + ' ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return weeks + ' week' + (weeks === 1 ? '' : 's') + ' ago';
+  const months = Math.floor(days / 30);
+  return months + ' month' + (months === 1 ? '' : 's') + ' ago';
+}
+
+// Helper: escape text for safe insertion (avoid using innerHTML to inject user data)
+function escapeHTML(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function initDesmos() {
@@ -2209,14 +2862,16 @@ document.addEventListener('keydown', (e) => {
     if (document.getElementById('fb-overlay')?.classList.contains('open')) closeFeedback();
     if (document.getElementById('cam-overlay')?.classList.contains('open')) closeCamera();
     if (document.getElementById('img-chooser-overlay')?.classList.contains('open')) closeImageChooser();
+    if (document.getElementById('pd-overlay')?.classList.contains('open')) closeProgressDetail();
     if (document.getElementById('sidebar')?.classList.contains('open')) closeMobileSidebar();
     closeQuickMenu();
   }
 });
 
 // ── Quiz state ────────────────────────────────────────────────────────────────
-// Tracks answers per quiz instance (keyed by message index)
-const quizAnswers = {};
+// Tracks answers per quiz instance (keyed by message index).
+// Declared with let (not const) so it can be reset on session change.
+let quizAnswers = {};
 
 function renderQuizBlock(quizData, msgIdx) {
   const questions = quizData.questions || [];
@@ -2295,8 +2950,10 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 
   // Show full feedback
   if (feedback) {
-    // Use innerHTML so the explanation can contain math wrapped in $...$ —
-    // textContent was treating the dollar signs as literal text.
+    // Use innerHTML so the explanation can contain math wrapped in \(...\)
+    // delimiters and have KaTeX render it. textContent was treating delimiters
+    // as literal text since renderMathInElement only runs during the initial
+    // renderMessages() pass — this dynamically-injected text needs a fresh pass.
     const prefix = isCorrect ? '✓ ' : '✗ ';
     feedback.innerHTML = '';
     feedback.appendChild(document.createTextNode(prefix));
@@ -2304,13 +2961,10 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
     span.textContent = q.explanation;
     feedback.appendChild(span);
     feedback.className = `quiz-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
-    // Render any LaTeX math in the explanation. Without this, $...$ shows as
-    // literal text since the original renderMessages() pass already finished.
+    // Render any LaTeX math in the explanation
     if (window.renderMathInElement) {
       renderMathInElement(feedback, {
         delimiters: [
-          { left: '$$', right: '$$', display: true },
-          { left: '$',  right: '$',  display: false },
           { left: '\\(', right: '\\)', display: false },
           { left: '\\[', right: '\\]', display: true },
         ],
@@ -2350,6 +3004,1189 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
     // Small delay so student sees their score before Kay responds
     setTimeout(() => sendMessage(resultMsg), 1200);
   }
+}
+
+// ── Practice mode (SAT/ACT) — single MCQ card with one-click locking ──────────
+// Tracks answers per practice card (keyed by message index).
+// Declared with let so it can be reset on session change.
+let practiceAnswers = {};
+
+// ── Diagram templates (Phase 1: circle_chord, right_triangle) ────────────────
+// Kay's diagram field is polymorphic: a STRING renders as legacy raw SVG (used
+// for any shape we haven't templated yet), an OBJECT routes through the
+// dispatcher below. Templates compute coordinates from problem-space values,
+// so geometric invariants (point on circle, midpoint, Pythagoras, angle sum)
+// hold by construction. Validators reject inconsistent inputs *before* render.
+//
+// On any validation/render error, renderDiagramFromTemplate returns '' and
+// logs to console. The practice card then renders without a diagram —
+// graceful degrade rather than a broken figure.
+
+function renderDiagramFromTemplate(d) {
+  try {
+    if (!d || typeof d !== 'object' || typeof d.kind !== 'string') {
+      throw new Error('diagram object missing or has no "kind"');
+    }
+    switch (d.kind) {
+      case 'circle_chord':                return renderCircleChordTemplate(d);
+      case 'circle_with_angles':          return renderCircleWithAnglesTemplate(d);
+      case 'right_triangle':              return renderRightTriangleTemplate(d);
+      case 'general_triangle':            return renderGeneralTriangleTemplate(d);
+      case 'triangle_with_parallel_line': return renderTriangleWithParallelLineTemplate(d);
+      default:
+        throw new Error(`unknown diagram kind: "${d.kind}"`);
+    }
+  } catch (err) {
+    console.warn('Tutor Kay: diagram template failed, skipping figure:', err.message, d);
+    return '';
+  }
+}
+
+// Helper: escape arbitrary label text for safe insertion into SVG <text>.
+// Allows raw LaTeX in labels (e.g. "\\(\\sqrt{3}\\)") to flow through to KaTeX
+// since the SVG is injected as innerHTML and KaTeX scans after render.
+function svgEscapeLabel(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// circle_chord: a circle with a chord, optionally showing a perpendicular
+// from the center to the chord's midpoint, and optionally a radius drawn
+// to one endpoint. Common shapes for: "find the distance from center to
+// chord", "find the radius given chord and distance", "find chord length".
+//
+// Required: radius (problem-space), chord (problem-space)
+// Optional: labels.{center, a, b, chord, perpendicular, radius}
+//           show_perpendicular (bool, default: true if labels.perpendicular present)
+//           show_radius_to_b   (bool, default: true if labels.radius present)
+function renderCircleChordTemplate(d) {
+  const r = Number(d.radius);
+  const c = Number(d.chord);
+  if (!Number.isFinite(r) || r <= 0) throw new Error('circle_chord: "radius" must be a positive number');
+  if (!Number.isFinite(c) || c <= 0) throw new Error('circle_chord: "chord" must be a positive number');
+  if (c > 2 * r + 1e-6) throw new Error(`circle_chord: chord (${c}) cannot exceed diameter (${2*r})`);
+
+  const labels = d.labels || {};
+  const showPerp   = d.show_perpendicular !== undefined ? !!d.show_perpendicular : (labels.perpendicular != null);
+  const showRadius = d.show_radius_to_b    !== undefined ? !!d.show_radius_to_b    : (labels.radius != null);
+
+  // Canvas + visual radius. Fixed dimensions match the existing prompt
+  // examples so the practice card stays visually consistent.
+  const W = 320, H = 230;
+  const cx = 160, cy = 130;
+  const vr = 85;                       // visual radius in pixels
+  const scale = vr / r;                // pixels per problem-unit
+
+  // Geometry: chord placed horizontally ABOVE the center (matches the
+  // canonical SAT presentation; the dashed perpendicular then drops down).
+  const halfChord  = c / 2;
+  const perpDist   = Math.sqrt(r*r - halfChord*halfChord);
+  const halfChordPx = halfChord * scale;
+  const perpDistPx  = perpDist  * scale;
+
+  // Cross-validate numeric labels against the geometry. Catches the case
+  // where Kay passes a chord value that doesn't match the labels she put on
+  // the perpendicular and radius.
+  validateNumericLabel(labels.radius,        r,        'radius',        'circle_chord', 0.05);
+  validateNumericLabel(labels.chord,         c,        'chord',         'circle_chord', 0.05);
+  validateNumericLabel(labels.perpendicular, perpDist, 'perpendicular', 'circle_chord', 0.05);
+
+  const ax = cx - halfChordPx, ay = cy - perpDistPx;
+  const bx = cx + halfChordPx, by = cy - perpDistPx;
+  const mx = cx,                my = cy - perpDistPx;
+
+  // Vertex label positions: radially OUTSIDE the circle, anchored by
+  // text-anchor so the offset is direction-agnostic.
+  const labelOff = 12;
+  const aDx = (ax - cx) / vr, aDy = (ay - cy) / vr;
+  const bDx = (bx - cx) / vr, bDy = (by - cy) / vr;
+  const aLx = cx + (vr + labelOff) * aDx;
+  const aLy = cy + (vr + labelOff) * aDy + 4;     // +4 vertical centering
+  const bLx = cx + (vr + labelOff) * bDx;
+  const bLy = cy + (vr + labelOff) * bDy + 4;
+  const aAnchor = 'end';                           // A is on the left
+  const bAnchor = 'start';                         // B is on the right
+
+  // Side & feature labels
+  const chordLabel = labels.chord != null ? String(labels.chord) : '';
+  const perpLabel  = labels.perpendicular != null ? String(labels.perpendicular) : '';
+  const radLabel   = labels.radius != null ? String(labels.radius) : '';
+
+  const chordLx = (ax + bx) / 2;
+  const chordLy = ay - 6;                          // above the chord
+  const perpLx  = mx + 6;                          // right of dashed line
+  const perpLy  = (my + cy) / 2 + 4;
+  const radLx   = (cx + bx) / 2 + 6;               // right of radius line
+  const radLy   = (cy + by) / 2 - 2;
+
+  const ms = 10;                                   // right-angle marker size
+  const E = svgEscapeLabel;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${vr}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Chord AB (solid)
+  svg += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#4a4640" stroke-width="2"/>`;
+  // Perpendicular OM (dashed) + right-angle marker at M
+  if (showPerp) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" stroke="#4a4640" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    svg += `<path d="M ${mx} ${my+ms} L ${mx+ms} ${my+ms} L ${mx+ms} ${my}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+  }
+  // Radius OB (solid)
+  if (showRadius) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Center dot
+  svg += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#1a1814"/>`;
+  // Vertex labels
+  svg += `<text x="${aLx-3}" y="${aLy}" fill="#1a1814" font-size="13" text-anchor="${aAnchor}">${E(labels.a || 'A')}</text>`;
+  svg += `<text x="${bLx+3}" y="${bLy}" fill="#1a1814" font-size="13" text-anchor="${bAnchor}">${E(labels.b || 'B')}</text>`;
+  svg += `<text x="${cx}"   y="${cy+18}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.center || 'O')}</text>`;
+  // Feature labels
+  if (chordLabel) svg += `<text x="${chordLx}" y="${chordLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(chordLabel)}</text>`;
+  if (showPerp && perpLabel) svg += `<text x="${perpLx}" y="${perpLy}" fill="#1a1814" font-size="12">${E(perpLabel)}</text>`;
+  if (showRadius && radLabel) svg += `<text x="${radLx}" y="${radLy}" fill="#1a1814" font-size="12">${E(radLabel)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── circle_with_angles template ──────────────────────────────────────────────
+// A circle with a central angle, an inscribed angle, or both — the classic
+// inscribed-angle-theorem pattern. Canonical placement: A and B at the top of
+// the circle symmetric about the vertical axis (so chord AB is horizontal at
+// the top); the inscribed vertex V at the bottom of the circle. Radii OA, OB
+// drawn when central is provided; chords VA, VB drawn when inscribed is
+// provided. When both are provided, the inscribed-angle theorem is enforced
+// (inscribed = central / 2) before render.
+//
+// Restrictions: central ∈ (0, 180) (no reflex or degenerate diameter cases),
+// inscribed ∈ (0, 90) — the canonical SAT range.
+
+function renderCircleWithAnglesTemplate(d) {
+  const central = d.central || null;
+  const inscribed = d.inscribed || null;
+  const centerLabel = d.center_label || 'O';
+
+  if (!central && !inscribed) {
+    throw new Error('circle_with_angles: must provide at least one of "central" or "inscribed"');
+  }
+
+  let centralValue = null;
+  if (central) {
+    centralValue = Number(central.value);
+    if (!Number.isFinite(centralValue) || centralValue <= 0 || centralValue >= 180) {
+      throw new Error('circle_with_angles: central.value must be a number in (0, 180); for reflex or degenerate cases, fall back to raw SVG');
+    }
+    if (!central.label) throw new Error('circle_with_angles: central.label is required');
+  }
+  let inscribedValue = null;
+  if (inscribed) {
+    inscribedValue = Number(inscribed.value);
+    if (!Number.isFinite(inscribedValue) || inscribedValue <= 0 || inscribedValue >= 90) {
+      throw new Error('circle_with_angles: inscribed.value must be a number in (0, 90); for semicircle cases (inscribed=90°), fall back to raw SVG');
+    }
+    if (!inscribed.label) throw new Error('circle_with_angles: inscribed.label is required');
+    if (centralValue != null) {
+      const expectedInscribed = centralValue / 2;
+      if (Math.abs(expectedInscribed - inscribedValue) > 0.1) {
+        throw new Error(
+          `circle_with_angles: inscribed-angle theorem violated. ` +
+          `Central angle ${centralValue}° implies inscribed angle = ${expectedInscribed}°, ` +
+          `but ${inscribedValue}° was provided`
+        );
+      }
+    } else {
+      // No central provided — derive its implied value for layout
+      centralValue = 2 * inscribedValue;
+    }
+  }
+
+  // Resolve point names: prefer explicit, fall back to defaults. When both
+  // angles are specified, they share the two endpoint points by construction.
+  const cEndpts = (central   && central.endpoints)   || [];
+  const iEndpts = (inscribed && inscribed.endpoints) || [];
+  const aName = cEndpts[0] || iEndpts[0] || 'A';
+  const bName = cEndpts[1] || iEndpts[1] || 'B';
+  const vName = (inscribed && inscribed.vertex) || 'C';
+
+  // Cross-validate numeric labels against the angle values.
+  if (central)   validateNumericLabel(central.label,   centralValue,   'central angle',   'circle_with_angles', 0.5);
+  if (inscribed) validateNumericLabel(inscribed.label, inscribedValue, 'inscribed angle', 'circle_with_angles', 0.5);
+
+  // Canvas + circle layout
+  const W = 320, H = 260;
+  const cx = W / 2, cy = H / 2 + 5;
+  const r = 88;
+
+  // A on upper-left, B on upper-right, with central angle AOB between them.
+  // V at the bottom of the circle. Math conventions: +y is up; SVG +y is down,
+  // so we negate when computing y-coordinates.
+  const halfRad = (centralValue / 2) * Math.PI / 180;
+  const Ax = cx - r * Math.sin(halfRad);
+  const Ay = cy - r * Math.cos(halfRad);
+  const Bx = cx + r * Math.sin(halfRad);
+  const By = cy - r * Math.cos(halfRad);
+  const Vx = cx;
+  const Vy = cy + r;
+
+  // Point label positions — outside the circle, radially out from center
+  const labelOff = 14;
+  const outside = (px, py) => {
+    const dx = px - cx, dy = py - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: px + dx/len * labelOff, y: py + dy/len * labelOff + 4 };
+  };
+  const Alab = outside(Ax, Ay);
+  const Blab = outside(Bx, By);
+  const Vlab = outside(Vx, Vy);
+
+  // Center label — below the center dot, in the empty space between O and V.
+  // The chords VA and VB pass through this area but stay well to the left/right
+  // of the vertical axis through O, so O's label sits in the clear.
+  const OlabX = cx;
+  const OlabY = cy + 16;
+
+  // Angle label positions via shared bisector-based helper
+  const centralLabelPos = central ? computeAngleLabelPos({
+    vx: cx, vy: cy,
+    neighbor1: { x: Ax, y: Ay }, neighbor2: { x: Bx, y: By },
+    angleDeg: centralValue,
+    text: central.label,
+  }) : null;
+  const inscribedLabelPos = inscribed ? computeAngleLabelPos({
+    vx: Vx, vy: Vy,
+    neighbor1: { x: Ax, y: Ay }, neighbor2: { x: Bx, y: By },
+    angleDeg: inscribedValue,
+    text: inscribed.label,
+  }) : null;
+
+  const E = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  // Circle outline
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Radii (only when central is provided)
+  if (central) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${Ax.toFixed(2)}" y2="${Ay.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+    svg += `<line x1="${cx}" y1="${cy}" x2="${Bx.toFixed(2)}" y2="${By.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Chords from inscribed vertex (only when inscribed is provided)
+  if (inscribed) {
+    svg += `<line x1="${Vx}" y1="${Vy}" x2="${Ax.toFixed(2)}" y2="${Ay.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+    svg += `<line x1="${Vx}" y1="${Vy}" x2="${Bx.toFixed(2)}" y2="${By.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Center dot
+  svg += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#1a1814"/>`;
+  // Center label
+  svg += `<text x="${OlabX}" y="${OlabY}" fill="#1a1814" font-size="13" text-anchor="middle">${E(centerLabel)}</text>`;
+  // Point labels
+  svg += `<text x="${Alab.x.toFixed(2)}" y="${Alab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(aName)}</text>`;
+  svg += `<text x="${Blab.x.toFixed(2)}" y="${Blab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(bName)}</text>`;
+  if (inscribed) {
+    svg += `<text x="${Vlab.x.toFixed(2)}" y="${Vlab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(vName)}</text>`;
+  }
+  // Angle labels
+  if (centralLabelPos) {
+    svg += `<text x="${centralLabelPos.x.toFixed(2)}" y="${centralLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(central.label)}</text>`;
+  }
+  if (inscribedLabelPos) {
+    svg += `<text x="${inscribedLabelPos.x.toFixed(2)}" y="${inscribedLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(inscribed.label)}</text>`;
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+// right_triangle: right angle at C, hypotenuse AB, legs AC and BC.
+// Drawn with C at lower-left, A directly above C, B directly right of C.
+//
+// Kay provides any subset of sides (AB, AC, BC) and angles (A, B) sufficient
+// to determine the triangle (≥2 non-redundant pieces). The solver fills in
+// the rest; any redundantly-provided values must agree within tolerance, or
+// validation throws. This catches "30-60-90 with hypotenuse 10 and one leg 5"
+// — internally inconsistent labels — before render.
+function renderRightTriangleTemplate(d) {
+  const solved = solveRightTriangle({
+    AB:   d.sides  && d.sides.AB,
+    AC:   d.sides  && d.sides.AC,
+    BC:   d.sides  && d.sides.BC,
+    angA: d.angles && d.angles.A,
+    angB: d.angles && d.angles.B,
+  });
+  const labels = d.labels || {};
+  const { AC, BC } = solved;
+
+  // Cross-validate numeric labels against the solved geometry.
+  validateNumericLabel(labels.AB,      solved.AB,   'AB',      'right_triangle', 0.05);
+  validateNumericLabel(labels.AC,      solved.AC,   'AC',      'right_triangle', 0.05);
+  validateNumericLabel(labels.BC,      solved.BC,   'BC',      'right_triangle', 0.05);
+  validateNumericLabel(labels.angle_A, solved.angA, 'angle_A', 'right_triangle', 0.5);
+  validateNumericLabel(labels.angle_B, solved.angB, 'angle_B', 'right_triangle', 0.5);
+
+  const W = 320, H = 230;
+  const maxLegPx = 150;
+  const scale = maxLegPx / Math.max(AC, BC);
+  const acPx = AC * scale;
+  const bcPx = BC * scale;
+
+  // C at lower-left, leaving room for labels.
+  const cx = 70, cy = H - 40;
+  const ax = cx,        ay = cy - acPx;
+  const bx = cx + bcPx, by = cy;
+
+  // Vertex labels — outside the triangle in the "away from interior" direction.
+  // The interior is up-and-right of C, so:
+  //   A label sits ABOVE A (interior is below A)
+  //   B label sits to the RIGHT of B (interior is to the left of B)
+  //   C label sits to the LOWER-LEFT of C (interior is upper-right of C)
+  const aLx = ax,       aLy = ay - 6;
+  const bLx = bx + 6,   bLy = by + 5;
+  const cLx = cx - 6,   cLy = cy + 15;
+
+  // Side labels (midpoints, offset away from the triangle interior)
+  const acLx = ax - 8,          acLy = (ay + cy) / 2 + 4;   // left of AC
+  const bcLx = (cx + bx) / 2,   bcLy = cy + 16;             // below BC
+  const abLx = (ax + bx) / 2 + 8, abLy = (ay + by) / 2 - 6; // upper-right of hypotenuse
+
+  // Angle label placement — adaptive to the angle's narrowness. See the
+  // shared helper computeAngleLabelPos below for the math.
+  const angA_pos = labels.angle_A
+    ? computeAngleLabelPos({ vx: ax, vy: ay, neighbor1: {x: cx, y: cy}, neighbor2: {x: bx, y: by}, angleDeg: solved.angA, text: labels.angle_A })
+    : null;
+  const angB_pos = labels.angle_B
+    ? computeAngleLabelPos({ vx: bx, vy: by, neighbor1: {x: cx, y: cy}, neighbor2: {x: ax, y: ay}, angleDeg: solved.angB, text: labels.angle_B })
+    : null;
+  const ANGLE_FONT = 11;
+
+  const ms = 12;
+  const E = svgEscapeLabel;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<polygon points="${ax},${ay} ${bx},${by} ${cx},${cy}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Right-angle marker at C (interior is up-and-right)
+  svg += `<path d="M ${cx} ${cy - ms} L ${cx + ms} ${cy - ms} L ${cx + ms} ${cy}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+  // Vertex labels
+  svg += `<text x="${aLx}" y="${aLy}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.A || 'A')}</text>`;
+  svg += `<text x="${bLx}" y="${bLy}" fill="#1a1814" font-size="13" text-anchor="start">${E(labels.B || 'B')}</text>`;
+  svg += `<text x="${cLx}" y="${cLy}" fill="#1a1814" font-size="13" text-anchor="end">${E(labels.C || 'C')}</text>`;
+  // Side labels
+  if (labels.AC) svg += `<text x="${acLx}" y="${acLy}" fill="#1a1814" font-size="12" text-anchor="end">${E(labels.AC)}</text>`;
+  if (labels.BC) svg += `<text x="${bcLx}" y="${bcLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.BC)}</text>`;
+  if (labels.AB) svg += `<text x="${abLx}" y="${abLy}" fill="#1a1814" font-size="12">${E(labels.AB)}</text>`;
+  // Angle labels — text-anchor=middle + dominant-baseline=central centers the
+  // label exactly on (x, y) computed from the bisector.
+  if (angA_pos) svg += `<text x="${angA_pos.x.toFixed(2)}" y="${angA_pos.y.toFixed(2)}" fill="#1a1814" font-size="${ANGLE_FONT}" text-anchor="middle" dominant-baseline="central">${E(labels.angle_A)}</text>`;
+  if (angB_pos) svg += `<text x="${angB_pos.x.toFixed(2)}" y="${angB_pos.y.toFixed(2)}" fill="#1a1814" font-size="${ANGLE_FONT}" text-anchor="middle" dominant-baseline="central">${E(labels.angle_B)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// Solves a right triangle (right angle at C) from any sufficient subset of
+// {AB hypotenuse, AC leg, BC leg, angA, angB}. Throws on inconsistency
+// (e.g., labels AB=10, BC=5, angA=60 — impossible). Tolerance: 0.01 in
+// problem-space units, 0.1 degrees.
+function solveRightTriangle(input) {
+  const numOrNull = v => (v == null || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+  const inAB   = numOrNull(input.AB);
+  const inAC   = numOrNull(input.AC);
+  const inBC   = numOrNull(input.BC);
+  const inAngA = numOrNull(input.angA);
+  const inAngB = numOrNull(input.angB);
+
+  if ([inAB, inAC, inBC, inAngA, inAngB].filter(v => v != null).length < 2) {
+    throw new Error('right_triangle: need at least 2 of {AB, AC, BC, angle_A, angle_B} to determine the triangle');
+  }
+  if (inAB != null && inAC != null && inAC > inAB + 1e-6) {
+    throw new Error(`right_triangle: leg AC (${inAC}) cannot exceed hypotenuse AB (${inAB})`);
+  }
+  if (inAB != null && inBC != null && inBC > inAB + 1e-6) {
+    throw new Error(`right_triangle: leg BC (${inBC}) cannot exceed hypotenuse AB (${inAB})`);
+  }
+  if (inAngA != null && (inAngA <= 0 || inAngA >= 90)) {
+    throw new Error(`right_triangle: angle_A (${inAngA}°) must be strictly between 0 and 90`);
+  }
+  if (inAngB != null && (inAngB <= 0 || inAngB >= 90)) {
+    throw new Error(`right_triangle: angle_B (${inAngB}°) must be strictly between 0 and 90`);
+  }
+
+  // Compute canonical (AB, angA) from a 2-input subset. Priority order is
+  // chosen so any valid 2-input combination is handled exactly once.
+  let AB, angA;
+  const rad = x => x * Math.PI / 180;
+  if (inAB != null && inAngA != null)      { AB = inAB; angA = inAngA; }
+  else if (inAB != null && inAngB != null) { AB = inAB; angA = 90 - inAngB; }
+  else if (inAB != null && inAC != null)   { AB = inAB; angA = Math.acos(inAC / inAB) * 180 / Math.PI; }
+  else if (inAB != null && inBC != null)   { AB = inAB; angA = Math.asin(inBC / inAB) * 180 / Math.PI; }
+  else if (inAC != null && inBC != null)   { AB = Math.sqrt(inAC*inAC + inBC*inBC); angA = Math.atan2(inBC, inAC) * 180 / Math.PI; }
+  else if (inAC != null && inAngA != null) { AB = inAC / Math.cos(rad(inAngA)); angA = inAngA; }
+  else if (inAC != null && inAngB != null) { AB = inAC / Math.sin(rad(inAngB)); angA = 90 - inAngB; }
+  else if (inBC != null && inAngA != null) { AB = inBC / Math.sin(rad(inAngA)); angA = inAngA; }
+  else if (inBC != null && inAngB != null) { AB = inBC / Math.cos(rad(inAngB)); angA = 90 - inAngB; }
+  else if (inAngA != null && inAngB != null) {
+    throw new Error('right_triangle: two angles alone do not determine the triangle (need a side)');
+  }
+  else throw new Error('right_triangle: insufficient information');
+
+  const angB = 90 - angA;
+  const AC = AB * Math.cos(rad(angA));
+  const BC = AB * Math.sin(rad(angA));
+
+  // Verify every PROVIDED value agrees with the canonical solution.
+  const TOL_LEN = 0.01, TOL_DEG = 0.1;
+  const checks = [
+    [inAB,   AB,   'AB',      TOL_LEN],
+    [inAC,   AC,   'AC',      TOL_LEN],
+    [inBC,   BC,   'BC',      TOL_LEN],
+    [inAngA, angA, 'angle_A', TOL_DEG],
+    [inAngB, angB, 'angle_B', TOL_DEG],
+  ];
+  for (const [provided, computed, name, tol] of checks) {
+    if (provided != null && Math.abs(provided - computed) > tol) {
+      throw new Error(
+        `right_triangle: inconsistent labels — ${name} provided as ${provided} ` +
+        `but the rest of the triangle forces ${name} = ${computed.toFixed(3)}`
+      );
+    }
+  }
+  return { AB, AC, BC, angA, angB };
+}
+
+// ── Shared geometry helpers (used by multiple triangle templates) ────────────
+
+// Place an angle label along the bisector of a vertex angle, at a distance
+// adapted to the angle's narrowness. For narrow angles the wedge near the
+// vertex is too tight to contain text without crossing the rays — push the
+// label further out where the wedge widens.
+//
+//   d = max(18, (halfDiagOfText + margin) / sin(angle/2))
+//
+// Returns {x, y} suitable for text-anchor=middle + dominant-baseline=central.
+function computeAngleLabelPos({ vx, vy, neighbor1, neighbor2, angleDeg, text, fontSize = 11 }) {
+  const d1x = neighbor1.x - vx, d1y = neighbor1.y - vy;
+  const d2x = neighbor2.x - vx, d2y = neighbor2.y - vy;
+  const len1 = Math.hypot(d1x, d1y) || 1;
+  const len2 = Math.hypot(d2x, d2y) || 1;
+  let bisX = d1x / len1 + d2x / len2;
+  let bisY = d1y / len1 + d2y / len2;
+  const bisLen = Math.hypot(bisX, bisY) || 1;
+  bisX /= bisLen; bisY /= bisLen;
+
+  const textW = String(text).length * fontSize * 0.55 + 4;
+  const textH = fontSize * 0.9;
+  const halfDiag = 0.5 * Math.hypot(textW, textH);
+  const margin = 5;
+  const halfAngRad = angleDeg * Math.PI / 360;
+  const dist = Math.max(18, (halfDiag + margin) / Math.sin(halfAngRad));
+  return { x: vx + bisX * dist, y: vy + bisY * dist };
+}
+
+// Place a side label OUTSIDE the triangle at the side's midpoint, offset
+// perpendicular to the side. "Outside" is the direction AWAY from the third
+// vertex (passed in as `interiorRef`, typically the centroid).
+function computeSideLabelPos(p1, p2, interiorRef, offset = 16) {
+  const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+  const sx = p2.x - p1.x, sy = p2.y - p1.y;
+  const sLen = Math.hypot(sx, sy) || 1;
+  let perpX = -sy / sLen, perpY = sx / sLen;
+  // Flip perpendicular to point away from the interior reference
+  const toIntX = interiorRef.x - midX, toIntY = interiorRef.y - midY;
+  if (perpX * toIntX + perpY * toIntY > 0) { perpX = -perpX; perpY = -perpY; }
+  return { x: midX + perpX * offset, y: midY + perpY * offset + 4 };
+}
+
+// Parse a label STRING and return a numeric value if it looks like a plain
+// number, otherwise return null. Strips degree symbols, whitespace, commas.
+// Variable labels ("x", "d", "r", "5√3", "1/2") return null and are exempt
+// from the cross-validation below — they're intentional non-numeric labels.
+function maybeParseNumericLabel(s) {
+  if (s == null) return null;
+  const stripped = String(s).trim().replace(/[°,\s]/g, '');
+  if (stripped === '' || stripped === '-') return null;
+  const n = Number(stripped);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Cross-check: if a label PARSES AS A NUMBER, it should agree with the value
+// the geometry computed for that quantity. Catches the failure mode where
+// Kay passes inputs whose labels don't match (e.g., chord=4 with labels.radius
+// "13" and labels.perpendicular "10" — geometrically impossible). Logs to
+// console but does NOT throw: a figure with mildly-wrong labels is more
+// useful to the student than no figure at all when the question text says
+// "in the figure above". Ms. K spots patterns via Render logs over time.
+function validateNumericLabel(labelText, expected, name, templateName, tolerance) {
+  const labelNum = maybeParseNumericLabel(labelText);
+  if (labelNum != null && Math.abs(labelNum - expected) > tolerance) {
+    console.warn(
+      `Tutor Kay: ${templateName} label for ${name} reads "${labelText}" (${labelNum}) ` +
+      `but the geometry forces ${name} = ${expected.toFixed(3)} — rendering anyway`
+    );
+  }
+}
+
+// ── general_triangle template ────────────────────────────────────────────────
+// An arbitrary triangle with vertices labeled A (top-ish), B (bottom-left),
+// C (bottom-right). Accepts any subset of sides {AB, BC, CA} and angles
+// {A, B, C} that determines the triangle (≥3 pieces of info, ≥1 must be a
+// side; AAA falls back to a unit scale). Validates all redundant inputs.
+//
+// Canonical placement: BC horizontal at the bottom, A above. This matches
+// SAT textbook convention. Kay's prompt teaches her to name vertices to fit.
+
+function renderGeneralTriangleTemplate(d) {
+  // Parse optional altitude config — a perpendicular dropped from a vertex
+  // to the opposite side. Used for area problems, similar-triangle problems
+  // with heights, etc.
+  let altitude = null;
+  if (d.altitude) {
+    if (!['A','B','C'].includes(d.altitude.from)) {
+      throw new Error('general_triangle: altitude.from must be "A", "B", or "C"');
+    }
+    const altValue = Number(d.altitude.value);
+    if (!Number.isFinite(altValue) || altValue <= 0) {
+      throw new Error('general_triangle: altitude.value must be a positive number');
+    }
+    altitude = { from: d.altitude.from, value: altValue, label: d.altitude.label };
+  }
+
+  // Triangle inputs from Kay
+  const triangleInput = {
+    AB:   d.sides  && d.sides.AB,
+    BC:   d.sides  && d.sides.BC,
+    CA:   d.sides  && d.sides.CA,
+    angA: d.angles && d.angles.A,
+    angB: d.angles && d.angles.B,
+    angC: d.angles && d.angles.C,
+  };
+
+  // Isoceles fallback: when altitude is provided and the triangle would
+  // otherwise be under-determined, assume the two sides adjacent to the
+  // altitude's vertex are equal (apex directly above the base midpoint).
+  // This is the canonical SAT presentation for "given base and height" area
+  // problems. Computes the equal side length from base and altitude:
+  //     other_side = sqrt((base/2)^2 + altitude^2)
+  if (altitude) {
+    const piecesGiven = Object.values(triangleInput).filter(v => v != null).length;
+    if (piecesGiven < 3) {
+      const oppositeKey = altitude.from === 'A' ? 'BC' : altitude.from === 'B' ? 'CA' : 'AB';
+      const adjacentKeys = altitude.from === 'A' ? ['AB','CA']
+                         : altitude.from === 'B' ? ['AB','BC']
+                         : ['BC','CA'];
+      const baseLen = triangleInput[oppositeKey];
+      if (baseLen != null) {
+        const adjLen = Math.sqrt((baseLen/2)*(baseLen/2) + altitude.value*altitude.value);
+        for (const k of adjacentKeys) {
+          if (triangleInput[k] == null) triangleInput[k] = adjLen;
+        }
+      }
+    }
+  }
+
+  const solved = solveGeneralTriangle(triangleInput);
+  const labels = d.labels || {};
+  const { AB: c, BC: a, CA: b, angA, angB, angC } = solved;
+
+  // Cross-validate numeric labels against the solved geometry.
+  validateNumericLabel(labels.AB,      solved.AB,   'AB',      'general_triangle', 0.05);
+  validateNumericLabel(labels.BC,      solved.BC,   'BC',      'general_triangle', 0.05);
+  validateNumericLabel(labels.CA,      solved.CA,   'CA',      'general_triangle', 0.05);
+  validateNumericLabel(labels.angle_A, solved.angA, 'angle_A', 'general_triangle', 0.5);
+  validateNumericLabel(labels.angle_B, solved.angB, 'angle_B', 'general_triangle', 0.5);
+  validateNumericLabel(labels.angle_C, solved.angC, 'angle_C', 'general_triangle', 0.5);
+  if (altitude) {
+    validateNumericLabel(altitude.label, altitude.value, 'altitude', 'general_triangle', 0.05);
+  }
+
+  // Place in problem coords (math convention: +y up). B at origin, C along +x.
+  // A computed from c (=AB) and angle at B.
+  const bpX = 0,                                        bpY = 0;
+  const cpX = a,                                        cpY = 0;
+  const apX = c * Math.cos(angB * Math.PI / 180);
+  const apY = c * Math.sin(angB * Math.PI / 180);
+
+  // Canvas + fit-with-margin scaling
+  const W = 320, H = 240;
+  const marginX = 40, marginY = 35;
+  const minX = Math.min(bpX, cpX, apX), maxX = Math.max(bpX, cpX, apX);
+  const minY = Math.min(bpY, cpY, apY), maxY = Math.max(bpY, cpY, apY);
+  const extX = Math.max(maxX - minX, 1e-6);
+  const extY = Math.max(maxY - minY, 1e-6);
+  const scale = Math.min((W - 2*marginX) / extX, (H - 2*marginY) / extY);
+
+  // Center within canvas, flip y for SVG
+  const scaledW = extX * scale, scaledH = extY * scale;
+  const offsetX = marginX + ((W - 2*marginX) - scaledW) / 2;
+  const offsetYbot = H - marginY - ((H - 2*marginY) - scaledH) / 2;
+  const toSvg = (px, py) => ({
+    x: offsetX + (px - minX) * scale,
+    y: offsetYbot - (py - minY) * scale,
+  });
+  const A = toSvg(apX, apY);
+  const B = toSvg(bpX, bpY);
+  const C = toSvg(cpX, cpY);
+
+  // Centroid for outward direction
+  const centroid = { x: (A.x+B.x+C.x)/3, y: (A.y+B.y+C.y)/3 };
+
+  // Vertex labels — outside the triangle, radially outward from centroid
+  const vertexLabel = (v) => {
+    const dx = v.x - centroid.x, dy = v.y - centroid.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const off = 14;
+    return { x: v.x + dx/len * off, y: v.y + dy/len * off + 4 };
+  };
+  const Alab = vertexLabel(A), Blab = vertexLabel(B), Clab = vertexLabel(C);
+
+  // Side label positions (only computed if labeled)
+  const abLab = labels.AB ? computeSideLabelPos(A, B, centroid) : null;
+  const bcLab = labels.BC ? computeSideLabelPos(B, C, centroid) : null;
+  const caLab = labels.CA ? computeSideLabelPos(C, A, centroid) : null;
+
+  // Angle label positions
+  const angA_pos = labels.angle_A ? computeAngleLabelPos({ vx: A.x, vy: A.y, neighbor1: B, neighbor2: C, angleDeg: angA, text: labels.angle_A }) : null;
+  const angB_pos = labels.angle_B ? computeAngleLabelPos({ vx: B.x, vy: B.y, neighbor1: A, neighbor2: C, angleDeg: angB, text: labels.angle_B }) : null;
+  const angC_pos = labels.angle_C ? computeAngleLabelPos({ vx: C.x, vy: C.y, neighbor1: A, neighbor2: B, angleDeg: angC, text: labels.angle_C }) : null;
+
+  // Altitude: compute foot of perpendicular from `altitude.from` onto the
+  // opposite side, validate length, and prepare drawing data.
+  let altGeom = null;
+  if (altitude) {
+    const V  = altitude.from === 'A' ? A : altitude.from === 'B' ? B : C;
+    const P1 = altitude.from === 'A' ? B : altitude.from === 'B' ? C : A;
+    const P2 = altitude.from === 'A' ? C : altitude.from === 'B' ? A : B;
+    const sx = P2.x - P1.x, sy = P2.y - P1.y;
+    const t  = ((V.x - P1.x)*sx + (V.y - P1.y)*sy) / (sx*sx + sy*sy);
+    const F  = { x: P1.x + t*sx, y: P1.y + t*sy };
+    const computedAlt = Math.hypot(V.x - F.x, V.y - F.y) / scale;
+    if (Math.abs(computedAlt - altitude.value) > Math.max(0.05, altitude.value * 0.01)) {
+      throw new Error(
+        `general_triangle: altitude from ${altitude.from} computed as ${computedAlt.toFixed(3)} ` +
+        `but altitude.value = ${altitude.value} was provided — the rest of the triangle forces a different altitude`
+      );
+    }
+    // Right-angle marker at foot: a small square in the corner formed by the
+    // altitude and the opposite side. Direction along the side (unit) and
+    // along the altitude (back toward V).
+    const sLen = Math.hypot(sx, sy);
+    const sUx = sx / sLen,           sUy = sy / sLen;          // along side
+    const aUx = (V.x - F.x) / (computedAlt * scale),
+          aUy = (V.y - F.y) / (computedAlt * scale);           // toward V
+    // Foot may land outside the segment (t < 0 or t > 1) for obtuse triangles
+    // — we still draw the perpendicular, but the right-angle marker only
+    // makes sense when the foot is actually on the segment.
+    const footOnSegment = t >= -0.001 && t <= 1.001;
+    const altMid = { x: (V.x + F.x) / 2, y: (V.y + F.y) / 2 };
+    // Altitude label position: perpendicular to the altitude segment (i.e.,
+    // parallel to the base), offset toward whichever side of the altitude
+    // has more space. Default: to the right (away from B in canonical setup).
+    const altLabelDir = { x: -aUy, y: aUx };  // 90° rotation of altitude direction
+    const altLabelPos = altitude.label ? {
+      x: altMid.x + altLabelDir.x * 10,
+      y: altMid.y + altLabelDir.y * 10 + 4,
+    } : null;
+    const footLabelPos = labels.foot ? { x: F.x + 12, y: F.y + 14 } : null;
+    altGeom = { V, F, footOnSegment, sUx, sUy, aUx, aUy, altLabelPos, footLabelPos };
+  }
+
+  const E = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<polygon points="${A.x.toFixed(2)},${A.y.toFixed(2)} ${B.x.toFixed(2)},${B.y.toFixed(2)} ${C.x.toFixed(2)},${C.y.toFixed(2)}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Altitude segment (dashed) + right-angle marker at foot
+  if (altGeom) {
+    svg += `<line x1="${altGeom.V.x.toFixed(2)}" y1="${altGeom.V.y.toFixed(2)}" x2="${altGeom.F.x.toFixed(2)}" y2="${altGeom.F.y.toFixed(2)}" stroke="#4a4640" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    if (altGeom.footOnSegment) {
+      const ms = 9;
+      const p1 = { x: altGeom.F.x + altGeom.sUx * ms,                   y: altGeom.F.y + altGeom.sUy * ms };
+      const p2 = { x: p1.x         + altGeom.aUx * ms,                   y: p1.y         + altGeom.aUy * ms };
+      const p3 = { x: altGeom.F.x + altGeom.aUx * ms,                   y: altGeom.F.y + altGeom.aUy * ms };
+      svg += `<path d="M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} L ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+    }
+  }
+  // Vertex labels
+  svg += `<text x="${Alab.x.toFixed(2)}" y="${Alab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.A || 'A')}</text>`;
+  svg += `<text x="${Blab.x.toFixed(2)}" y="${Blab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.B || 'B')}</text>`;
+  svg += `<text x="${Clab.x.toFixed(2)}" y="${Clab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.C || 'C')}</text>`;
+  // Side labels
+  if (abLab) svg += `<text x="${abLab.x.toFixed(2)}" y="${abLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.AB)}</text>`;
+  if (bcLab) svg += `<text x="${bcLab.x.toFixed(2)}" y="${bcLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.BC)}</text>`;
+  if (caLab) svg += `<text x="${caLab.x.toFixed(2)}" y="${caLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.CA)}</text>`;
+  // Angle labels
+  if (angA_pos) svg += `<text x="${angA_pos.x.toFixed(2)}" y="${angA_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_A)}</text>`;
+  if (angB_pos) svg += `<text x="${angB_pos.x.toFixed(2)}" y="${angB_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_B)}</text>`;
+  if (angC_pos) svg += `<text x="${angC_pos.x.toFixed(2)}" y="${angC_pos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(labels.angle_C)}</text>`;
+  // Altitude / foot labels
+  if (altGeom && altGeom.altLabelPos) {
+    svg += `<text x="${altGeom.altLabelPos.x.toFixed(2)}" y="${altGeom.altLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${E(altitude.label)}</text>`;
+  }
+  if (altGeom && altGeom.footLabelPos) {
+    svg += `<text x="${altGeom.footLabelPos.x.toFixed(2)}" y="${altGeom.footLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.foot)}</text>`;
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+// Solve an arbitrary triangle from any subset of {AB=c, BC=a, CA=b, angA,
+// angB, angC} (≥3 pieces, ≥1 must be a side; AAA falls back to a=100 scale).
+// Iteratively applies angle sum, law of cosines, law of sines until fully
+// determined. Validates all provided values against the canonical solution.
+function solveGeneralTriangle(input) {
+  const num = v => (v == null || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+  let a = num(input.BC), b = num(input.CA), c = num(input.AB);    // sides
+  let A = num(input.angA), B = num(input.angB), C = num(input.angC); // angles
+  const orig = { a, b, c, A, B, C };
+
+  const provided = [a, b, c, A, B, C].filter(v => v != null).length;
+  if (provided < 3) {
+    throw new Error('general_triangle: need at least 3 of {AB, BC, CA, angle_A, angle_B, angle_C} to determine the triangle');
+  }
+  // Reject any angle outside (0, 180)
+  for (const [name, v] of [['angle_A', A], ['angle_B', B], ['angle_C', C]]) {
+    if (v != null && (v <= 0 || v >= 180)) {
+      throw new Error(`general_triangle: ${name} (${v}°) must be strictly between 0 and 180`);
+    }
+  }
+  // AAA fallback: scale by a = 100
+  const sidesGiven = [a, b, c].filter(v => v != null).length;
+  if (sidesGiven === 0) { a = 100; }
+
+  // Up-front consistency checks for fully-specified subsets. The solver loop
+  // below only enforces rules when filling unknowns — when ALL three angles
+  // or ALL three sides are provided, the loop never invokes those rules at
+  // all and any inconsistency would slip through.
+  if (orig.A != null && orig.B != null && orig.C != null) {
+    if (Math.abs(orig.A + orig.B + orig.C - 180) > 0.1) {
+      throw new Error(
+        `general_triangle: provided angles (${orig.A}°, ${orig.B}°, ${orig.C}°) ` +
+        `sum to ${(orig.A+orig.B+orig.C).toFixed(2)}°, must equal 180°`
+      );
+    }
+  }
+  if (orig.a != null && orig.b != null && orig.c != null) {
+    // Pre-check SSS-derived angles against any provided angles
+    const cosA = (orig.b*orig.b + orig.c*orig.c - orig.a*orig.a) / (2*orig.b*orig.c);
+    const cosB = (orig.a*orig.a + orig.c*orig.c - orig.b*orig.b) / (2*orig.a*orig.c);
+    const cosC = (orig.a*orig.a + orig.b*orig.b - orig.c*orig.c) / (2*orig.a*orig.b);
+    if (Math.abs(cosA) > 1 || Math.abs(cosB) > 1 || Math.abs(cosC) > 1) {
+      throw new Error(`general_triangle: sides (${orig.a}, ${orig.b}, ${orig.c}) don't form a valid triangle`);
+    }
+    const Aimp = Math.acos(cosA) * 180 / Math.PI;
+    const Bimp = Math.acos(cosB) * 180 / Math.PI;
+    const Cimp = Math.acos(cosC) * 180 / Math.PI;
+    for (const [name, prov, imp] of [['angle_A', orig.A, Aimp], ['angle_B', orig.B, Bimp], ['angle_C', orig.C, Cimp]]) {
+      if (prov != null && Math.abs(prov - imp) > 0.1) {
+        throw new Error(
+          `general_triangle: inconsistent labels — ${name} provided as ${prov}° ` +
+          `but the three sides force ${name} = ${imp.toFixed(3)}°`
+        );
+      }
+    }
+  }
+
+  const rad = x => x * Math.PI / 180;
+  const deg = x => x * 180 / Math.PI;
+
+  // Iterative solver
+  for (let iter = 0; iter < 8; iter++) {
+    // Angle sum
+    if (A != null && B != null && C == null) C = 180 - A - B;
+    if (A != null && C != null && B == null) B = 180 - A - C;
+    if (B != null && C != null && A == null) A = 180 - B - C;
+    // Law of sines (need at least one side-angle pair)
+    const k =
+      (a != null && A != null) ? a / Math.sin(rad(A)) :
+      (b != null && B != null) ? b / Math.sin(rad(B)) :
+      (c != null && C != null) ? c / Math.sin(rad(C)) : null;
+    if (k != null) {
+      if (a == null && A != null) a = k * Math.sin(rad(A));
+      if (b == null && B != null) b = k * Math.sin(rad(B));
+      if (c == null && C != null) c = k * Math.sin(rad(C));
+    }
+    // Law of cosines for unknown side from two sides + included angle
+    if (a == null && b != null && c != null && A != null) a = Math.sqrt(b*b + c*c - 2*b*c*Math.cos(rad(A)));
+    if (b == null && a != null && c != null && B != null) b = Math.sqrt(a*a + c*c - 2*a*c*Math.cos(rad(B)));
+    if (c == null && a != null && b != null && C != null) c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(rad(C)));
+    // Law of cosines for unknown angle from three sides
+    if (A == null && a != null && b != null && c != null) A = deg(Math.acos((b*b + c*c - a*a) / (2*b*c)));
+    if (B == null && a != null && b != null && c != null) B = deg(Math.acos((a*a + c*c - b*b) / (2*a*c)));
+    if (C == null && a != null && b != null && c != null) C = deg(Math.acos((a*a + b*b - c*c) / (2*a*b)));
+    if (a != null && b != null && c != null && A != null && B != null && C != null) break;
+  }
+  if ([a, b, c, A, B, C].some(v => v == null || !Number.isFinite(v))) {
+    throw new Error('general_triangle: insufficient information (couldn\'t solve — likely SSA-ambiguous or non-triangle inputs)');
+  }
+  // Triangle inequality
+  if (a + b <= c + 1e-6 || a + c <= b + 1e-6 || b + c <= a + 1e-6) {
+    throw new Error(`general_triangle: sides (${a.toFixed(2)}, ${b.toFixed(2)}, ${c.toFixed(2)}) violate the triangle inequality`);
+  }
+  // Validate redundant inputs
+  const TOL_LEN = 0.01, TOL_DEG = 0.1;
+  const checks = [
+    [orig.a, a, 'BC',      TOL_LEN], [orig.b, b, 'CA',      TOL_LEN], [orig.c, c, 'AB',      TOL_LEN],
+    [orig.A, A, 'angle_A', TOL_DEG], [orig.B, B, 'angle_B', TOL_DEG], [orig.C, C, 'angle_C', TOL_DEG],
+  ];
+  for (const [provided_v, computed, name, tol] of checks) {
+    if (provided_v != null && Math.abs(provided_v - computed) > tol) {
+      throw new Error(
+        `general_triangle: inconsistent labels — ${name} provided as ${provided_v} ` +
+        `but the rest of the triangle forces ${name} = ${computed.toFixed(3)}`
+      );
+    }
+  }
+  return { AB: c, BC: a, CA: b, angA: A, angB: B, angC: C };
+}
+
+// ── triangle_with_parallel_line template ─────────────────────────────────────
+// Outer triangle ABC with D on AB and E on AC such that DE is parallel to BC.
+// The classic SAT similar-triangles configuration: "AD = 6, DB = 9, DE = 8,
+// find BC". Validates the similar-triangles constraint DE/BC = AD/(AD+DB).
+//
+// Triangle shape is canonical (not driven by problem-space side lengths) —
+// the SAT figure here is illustrative, and what matters is the RATIO of D's
+// position along AB (which determines E's position along AC, so DE is exactly
+// parallel to BC). The labeled values are display strings.
+
+function renderTriangleWithParallelLineTemplate(d) {
+  const ad = Number(d.ad), db = Number(d.db), de = Number(d.de), bc = Number(d.bc);
+  if (![ad, db, de, bc].every(v => Number.isFinite(v) && v > 0)) {
+    throw new Error('triangle_with_parallel_line: ad, db, de, bc must all be positive numbers');
+  }
+  // Similar-triangles invariant: DE/BC = AD/(AD+DB), so bc = de*(ad+db)/ad
+  const expectedBC = de * (ad + db) / ad;
+  if (Math.abs(expectedBC - bc) / Math.max(bc, expectedBC) > 0.001) {
+    throw new Error(
+      `triangle_with_parallel_line: similar-triangles constraint violated. ` +
+      `Given ad=${ad}, db=${db}, de=${de}, the parallel-line geometry forces ` +
+      `bc=${expectedBC.toFixed(3)}, but ${bc} was provided`
+    );
+  }
+
+  const labels = d.labels || {};
+  // Cross-validate numeric labels against the four numeric inputs.
+  validateNumericLabel(labels.ad, ad, 'ad', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.db, db, 'db', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.de, de, 'de', 'triangle_with_parallel_line', 0.05);
+  validateNumericLabel(labels.bc, bc, 'bc', 'triangle_with_parallel_line', 0.05);
+
+  const W = 320, H = 250;
+  // Canonical triangle: B at bottom-left, C at bottom-right, A at top center.
+  // Base 200px, height 170px ⇒ apex angle ≈ 60° (typical SAT proportions).
+  const triBaseW = 200, triHeight = 170;
+  const xCenter = W / 2;
+  const yTop = 28, yBot = yTop + triHeight;
+  const A = { x: xCenter,                y: yTop };
+  const B = { x: xCenter - triBaseW/2,   y: yBot };
+  const C = { x: xCenter + triBaseW/2,   y: yBot };
+
+  // D and E at the correct fraction down from A
+  const t = ad / (ad + db);
+  const D = { x: A.x + t * (B.x - A.x), y: A.y + t * (B.y - A.y) };
+  const E = { x: A.x + t * (C.x - A.x), y: A.y + t * (C.y - A.y) };
+
+  // Vertex labels
+  const Alab = { x: A.x,       y: A.y - 8 };       // above A
+  const Blab = { x: B.x - 10,  y: B.y + 14 };      // lower-left of B
+  const Clab = { x: C.x + 10,  y: C.y + 14 };      // lower-right of C
+
+  // Perpendiculars for label placement. For the AB side (A above, B below-
+  // left), "outside the triangle" is up-and-LEFT. For AC (A above, C below-
+  // right), "outside" is up-and-RIGHT. The robust way to pick the outward
+  // direction: compute both perpendicular candidates and choose the one
+  // pointing AWAY from the centroid.
+  const centroidX = (A.x + B.x + C.x) / 3;
+  const centroidY = (A.y + B.y + C.y) / 3;
+  const outwardPerp = (p1, p2) => {
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    let px = -dy / len, py = dx / len;
+    const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+    if (px * (centroidX - midX) + py * (centroidY - midY) > 0) { px = -px; py = -py; }
+    return { x: px, y: py };
+  };
+  const abOut = outwardPerp(A, B);
+  const acOut = outwardPerp(A, C);
+
+  // D and E vertex labels — just outside the triangle along the sides
+  const Dlab = { x: D.x + abOut.x * 11, y: D.y + abOut.y * 11 + 4 };
+  const Elab = { x: E.x + acOut.x * 11, y: E.y + acOut.y * 11 + 4 };
+
+  // Sub-segment labels along AB and AC, perpendicular outward
+  const adMid = { x: (A.x+D.x)/2, y: (A.y+D.y)/2 };
+  const adLab = { x: adMid.x + abOut.x * 14, y: adMid.y + abOut.y * 14 + 4 };
+  const dbMid = { x: (D.x+B.x)/2, y: (D.y+B.y)/2 };
+  const dbLab = { x: dbMid.x + abOut.x * 14, y: dbMid.y + abOut.y * 14 + 4 };
+  const aeMid = { x: (A.x+E.x)/2, y: (A.y+E.y)/2 };
+  const aeLab = { x: aeMid.x + acOut.x * 14, y: aeMid.y + acOut.y * 14 + 4 };
+  const ecMid = { x: (E.x+C.x)/2, y: (E.y+C.y)/2 };
+  const ecLab = { x: ecMid.x + acOut.x * 14, y: ecMid.y + acOut.y * 14 + 4 };
+
+  // DE label: above the parallel segment, lifted clear of the D/E vertex
+  // labels (which sit at y = D.y + 4-ish from the +4 baseline shift).
+  const deMid = { x: (D.x+D.x+(E.x-D.x))/2, y: D.y };
+  const deLab = { x: (D.x+E.x)/2, y: D.y - 4 };
+  // BC label: below the base
+  const bcLab = { x: (B.x+C.x)/2, y: B.y + 22 };
+
+  const Esc = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  // Outer triangle
+  svg += `<polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Parallel segment DE
+  svg += `<line x1="${D.x.toFixed(2)}" y1="${D.y.toFixed(2)}" x2="${E.x.toFixed(2)}" y2="${E.y.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  // Vertex labels (5 of them)
+  svg += `<text x="${Alab.x}" y="${Alab.y}" fill="#1a1814" font-size="13" text-anchor="middle">${Esc(labels.A || 'A')}</text>`;
+  svg += `<text x="${Blab.x}" y="${Blab.y}" fill="#1a1814" font-size="13" text-anchor="end">${Esc(labels.B || 'B')}</text>`;
+  svg += `<text x="${Clab.x}" y="${Clab.y}" fill="#1a1814" font-size="13" text-anchor="start">${Esc(labels.C || 'C')}</text>`;
+  svg += `<text x="${Dlab.x.toFixed(2)}" y="${Dlab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="end">${Esc(labels.D || 'D')}</text>`;
+  svg += `<text x="${Elab.x.toFixed(2)}" y="${Elab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="start">${Esc(labels.E || 'E')}</text>`;
+  // Sub-segment labels
+  if (labels.ad) svg += `<text x="${adLab.x.toFixed(2)}" y="${adLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="end">${Esc(labels.ad)}</text>`;
+  if (labels.db) svg += `<text x="${dbLab.x.toFixed(2)}" y="${dbLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="end">${Esc(labels.db)}</text>`;
+  if (labels.ae) svg += `<text x="${aeLab.x.toFixed(2)}" y="${aeLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="start">${Esc(labels.ae)}</text>`;
+  if (labels.ec) svg += `<text x="${ecLab.x.toFixed(2)}" y="${ecLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="start">${Esc(labels.ec)}</text>`;
+  if (labels.de) svg += `<text x="${deLab.x.toFixed(2)}" y="${deLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.de)}</text>`;
+  if (labels.bc) svg += `<text x="${bcLab.x.toFixed(2)}" y="${bcLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.bc)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderPracticeCard(p, msgIdx) {
+  if (!p || !Array.isArray(p.options)) return '';
+  const letters = ['A', 'B', 'C', 'D'];
+  // Check if this card was already answered. If so, render in locked state
+  // with the proper visual highlight and explanation already showing. This
+  // handles re-renders triggered when Kay's next response arrives.
+  const priorAnswer = practiceAnswers[msgIdx];
+  const wasAnswered = priorAnswer !== undefined;
+  const wasCorrect = wasAnswered && (priorAnswer === p.correct);
+
+  const optsHTML = p.options.map((opt, oi) => {
+    const letter = letters[oi] || String(oi + 1);
+    let stateClass = '';
+    if (wasAnswered) {
+      if (oi === priorAnswer) stateClass = wasCorrect ? ' correct' : ' incorrect';
+      else if (oi === p.correct && !wasCorrect) stateClass = ' reveal-correct';
+    }
+    const disabledAttr = wasAnswered ? 'disabled' : '';
+    return `<button class="practice-option${stateClass}" id="popt-${msgIdx}-${oi}" ${disabledAttr} onclick="handlePracticeAnswer(${msgIdx}, ${oi}, ${p.correct})">
+      <span class="practice-option-letter">${letter}</span>
+      <span class="practice-option-text">${escapeAndFormat(String(opt))}</span>
+    </button>`;
+  }).join('');
+
+  // Pre-render explanation if already answered
+  let feedbackHTML = '';
+  if (wasAnswered) {
+    const headerHTML = wasCorrect
+      ? `<div class="practice-feedback-header practice-feedback-correct">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Correct!</span>
+        </div>`
+      : `<div class="practice-feedback-header practice-feedback-wrong">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>The correct answer is ${letters[p.correct]}.</span>
+        </div>`;
+    const explanationHTML = p.explanation
+      ? `<div class="practice-explanation">${escapeAndFormat(String(p.explanation))}</div>`
+      : '';
+    feedbackHTML = headerHTML + explanationHTML +
+      `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
+  }
+
+  // Diagram: polymorphic field. STRING → legacy raw SVG (current behavior,
+  // unchanged for any shape we haven't templated yet). OBJECT → route through
+  // the template dispatcher above. On template failure, render the card
+  // WITHOUT a diagram and log the reason to console; question text is still
+  // usable. Phase 1 templates: circle_chord, right_triangle.
+  let diagramSVG = '';
+  if (typeof p.diagram === 'string') {
+    diagramSVG = p.diagram;
+  } else if (p.diagram && typeof p.diagram === 'object') {
+    diagramSVG = renderDiagramFromTemplate(p.diagram);
+  }
+  const diagramHTML = diagramSVG ? `<div class="practice-diagram">${diagramSVG}</div>` : '';
+
+  return `<div class="practice-card" id="practice-${msgIdx}">
+    <div class="practice-header">
+      <span class="practice-header-label">📝 Practice problem</span>
+      ${p.topic ? `<span class="practice-topic">${escapeAndFormat(p.topic)}</span>` : ''}
+    </div>
+    ${diagramHTML}
+    <div class="practice-question">${escapeAndFormat(p.question || '')}</div>
+    <div class="practice-options">${optsHTML}</div>
+    <div class="practice-feedback${wasAnswered ? ' visible' : ''}" id="pfeedback-${msgIdx}">${feedbackHTML}</div>
+  </div>`;
+}
+
+function handlePracticeAnswer(msgIdx, selectedOi, correctOi) {
+  // Already answered? Ignore subsequent clicks (one-click lock).
+  if (practiceAnswers[msgIdx] !== undefined) return;
+  practiceAnswers[msgIdx] = selectedOi;
+
+  const msg = messages[msgIdx];
+  if (!msg || !msg._practiceData) return;
+  const p = msg._practiceData;
+  const isCorrect = selectedOi === correctOi;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  // Record this result in the cumulative practice stats (sidebar updates).
+  // Tracked per-topic so accuracy aggregates across sessions.
+  recordPracticeResult(p.topic, isCorrect);
+
+  // Lock and visually mark all options
+  for (let oi = 0; oi < p.options.length; oi++) {
+    const btn = document.getElementById(`popt-${msgIdx}-${oi}`);
+    if (!btn) continue;
+    btn.disabled = true;
+    if (oi === selectedOi) {
+      btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+    } else if (oi === correctOi && !isCorrect) {
+      btn.classList.add('reveal-correct');
+    }
+  }
+
+  // Show inline feedback with explanation + Next button
+  const feedback = document.getElementById(`pfeedback-${msgIdx}`);
+  if (feedback) {
+    const headerHTML = isCorrect
+      ? `<div class="practice-feedback-header practice-feedback-correct">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Correct!</span>
+        </div>`
+      : `<div class="practice-feedback-header practice-feedback-wrong">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>The correct answer is ${letters[correctOi]}.</span>
+        </div>`;
+    const explanationHTML = p.explanation
+      ? `<div class="practice-explanation">${escapeAndFormat(String(p.explanation))}</div>`
+      : '';
+    feedback.innerHTML = headerHTML + explanationHTML +
+      `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
+    feedback.className = 'practice-feedback visible';
+    // Render math in the feedback area (explanation may contain math)
+    if (window.renderMathInElement) {
+      renderMathInElement(feedback, {
+        delimiters: [
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true },
+        ],
+        throwOnError: false
+      });
+    }
+  }
+}
+
+function requestNextProblem(msgIdx) {
+  // User clicked "Next problem" — send a control message to Kay to generate
+  // the next problem. We tell Kay whether the answer was correct or not.
+  const ans = practiceAnswers[msgIdx];
+  const msg = messages[msgIdx];
+  if (ans === undefined || !msg || !msg._practiceData) return;
+  const p = msg._practiceData;
+  const isCorrect = ans === p.correct;
+  const letters = ['A', 'B', 'C', 'D'];
+  const trigger = isCorrect
+    ? `[PRACTICE_ANSWER] I picked ${letters[ans]}. Correct.`
+    : `[PRACTICE_ANSWER] I picked ${letters[ans]}. The correct answer was ${letters[p.correct]}.`;
+  // Disable the button to prevent double-clicks
+  const btn = document.querySelector(`#pfeedback-${msgIdx} .practice-next-btn`);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Loading next problem…';
+  }
+  sendMessage(trigger);
+}
+
+// ── Practice session recap card ───────────────────────────────────────────────
+// Renders the celebratory "session complete" summary card shown when a
+// student ends a practice session. Style matches the dark achievement card
+// from concept tutoring for visual consistency.
+function renderPracticeRecapCard(recap) {
+  const { total, correct, strong, revisit } = recap;
+  if (total === 0) {
+    // Empty session (ended without answering anything) — minimal card
+    return `<div class="message kay practice-recap-message">
+      <div class="practice-recap-card">
+        <div class="achievement-header">
+          <div class="achievement-icon">🎯</div>
+          <div>
+            <div class="achievement-title">Practice session complete</div>
+            <div class="achievement-subtitle">Session summary</div>
+          </div>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-note">No problems answered this session — pick a card above whenever you're ready to dive in.</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const pct = Math.round((correct / total) * 100);
+  // Choose accuracy bar color based on performance band
+  // 80%+ = green, 50-79% = amber, <50% = red-tinted accent
+  const barColor = pct >= 80 ? '#6abf69' : pct >= 50 ? '#e8a530' : '#d97757';
+
+  // Warm closing sentence based on accuracy
+  let closingNote;
+  if (pct === 100) {
+    closingNote = `Perfect run — ${total} for ${total}. That's exam-level confidence right there.`;
+  } else if (pct >= 80) {
+    closingNote = `Strong session. You're tracking the kind of accuracy that translates to real exam scores.`;
+  } else if (pct >= 60) {
+    closingNote = `Good consistency. Keep building reps — the patterns will become automatic.`;
+  } else if (pct >= 40) {
+    closingNote = `Practice is working — every miss is a topic you've now seen. Come back tomorrow.`;
+  } else if (pct > 0) {
+    closingNote = `Tough one, but every session sharpens your eye for the SAT's traps. Keep at it.`;
+  } else {
+    closingNote = `Tough session — but each problem leaves a fingerprint. You'll see these patterns again.`;
+  }
+
+  const strongHTML = strong.length
+    ? `<div class="achievement-section">
+        <span class="achievement-section-label">✓ Strong topics</span>
+        <div class="achievement-items">${strong.map(s =>
+          `<div class="achievement-item">
+            <div class="achievement-item-dot green"></div>
+            <span>${escapeAndFormat(s.topic)} <span class="recap-topic-score">${s.correct}/${s.total}</span></span>
+          </div>`
+        ).join('')}</div>
+      </div>` : '';
+
+  const revisitHTML = revisit.length
+    ? `<div class="achievement-section">
+        <span class="achievement-section-label">↻ Worth revisiting</span>
+        <div class="achievement-items">${revisit.map(r =>
+          `<div class="achievement-item">
+            <div class="achievement-item-dot amber"></div>
+            <span>${escapeAndFormat(r.topic)} <span class="recap-topic-score">${r.correct}/${r.total}</span></span>
+          </div>`
+        ).join('')}</div>
+      </div>` : '';
+
+  return `<div class="message kay practice-recap-message">
+    <div class="practice-recap-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🎯</div>
+        <div>
+          <div class="achievement-title">Practice session complete</div>
+          <div class="achievement-subtitle">Session summary</div>
+        </div>
+      </div>
+      <div class="achievement-body">
+        <div class="recap-tally">
+          You answered <strong class="recap-number">${total}</strong>
+          problem${total === 1 ? '' : 's'} and got
+          <strong class="recap-number recap-number-correct">${correct}</strong> correct.
+        </div>
+        <div class="recap-accuracy-bar">
+          <div class="recap-accuracy-fill" style="width: ${pct}%; background: ${barColor};"></div>
+          <div class="recap-accuracy-label">${pct}% accuracy</div>
+        </div>
+        ${strongHTML}
+        ${revisitHTML}
+        <div class="achievement-note">${closingNote}</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ── Parse Kay's response for special blocks ───────────────────────────────────
@@ -2449,7 +4286,82 @@ function parseKayResponse(text) {
     cleanText = cleanText.replace(/```quiz[ \t]*\r?\n[\s\S]*?```/, '').trim();
   }
 
-  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData };
+  // practice block — single MCQ for SAT/ACT practice mode (clickable answer card)
+  // Robust to: multiple blocks (we take the LAST one, since Kay sometimes writes
+  // a block, then writes another after self-correction), trailing whitespace,
+  // and Windows line endings. ALL blocks are stripped from the prose.
+  let practiceData = null;
+  const practiceRegex = /```practice[ \t]*\r?\n([\s\S]*?)```/g;
+  const allPracticeMatches = [...text.matchAll(practiceRegex)];
+  if (allPracticeMatches.length > 0) {
+    // Take the LAST block — Kay's final answer after any self-correction
+    const lastMatch = allPracticeMatches[allPracticeMatches.length - 1];
+    try { practiceData = JSON.parse(lastMatch[1].trim()); } catch(e) {
+      console.warn('Practice block parse failed:', e);
+    }
+    // Strip ALL practice blocks from the prose so abandoned attempts don't leak
+    cleanText = cleanText.replace(/```practice[ \t]*\r?\n[\s\S]*?```/g, '').trim();
+
+    // Filter the surrounding prose to prevent leaks of Kay's internal thinking
+    // (verification reasoning, topic deliberation, "let me try X" drafting).
+    // Kay's LLM nature is to think out loud — we honor that backstage but never
+    // show it to the student when there's a practice card to display.
+    //
+    // Allowlist approach: keep prose only if it's short, contains no problem
+    // values or math, and isn't deliberation language. Otherwise strip entirely.
+    cleanText = filterPracticeProse(cleanText);
+  }
+
+  return { cleanText, graphData, formsData, achievementsData, diagramData, diagramsList, textSegments, quizData, practiceData };
+}
+
+// Filter prose around a practice block so internal reasoning (verification
+// reasoning, topic deliberation, "let me try" drafts) never reaches the
+// student. Returns either the prose unchanged (if it's a clean short
+// acknowledgment) or empty string (if it leaks any internal thinking).
+function filterPracticeProse(prose) {
+  const trimmed = (prose || '').trim();
+  if (!trimmed) return '';
+
+  // Length gate: anything over 80 chars is almost certainly leaked thinking.
+  // Real acknowledgments ("Nice.", "Let's start.", "Let's keep going.",
+  // "Next one — quick one.") are all well under this.
+  if (trimmed.length > 80) return '';
+
+  const lower = trimmed.toLowerCase();
+
+  // Deliberation words — Kay narrating her topic choice or planning process.
+  // If any of these appear, the prose is internal thinking, not acknowledgment.
+  const deliberationMarkers = [
+    'hmm', 'actually', 'let me try', 'let me pick', 'let me do',
+    'let me switch', 'let me shift', 'let me move', 'let me give',
+    'let me make', 'let me set', 'let me redo', 'let me replace',
+    'let me find', 'let me think', 'let me change',
+    'something less', 'something more', 'something different',
+    'a different', 'this time', 'next topic', 'less standard',
+    'more challenging', 'straightforward problem', 'clean problem',
+    'good — solutions', 'good - solutions',
+    'verified', 'verifying', 'checked', 'confirms',
+    'solutions are', 'solution is', 'answer is',
+    'will ask for', 'will test', 'will check',
+    'one problem at a time', 'four choices', 'mix of topics',
+    'i' + "'" + 'll throw', 'we' + "'" + 'll try',
+  ];
+  for (const marker of deliberationMarkers) {
+    if (lower.includes(marker)) return '';
+  }
+
+  // Math/equation indicators — any specific value from the upcoming problem.
+  // Numbers, equations, math delimiters, or variable assignments leak content.
+  if (/\d/.test(trimmed)) return '';                     // any digit
+  if (/[=<>]/.test(trimmed)) return '';                   // equation/inequality
+  if (/\\\(|\\\[/.test(trimmed)) return '';               // math delimiters
+  if (/[a-zA-Z]\s*\^/.test(trimmed)) return '';           // exponents like x^2
+  if (/[²³⁴⁵⁶⁷⁸⁹]/.test(trimmed)) return '';            // unicode superscripts
+  if (/\b(x|y|z|n|p|t)\s*[=+\-*/]/.test(trimmed)) return ''; // variable arithmetic
+
+  // Passed all filters — looks like a clean acknowledgment, keep it.
+  return trimmed;
 }
 
 // ── Render messages ───────────────────────────────────────────────────────────
@@ -2460,11 +4372,9 @@ function renderMessages() {
   container.style.display = 'block';
   empty.style.display = 'none';
   container.innerHTML = messages.map((m, i) => messageHTML(m, i)).join('');
-  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms').forEach(el => {
+  container.querySelectorAll('.msg-bubble, .quiz-card, .achievement-card, .eq-forms, .practice-card').forEach(el => {
     renderMathInElement(el, {
       delimiters: [
-        { left: '$$', right: '$$', display: true },
-        { left: '$',  right: '$',  display: false },
         { left: '\\(', right: '\\)', display: false },
         { left: '\\[', right: '\\]', display: true },
       ],
@@ -2480,7 +4390,13 @@ function renderMessages() {
         tab.classList.add('active');
         body.setAttribute('data-content', tab.dataset.content);
         body.innerHTML = tab.dataset.content;
-        renderMathInElement(body, { delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}], throwOnError: false });
+        renderMathInElement(body, {
+          delimiters: [
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true },
+          ],
+          throwOnError: false
+        });
       });
     });
   });
@@ -2529,6 +4445,12 @@ function messageHTML(m, idx) {
   // Don't render hidden system trigger messages
   if (m.hidden) return '';
 
+  // Practice session recap card — synthetic message with _recapData
+  // Render as a standalone card (no avatar/bubble wrapper)
+  if (m._recapData) {
+    return renderPracticeRecapCard(m._recapData);
+  }
+
   const isKay = m.role === 'assistant';
   const rawContent = m.role === 'user' ? convertMathNotation(m.content) : m.content;
   let bubbleContent = escapeAndFormat(rawContent);
@@ -2547,6 +4469,8 @@ function messageHTML(m, idx) {
     if (parsed.graphData) m._graphData = parsed.graphData;
     // Store quiz data so answer handler can access it
     if (parsed.quizData) m._quizData = parsed.quizData;
+    // Store practice data so click handler can access it
+    if (parsed.practiceData) m._practiceData = parsed.practiceData;
 
     const msgType = classifyMessage(parsed.cleanText, idx);
     if (msgType === 'question') {
@@ -2632,6 +4556,10 @@ function messageHTML(m, idx) {
       extraHTML += renderQuizBlock(parsed.quizData, idx);
     }
 
+    if (parsed.practiceData) {
+      extraHTML += renderPracticeCard(parsed.practiceData, idx);
+    }
+
     // Note: diagram SVG is added to extraHTML (not bubbleContent) so it
     // bypasses escapeAndFormat and renders correctly
 
@@ -2640,12 +4568,14 @@ function messageHTML(m, idx) {
       const formKeys = Object.keys(forms);
       const firstKey = formKeys[0];
       const firstVal = forms[firstKey];
+      // Wrap each equation form in \(...\) so KaTeX renders it as math.
+      // (Dollar signs are no longer math delimiters — currency only.)
       const tabsHTML = formKeys.map((k, i) =>
-        `<button class="eq-form-tab${i===0?' active':''}" data-content="$${forms[k]}$">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
+        `<button class="eq-form-tab${i===0?' active':''}" data-content="\\(${forms[k]}\\)">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
       ).join('');
       extraHTML += `<div class="eq-forms">
         <div class="eq-forms-header">${tabsHTML}</div>
-        <div class="eq-form-body" data-content="$${firstVal}$">$${firstVal}$</div>
+        <div class="eq-form-body" data-content="\\(${firstVal}\\)">\\(${firstVal}\\)</div>
       </div>`;
     }
 
@@ -2699,38 +4629,59 @@ function messageHTML(m, idx) {
       : 'msg-bubble')
     : 'msg-bubble';
 
+  // Check whether this message has any actually-visible content. The
+  // msg-type-badge in extraHTML is just a small inline badge that gets pulled
+  // into the name area, so it doesn't count as visible body content. If the
+  // bubble is empty AND there's no real extra content, suppress the entire
+  // message wrapper — otherwise an orphan avatar + "KAY" name renders with
+  // nothing underneath. This happens occasionally when Kay's response after
+  // a [PRACTICE_ANSWER] returns only a practice block with no surrounding
+  // prose, and somehow gets pushed as two assistant messages.
+  const hasBubbleBody = !!bubbleContent.trim() || !!imageHTML;
+  const extraStripped = extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '').trim();
+  const hasExtraBody = !!extraStripped;
+  if (!hasBubbleBody && !hasExtraBody) {
+    // Diagnostic warning so we can catch the underlying cause next time:
+    // an assistant message arrived with no displayable content at all.
+    if (isKay) {
+      console.warn('Tutor Kay: suppressed empty assistant message at index', idx, '— raw content was:', JSON.stringify(m.content).slice(0, 200));
+    }
+    return '';
+  }
+
   return `<div class="message ${isKay ? 'kay' : 'user'}">
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
       <div class="msg-name">${isKay ? 'Kay' : 'You'}${extraHTML.includes('msg-type-badge') ? extraHTML.match(/<span class="msg-type-badge[^"]*">[\s\S]*?<\/span>/)?.[0] || '' : ''}</div>
-      <div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>
+      ${hasBubbleBody ? `<div class="${bubbleClass}">${imageHTML}${bubbleContent}</div>` : ''}
       ${extraHTML.includes('msg-type-badge') ? extraHTML.replace(/<span class="msg-type-badge[\s\S]*?<\/span>/, '') : extraHTML}
     </div>
   </div>`;
 }
 
 function convertMathNotation(text) {
-  if (text.includes('$')) return text;
+  // Skip if user already wrote LaTeX delimiters (don't double-wrap)
+  if (text.includes('\\(') || text.includes('\\[')) return text;
 
   let result = text;
   let changed = false;
 
-  // x^2, x^n — exponents with caret, wrap just that token in $...$
+  // x^2, x^n — exponents with caret, wrap just that token in \(...\)
   result = result.replace(/([a-zA-Z0-9])\^(\{[^}]+\}|\d+|[a-zA-Z])/g, (match) => {
     changed = true;
-    return '$' + match + '$';
+    return '\\(' + match + '\\)';
   });
 
-  // sqrt(expr) → $\sqrt{expr}$
+  // sqrt(expr) → \(\sqrt{expr}\)
   result = result.replace(/sqrt\(([^)]+)\)/gi, (match, expr) => {
     changed = true;
-    return '$\\sqrt{' + expr + '}$';
+    return '\\(\\sqrt{' + expr + '}\\)';
   });
 
-  // Simple numeric fraction: 3/4 → $\frac{3}{4}$
+  // Simple numeric fraction: 3/4 → \(\frac{3}{4}\)
   result = result.replace(/\b(\d+)\/(\d+)\b/g, (match, a, b) => {
     changed = true;
-    return '$\\frac{' + a + '}{' + b + '}$';
+    return '\\(\\frac{' + a + '}{' + b + '}\\)';
   });
 
   return changed ? result : text;
@@ -2738,12 +4689,59 @@ function convertMathNotation(text) {
 
 function escapeAndFormat(text) {
   const stash = [];
-  // Stash ALL math first — both display and inline — before any processing
+  // Stash ALL math first — both display and inline — before any processing.
+  // We use \(...\) for inline math and \[...\] for display math (matching the
+  // KaTeX delimiters config). Dollar signs are NEVER math — they're literal $.
   let s = text
-    .replace(/\$\$([\s\S]+?)\$\$/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
-    .replace(/\$([^\$\n]+?)\$/g,    (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
+    .replace(/\\\[([\s\S]+?)\\\]/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; })
+    .replace(/\\\(([\s\S]+?)\\\)/g, (m) => { stash.push(m); return '\u0002' + (stash.length-1) + '\u0003'; });
 
-  // Now safe to process text — math is fully protected in stash
+  // Kay's LaTeX habit: she sometimes writes "\$68" expecting LaTeX-style
+  // dollar-sign escaping. But outside math (which we just stashed above),
+  // we render as plain text — \$ would display as literal backslash-dollar.
+  // Normalize to a plain $ so prices render as "$68" not "\$68". Math contents
+  // are safe because they live in the stash placeholders.
+  s = s.replace(/\\\$/g, '$');
+
+  // Stash markdown pipe tables BEFORE the line-break processing turns their
+  // newlines into <br> and their pipes into raw |. A valid table is:
+  //   header row  — |...|...|
+  //   separator   — |---|---| (dashes, optional colons for alignment)
+  //   data row(s) — |...|...|
+  // Math placeholders already in the cells are resolved IN-LINE during
+  // escaping (the final restore pass is single-pass, so anything nested
+  // inside a stashed entry would otherwise be left as raw control chars).
+  s = s.replace(
+    /(^|\n)((?:\|[^\n]*\|[ \t]*\n)(?:\|[\s:|-]+\|[ \t]*\n)(?:\|[^\n]*\|[ \t]*\n?)+)/g,
+    (_match, prefix, block) => {
+      const lines = block.trim().split('\n');
+      const splitRow = (line) => line
+        .replace(/^\|/, '').replace(/\|\s*$/, '')
+        .split('|').map(c => c.trim());
+      const escapeCell = (c) => c
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Kay sometimes writes **bold** around table cell content (LaTeX/markdown
+        // habit). Inline markdown doesn't process inside cells in this parser,
+        // so the asterisks would render literally. Strip them — emphasis inside
+        // a table cell is rarely meaningful and the result is cleaner.
+        .replace(/^\*\*(.*)\*\*$/, '$1')
+        // Resolve nested math placeholders here so KaTeX can render them.
+        .replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
+      const headerCells = splitRow(lines[0]);
+      const bodyRows = lines.slice(2).map(splitRow);
+      const ths = headerCells.map(c => `<th>${escapeCell(c)}</th>`).join('');
+      const trs = bodyRows.map(r =>
+        `<tr>${r.map(c => `<td>${escapeCell(c)}</td>`).join('')}</tr>`
+      ).join('');
+      const html = `<table class="md-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+      stash.push(html);
+      return prefix + '\u0002' + (stash.length-1) + '\u0003';
+    }
+  );
+
+  // Now safe to process text — math and tables are fully protected in stash
   s = s
     .replace(/&/g, '&amp;')
     .replace(/<(?!\/?(?:br|b|i|em|strong))/g, '&lt;')
@@ -2757,7 +4755,7 @@ function escapeAndFormat(text) {
     .replace(/\n/g, '<br>')
     .replace(/(^|<br>)\s*[-–]\s+/g, '$1&#8250;&nbsp;');
 
-  // Restore stashed math — untouched
+  // Restore stashed math and tables — untouched
   return s.replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
 }
 
@@ -2772,6 +4770,7 @@ function addTypingIndicator() {
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
 // ── API ──────────────────────────────────────────────────────────────────────
+// BACKEND_URL points at the production Render service hosting Kay's API.
 const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
 
 async function callKay() {
@@ -2818,15 +4817,18 @@ async function sendMessage(overrideText) {
   const msgImageDataURL = pendingImageDataURL;
   if (pendingImageBase64) clearImage();
 
-  const isEndSession = text.startsWith('[END_SESSION]') || text.startsWith('[QUIZ_RESULTS]');
+  const isControlMessage = text.startsWith('[END_SESSION]')
+    || text.startsWith('[QUIZ_RESULTS]')
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
+    || text.startsWith('[PRACTICE_ANSWER]');
 
   // Ping stats counter for every real student message
-  if (!isEndSession) pingQuestion();
+  if (!isControlMessage) pingQuestion();
 
   const userMsg = {
     role: 'user',
     content: text || '',
-    hidden: isEndSession, // flag to hide from display
+    hidden: isControlMessage, // flag to hide from display
     ...(msgImageBase64 ? { imageBase64: msgImageBase64, imageMediaType: msgImageMediaType, imageDataURL: msgImageDataURL } : {})
   };
   messages.push(userMsg);
@@ -2859,6 +4861,99 @@ async function sendMessage(overrideText) {
 }
 
 function sendStarter(t) { sendMessage(t); }
+
+// ── Session-type entry points (home screen cards) ─────────────────────────────
+function startLearnMode() {
+  // "Understand a concept" — focuses the input with a custom placeholder
+  const input = document.getElementById('msg-input');
+  if (input) {
+    input.placeholder = 'What math concept would you like to understand?';
+    input.focus();
+  }
+}
+
+// SAT/ACT Math subtopic categories used for opener variety.
+// Each session starts with a randomly-chosen subtopic so students don't see
+// the same problem type twice in a row across sessions. Subtopics are
+// narrower than topic areas — "linear equations" splits into word problems,
+// slope-intercept, inequalities, etc. — giving ~35 distinct starting points
+// instead of 12, which directly attacks cross-session repetition.
+const PRACTICE_OPENER_TOPICS = [
+  // Algebra (linear)
+  'linear equations (word problems with one variable)',
+  'linear equations (slope-intercept form interpretation)',
+  'linear inequalities and their graphs',
+  'systems of two linear equations',
+  'systems of linear inequalities',
+  // Advanced math (quadratic / polynomial / function)
+  'quadratic equations (factoring)',
+  'quadratic equations (vertex form and parabola features)',
+  'quadratic word problems (projectile motion, profit, area)',
+  'polynomial expressions and operations',
+  'rational expressions and equations',
+  'exponential growth and decay',
+  'exponent rules and radical simplification',
+  'function notation and evaluation',
+  'function composition and inverse functions',
+  // Problem solving / data
+  'percentages and percent change',
+  'percent word problems (markup, discount, tax)',
+  'ratios, rates, and proportions',
+  'unit conversions',
+  'mean, median, mode, and range',
+  'reading and interpreting tables',
+  'reading scatterplots and lines of best fit',
+  'probability and basic counting',
+  // Geometry
+  'similar triangles and proportions',
+  'right triangles and the Pythagorean theorem',
+  'special right triangles (30-60-90 and 45-45-90)',
+  'triangle area and perimeter',
+  'circles (area, circumference, sector area)',
+  'circles in the coordinate plane (equation form)',
+  'chord and inscribed angle problems',
+  'parallel lines cut by a transversal',
+  // Coordinate geometry
+  'coordinate geometry (distance and midpoint)',
+  'coordinate geometry (slope and parallel/perpendicular lines)',
+  // Trigonometry
+  'SOHCAHTOA and right triangle trigonometry',
+  'radian and degree conversions',
+  // Number and other
+  'complex numbers (basic operations)',
+];
+
+// Randomly-applied style constraints that force Kay off her default problem
+// patterns. Each is an SAT-realistic variation — the actual test mixes these
+// styles, so layering them on the topic doesn't produce non-exam-feeling
+// problems, it just shifts which neighborhood of the topic Kay lands in.
+const PRACTICE_CONSTRAINTS = [
+  'frame this as a real-world word problem with named people, places, or scenarios',
+  'frame this as a pure abstract math problem with no narrative context',
+  'design this as a multi-step problem requiring at least two distinct calculations',
+  'make the correct answer a non-integer (a fraction, decimal, or radical) rather than a whole number',
+  'use a "which of the following is equivalent" or "which must be true" framing where all four options are candidate expressions or statements',
+  'use a variable name other than x — choose from t, n, k, m, or p depending on what fits naturally',
+  'include negative numbers or fractions in the given values rather than only positive integers',
+];
+
+function startPracticeMode() {
+  // "Practice SAT/ACT problems" — inject the practice mode marker as the
+  // first user message. The backend detects [SAT_ACT_PRACTICE_MODE] and
+  // applies the practice-mode system prompt addition.
+  // Frontend picks a random opener topic AND a random style constraint so
+  // sessions don't cluster around the same problem prototypes. 35 topics ×
+  // 7 constraints = 245 distinct opener combinations.
+  const openerTopic = PRACTICE_OPENER_TOPICS[Math.floor(Math.random() * PRACTICE_OPENER_TOPICS.length)];
+  const constraint  = PRACTICE_CONSTRAINTS[Math.floor(Math.random() * PRACTICE_CONSTRAINTS.length)];
+  document.getElementById('topic-label').textContent = 'Practice mode · SAT/ACT Math';
+  sendMessage(`[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. For the first problem, pick a question about: ${openerTopic}. Style constraint for this problem: ${constraint}.`);
+}
+
+function showComingSoon() {
+  // "Take a timed mini-test" — Phase 2 feature, not built yet.
+  showAlert('Timed mini-tests are coming soon! For now, try Practice mode for unlimited problems with feedback.', 'info', 4000);
+}
 function sendHint() {
   if (messages.length === 0) { showAlert('Start a problem first, then ask for a hint.', 'info', 2500); return; }
   sendMessage("I'm stuck — can you give me a hint without giving away the answer?");
@@ -2866,6 +4961,32 @@ function sendHint() {
 function endSession() {
   if (messages.length === 0) { showAlert('Start a session first before ending it.', 'info', 2500); return; }
   if (isLoading) return;
+
+  // Detect practice mode by checking if any user message contains the marker
+  const isPracticeSession = messages.some(m =>
+    m.role === 'user' && typeof m.content === 'string' && m.content.includes('[SAT_ACT_PRACTICE_MODE]')
+  );
+
+  if (isPracticeSession) {
+    // Practice mode: skip the end-session quiz (the whole session was already
+    // a quiz). Compute summary stats and inject a recap card as a final
+    // assistant message, so the student sees a proper session ending in the
+    // chat flow rather than a transient toast.
+    const recap = computePracticeSummary();
+    const recapMessage = {
+      role: 'assistant',
+      content: '', // No prose — the card is rendered from _recapData
+      _recapData: recap,
+    };
+    messages.push(recapMessage);
+    renderMessages();
+    saveCurrentSession();
+    // Don't auto-reset to home — let the student admire their recap
+    // and choose when to start a new session via the New session button.
+    return;
+  }
+
+  // Standard end-session behavior: trigger the quiz flow
   const trigger = `[END_SESSION] The student has ended this session. You MUST respond with a quiz block in this EXACT format — no plain text questions, no numbered lists:
 
 \`\`\`quiz
@@ -2884,10 +5005,56 @@ function endSession() {
 Generate 2-3 questions based on what was covered in this conversation. The quiz block is REQUIRED. Do not write plain numbered questions.`;
   sendMessage(trigger);
 }
+
+// Compute summary stats from a practice session.
+// Returns total/correct counts plus per-topic stats for the recap card.
+function computePracticeSummary() {
+  let total = 0, correct = 0;
+  const topicStats = {}; // { topicName: { total, correct } }
+
+  Object.keys(practiceAnswers).forEach(idxStr => {
+    const idx = parseInt(idxStr, 10);
+    const msg = messages[idx];
+    if (!msg || !msg._practiceData) return;
+    const p = msg._practiceData;
+    const isCorrect = practiceAnswers[idxStr] === p.correct;
+    total++;
+    if (isCorrect) correct++;
+    const topic = (p.topic || 'Other').trim();
+    if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
+    topicStats[topic].total++;
+    if (isCorrect) topicStats[topic].correct++;
+  });
+
+  // Strong topics: > 50% correct (and at least 1 problem on that topic)
+  // Worth revisiting: < 50% correct
+  // Topics with exactly 50% (single-problem 1/2, etc.) get bucketed by overall trend
+  const strong = [];
+  const revisit = [];
+  Object.keys(topicStats).forEach(topic => {
+    const t = topicStats[topic];
+    const pct = t.correct / t.total;
+    if (pct > 0.5) {
+      strong.push({ topic, correct: t.correct, total: t.total });
+    } else if (pct < 0.5) {
+      revisit.push({ topic, correct: t.correct, total: t.total });
+    }
+    // Exactly 0.5 — neutral, don't list
+  });
+
+  // Sort by total problems descending so most-practiced topics appear first
+  strong.sort((a, b) => b.total - a.total);
+  revisit.sort((a, b) => b.total - a.total);
+
+  return { total, correct, strong, revisit };
+}
+
 function clearChat() {
   if (isListening) stopVoice();
   clearImage();
-  messages = []; currentSessionId = null; renderMessages();
+  messages = []; currentSessionId = null;
+  quizAnswers = {}; practiceAnswers = {};
+  renderMessages();
   document.getElementById('topic-label').textContent = 'Ready to learn';
   clearAlert();
 }
@@ -2898,6 +5065,7 @@ function newSession() {
   clearImage();
   currentSessionId = Date.now().toString();
   messages = [];
+  quizAnswers = {}; practiceAnswers = {};
   renderMessages();
   renderSessions();
   document.getElementById('topic-label').textContent = 'Ready to learn';
@@ -2907,7 +5075,21 @@ function newSession() {
 function saveCurrentSession() {
   if (!currentSessionId || messages.length === 0) return;
   const firstUser = messages.find(m => m.role === 'user');
-  const title = firstUser ? firstUser.content.slice(0, 48) : 'Untitled';
+  // Build a friendly title for the sidebar list.
+  // For practice sessions, the first user message is the [SAT_ACT_PRACTICE_MODE]
+  // control marker — replace it with a clean label that reflects the session's
+  // type and progress, rather than showing the raw bracketed marker.
+  let title;
+  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
+    const answeredCount = Object.keys(practiceAnswers).length;
+    title = answeredCount > 0
+      ? `SAT/ACT Practice · ${answeredCount} problem${answeredCount === 1 ? '' : 's'}`
+      : 'SAT/ACT Practice';
+  } else if (firstUser) {
+    title = firstUser.content.slice(0, 48);
+  } else {
+    title = 'Untitled';
+  }
   const idx = sessions.findIndex(s => s.id === currentSessionId);
   const obj = { id: currentSessionId, title, messages: [...messages] };
   if (idx >= 0) sessions[idx] = obj; else sessions.unshift(obj);
@@ -2917,9 +5099,21 @@ function saveCurrentSession() {
 function loadSession(id) {
   if (currentSessionId && messages.length > 0) saveCurrentSession();
   const s = sessions.find(s => s.id === id); if (!s) return;
-  currentSessionId = id; messages = [...s.messages]; renderMessages(); renderSessions();
+  currentSessionId = id; messages = [...s.messages];
+  quizAnswers = {}; practiceAnswers = {};
+  renderMessages(); renderSessions();
+  // Set topic-label cleanly — practice sessions get a friendly label instead
+  // of the raw [SAT_ACT_PRACTICE_MODE] marker
   const firstUser = messages.find(m => m.role === 'user');
-  document.getElementById('topic-label').textContent = firstUser ? firstUser.content.slice(0,40)+'…' : 'Session';
+  let topicLabel;
+  if (firstUser && firstUser.content.startsWith('[SAT_ACT_PRACTICE_MODE]')) {
+    topicLabel = 'Practice mode · SAT/ACT Math';
+  } else if (firstUser) {
+    topicLabel = firstUser.content.slice(0, 40) + '…';
+  } else {
+    topicLabel = 'Session';
+  }
+  document.getElementById('topic-label').textContent = topicLabel;
   autoCloseSidebarOnMobile();
 }
 function renderSessions() {
@@ -2984,6 +5178,7 @@ initVoice();
 renderSessions();
 renderMessages();
 renderSidebarMastery();
+renderSidebarPracticeStats();
 fetchStats();
 setInterval(fetchStats, 60000); // refresh stats every 60s
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
