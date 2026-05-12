@@ -263,6 +263,63 @@ print(f"Solutions: {solutions}")
 
 In these cases, the math may compute correctly when read from the text alone, but the figure misleads any student who looks at it. **A student looking at the figure should be able to identify the exact unknown the question is asking about.** If they can't, regenerate.
 
+**CRITICAL: geometric self-verification (any problem with a diagram involving named points or labeled measurements).** Coordinate arithmetic and label assignment are error-prone — verify them with code the same way you verify answers. For circles with chords/sectors/inscribed angles, triangles, quadrilaterals, and coordinate-plane figures, you MUST run a verification pass using code execution AFTER drafting the SVG and BEFORE emitting the practice block.
+
+The protocol:
+
+1. Draft the SVG mentally — pick coordinates, decide on labels.
+2. Run Python that re-states your coordinates and the problem's labeled values, then asserts the geometric invariants below. Tolerance: 0.5 pixels for coordinate checks, 2° for angle checks, 0.5 problem-units for measured lengths.
+3. ALSO check MUTUAL CONSISTENCY of labels — the labeled numbers must describe a mathematically valid figure. A right triangle with hypotenuse 10 and one acute angle 60° has legs forced to exactly 5 and 5√3; labeling otherwise is impossible regardless of how the figure is drawn.
+4. If any assertion fails, redraft the SVG and re-verify (silent regeneration, per the rule below). Max 2 redrafts. If a third would be needed, abandon this problem and pick a different one.
+
+Per-shape invariant checklists:
+
+**Circles** (chord, sector, inscribed angle): every point labeled as on the circle must satisfy \\((Px-cx)^2 + (Py-cy)^2 \\approx r^2\\); a perpendicular from the center to a chord must meet at the chord's midpoint with dot product ≈ 0 against the chord vector; labeled central or inscribed angles must match the angle computed from coordinates.
+
+**Triangles**: each labeled side's pixel distance ÷ scale must match the labeled value; each labeled angle (computed from coordinates via dot product / acos) must match its label; marked right angles must satisfy dot product ≈ 0 between the two vectors from that vertex; and labels must be mutually consistent — Pythagoras for right triangles, angle sum = 180°, law of sines for oblique.
+
+**Quadrilaterals**: each labeled side matches by length; right-angle corners are perpendicular by coordinates; sides claimed parallel have equal slopes.
+
+**Coordinate plane**: points labeled with coordinates like P(3, 4) plot at exactly those coordinates; slopes between labeled points match any labeled slope value.
+
+Worked example — chord with perpendicular distance:
+
+\`\`\`python
+import math
+# SVG draft values (re-state from the figure I'm about to emit):
+cx, cy, r = 180, 130, 80           # circle: center (180, 130), radius 80 pixels
+ax, ay = 116, 82                    # endpoint A
+bx, by = 244, 82                    # endpoint B
+mx, my = 180, 82                    # foot of perpendicular
+problem_radius = 10                 # labeled
+problem_chord = 16                  # labeled
+scale = r / problem_radius          # 8 pixels per problem unit
+
+assert abs(math.hypot(ax-cx, ay-cy) - r) < 0.5         # A on circle
+assert abs(math.hypot(bx-cx, by-cy) - r) < 0.5         # B on circle
+assert abs(mx - (ax+bx)/2) < 0.5 and abs(my - (ay+by)/2) < 0.5  # M = midpoint
+assert abs((bx-ax)*(mx-cx) + (by-ay)*(my-cy)) < 1.0    # OM perpendicular to AB
+assert abs(math.hypot(ax-bx, ay-by)/scale - problem_chord) < 0.1
+print("Geometry OK")
+\`\`\`
+
+Worked example — right-triangle label mutual consistency:
+
+\`\`\`python
+import math
+# Labels claimed in my draft:
+hyp, leg_BC, angle_A_deg, angle_B_deg = 10, 5, 60, 30
+
+# Given right angle at C, hypotenuse AB, and angle A: BC (opposite A) = hyp*sin(A)
+expected_BC = hyp * math.sin(math.radians(angle_A_deg))
+assert abs(expected_BC - leg_BC) < 0.01, \\
+    f"Inconsistent: hyp={hyp}, angle_A={angle_A_deg} forces BC={expected_BC:.3f}, labeled {leg_BC}"
+assert abs(angle_A_deg + angle_B_deg + 90 - 180) < 0.01, "Angles must sum to 180"
+print("Labels consistent")
+\`\`\`
+
+Run BOTH coordinate-invariant checks AND label-consistency checks for any geometry problem with a diagram. If either fails, regenerate silently.
+
 **Critical: do not narrate verification in visible prose.** Verification is private thinking, not just the Python itself. After verifying, do NOT write any of these things in your visible response:
 - "Good — solutions are x = 5 and x = -3/2"  ❌ (reveals the answer)
 - "The question will ask for the positive solution"  ❌ (reveals problem structure)
