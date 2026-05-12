@@ -646,6 +646,12 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   padding: 12px 14px 10px;
   font-size: 13px; color: var(--ink); line-height: 1.55;
 }
+/* Tighten vertical spacing between consecutive displayed equations
+   (e.g. systems of equations). KaTeX's default .katex-display margin
+   is 1em top + 1em bottom, which stacks badly when equations are
+   in adjacent paragraphs. */
+.practice-question .katex-display,
+.practice-explanation .katex-display { margin: 0.35em 0; }
 .practice-options {
   padding: 0 14px 12px;
   display: flex; flex-direction: column; gap: 5px;
@@ -3018,6 +3024,7 @@ function renderDiagramFromTemplate(d) {
     }
     switch (d.kind) {
       case 'circle_chord':                return renderCircleChordTemplate(d);
+      case 'circle_with_angles':          return renderCircleWithAnglesTemplate(d);
       case 'right_triangle':              return renderRightTriangleTemplate(d);
       case 'general_triangle':            return renderGeneralTriangleTemplate(d);
       case 'triangle_with_parallel_line': return renderTriangleWithParallelLineTemplate(d);
@@ -3129,6 +3136,147 @@ function renderCircleChordTemplate(d) {
   if (chordLabel) svg += `<text x="${chordLx}" y="${chordLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(chordLabel)}</text>`;
   if (showPerp && perpLabel) svg += `<text x="${perpLx}" y="${perpLy}" fill="#1a1814" font-size="12">${E(perpLabel)}</text>`;
   if (showRadius && radLabel) svg += `<text x="${radLx}" y="${radLy}" fill="#1a1814" font-size="12">${E(radLabel)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── circle_with_angles template ──────────────────────────────────────────────
+// A circle with a central angle, an inscribed angle, or both — the classic
+// inscribed-angle-theorem pattern. Canonical placement: A and B at the top of
+// the circle symmetric about the vertical axis (so chord AB is horizontal at
+// the top); the inscribed vertex V at the bottom of the circle. Radii OA, OB
+// drawn when central is provided; chords VA, VB drawn when inscribed is
+// provided. When both are provided, the inscribed-angle theorem is enforced
+// (inscribed = central / 2) before render.
+//
+// Restrictions: central ∈ (0, 180) (no reflex or degenerate diameter cases),
+// inscribed ∈ (0, 90) — the canonical SAT range.
+
+function renderCircleWithAnglesTemplate(d) {
+  const central = d.central || null;
+  const inscribed = d.inscribed || null;
+  const centerLabel = d.center_label || 'O';
+
+  if (!central && !inscribed) {
+    throw new Error('circle_with_angles: must provide at least one of "central" or "inscribed"');
+  }
+
+  let centralValue = null;
+  if (central) {
+    centralValue = Number(central.value);
+    if (!Number.isFinite(centralValue) || centralValue <= 0 || centralValue >= 180) {
+      throw new Error('circle_with_angles: central.value must be a number in (0, 180); for reflex or degenerate cases, fall back to raw SVG');
+    }
+    if (!central.label) throw new Error('circle_with_angles: central.label is required');
+  }
+  let inscribedValue = null;
+  if (inscribed) {
+    inscribedValue = Number(inscribed.value);
+    if (!Number.isFinite(inscribedValue) || inscribedValue <= 0 || inscribedValue >= 90) {
+      throw new Error('circle_with_angles: inscribed.value must be a number in (0, 90); for semicircle cases (inscribed=90°), fall back to raw SVG');
+    }
+    if (!inscribed.label) throw new Error('circle_with_angles: inscribed.label is required');
+    if (centralValue != null) {
+      const expectedInscribed = centralValue / 2;
+      if (Math.abs(expectedInscribed - inscribedValue) > 0.1) {
+        throw new Error(
+          `circle_with_angles: inscribed-angle theorem violated. ` +
+          `Central angle ${centralValue}° implies inscribed angle = ${expectedInscribed}°, ` +
+          `but ${inscribedValue}° was provided`
+        );
+      }
+    } else {
+      // No central provided — derive its implied value for layout
+      centralValue = 2 * inscribedValue;
+    }
+  }
+
+  // Resolve point names: prefer explicit, fall back to defaults. When both
+  // angles are specified, they share the two endpoint points by construction.
+  const cEndpts = (central   && central.endpoints)   || [];
+  const iEndpts = (inscribed && inscribed.endpoints) || [];
+  const aName = cEndpts[0] || iEndpts[0] || 'A';
+  const bName = cEndpts[1] || iEndpts[1] || 'B';
+  const vName = (inscribed && inscribed.vertex) || 'C';
+
+  // Canvas + circle layout
+  const W = 320, H = 260;
+  const cx = W / 2, cy = H / 2 + 5;
+  const r = 88;
+
+  // A on upper-left, B on upper-right, with central angle AOB between them.
+  // V at the bottom of the circle. Math conventions: +y is up; SVG +y is down,
+  // so we negate when computing y-coordinates.
+  const halfRad = (centralValue / 2) * Math.PI / 180;
+  const Ax = cx - r * Math.sin(halfRad);
+  const Ay = cy - r * Math.cos(halfRad);
+  const Bx = cx + r * Math.sin(halfRad);
+  const By = cy - r * Math.cos(halfRad);
+  const Vx = cx;
+  const Vy = cy + r;
+
+  // Point label positions — outside the circle, radially out from center
+  const labelOff = 14;
+  const outside = (px, py) => {
+    const dx = px - cx, dy = py - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: px + dx/len * labelOff, y: py + dy/len * labelOff + 4 };
+  };
+  const Alab = outside(Ax, Ay);
+  const Blab = outside(Bx, By);
+  const Vlab = outside(Vx, Vy);
+
+  // Center label — below the center dot, in the empty space between O and V.
+  // The chords VA and VB pass through this area but stay well to the left/right
+  // of the vertical axis through O, so O's label sits in the clear.
+  const OlabX = cx;
+  const OlabY = cy + 16;
+
+  // Angle label positions via shared bisector-based helper
+  const centralLabelPos = central ? computeAngleLabelPos({
+    vx: cx, vy: cy,
+    neighbor1: { x: Ax, y: Ay }, neighbor2: { x: Bx, y: By },
+    angleDeg: centralValue,
+    text: central.label,
+  }) : null;
+  const inscribedLabelPos = inscribed ? computeAngleLabelPos({
+    vx: Vx, vy: Vy,
+    neighbor1: { x: Ax, y: Ay }, neighbor2: { x: Bx, y: By },
+    angleDeg: inscribedValue,
+    text: inscribed.label,
+  }) : null;
+
+  const E = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  // Circle outline
+  svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Radii (only when central is provided)
+  if (central) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${Ax.toFixed(2)}" y2="${Ay.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+    svg += `<line x1="${cx}" y1="${cy}" x2="${Bx.toFixed(2)}" y2="${By.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Chords from inscribed vertex (only when inscribed is provided)
+  if (inscribed) {
+    svg += `<line x1="${Vx}" y1="${Vy}" x2="${Ax.toFixed(2)}" y2="${Ay.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+    svg += `<line x1="${Vx}" y1="${Vy}" x2="${Bx.toFixed(2)}" y2="${By.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Center dot
+  svg += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#1a1814"/>`;
+  // Center label
+  svg += `<text x="${OlabX}" y="${OlabY}" fill="#1a1814" font-size="13" text-anchor="middle">${E(centerLabel)}</text>`;
+  // Point labels
+  svg += `<text x="${Alab.x.toFixed(2)}" y="${Alab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(aName)}</text>`;
+  svg += `<text x="${Blab.x.toFixed(2)}" y="${Blab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(bName)}</text>`;
+  if (inscribed) {
+    svg += `<text x="${Vlab.x.toFixed(2)}" y="${Vlab.y.toFixed(2)}" fill="#1a1814" font-size="13" text-anchor="middle">${E(vName)}</text>`;
+  }
+  // Angle labels
+  if (centralLabelPos) {
+    svg += `<text x="${centralLabelPos.x.toFixed(2)}" y="${centralLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(central.label)}</text>`;
+  }
+  if (inscribedLabelPos) {
+    svg += `<text x="${inscribedLabelPos.x.toFixed(2)}" y="${inscribedLabelPos.y.toFixed(2)}" fill="#1a1814" font-size="11" text-anchor="middle" dominant-baseline="central">${E(inscribed.label)}</text>`;
+  }
   svg += `</svg>`;
   return svg;
 }
