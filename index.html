@@ -4866,31 +4866,80 @@ function startLearnMode() {
 
 // SAT/ACT Math subtopic categories used for opener variety.
 // Each session starts with a randomly-chosen subtopic so students don't see
-// the same problem type twice in a row across sessions.
+// the same problem type twice in a row across sessions. Subtopics are
+// narrower than topic areas — "linear equations" splits into word problems,
+// slope-intercept, inequalities, etc. — giving ~35 distinct starting points
+// instead of 12, which directly attacks cross-session repetition.
 const PRACTICE_OPENER_TOPICS = [
-  'linear equations',
-  'quadratic equations',
-  'systems of equations',
-  'functions and function notation',
-  'exponential expressions and rules',
+  // Algebra (linear)
+  'linear equations (word problems with one variable)',
+  'linear equations (slope-intercept form interpretation)',
+  'linear inequalities and their graphs',
+  'systems of two linear equations',
+  'systems of linear inequalities',
+  // Advanced math (quadratic / polynomial / function)
+  'quadratic equations (factoring)',
+  'quadratic equations (vertex form and parabola features)',
+  'quadratic word problems (projectile motion, profit, area)',
+  'polynomial expressions and operations',
+  'rational expressions and equations',
+  'exponential growth and decay',
+  'exponent rules and radical simplification',
+  'function notation and evaluation',
+  'function composition and inverse functions',
+  // Problem solving / data
   'percentages and percent change',
-  'ratios and proportions',
-  'coordinate geometry (lines, slopes, distance)',
-  'triangles and special right triangles',
-  'circles (area, circumference, equations)',
-  'data interpretation (tables, graphs, statistics)',
-  'basic trigonometry (sin, cos, tan)',
+  'percent word problems (markup, discount, tax)',
+  'ratios, rates, and proportions',
+  'unit conversions',
+  'mean, median, mode, and range',
+  'reading and interpreting tables',
+  'reading scatterplots and lines of best fit',
+  'probability and basic counting',
+  // Geometry
+  'similar triangles and proportions',
+  'right triangles and the Pythagorean theorem',
+  'special right triangles (30-60-90 and 45-45-90)',
+  'triangle area and perimeter',
+  'circles (area, circumference, sector area)',
+  'circles in the coordinate plane (equation form)',
+  'chord and inscribed angle problems',
+  'parallel lines cut by a transversal',
+  // Coordinate geometry
+  'coordinate geometry (distance and midpoint)',
+  'coordinate geometry (slope and parallel/perpendicular lines)',
+  // Trigonometry
+  'SOHCAHTOA and right triangle trigonometry',
+  'radian and degree conversions',
+  // Number and other
+  'complex numbers (basic operations)',
+];
+
+// Randomly-applied style constraints that force Kay off her default problem
+// patterns. Each is an SAT-realistic variation — the actual test mixes these
+// styles, so layering them on the topic doesn't produce non-exam-feeling
+// problems, it just shifts which neighborhood of the topic Kay lands in.
+const PRACTICE_CONSTRAINTS = [
+  'frame this as a real-world word problem with named people, places, or scenarios',
+  'frame this as a pure abstract math problem with no narrative context',
+  'design this as a multi-step problem requiring at least two distinct calculations',
+  'make the correct answer a non-integer (a fraction, decimal, or radical) rather than a whole number',
+  'use a "which of the following is equivalent" or "which must be true" framing where all four options are candidate expressions or statements',
+  'use a variable name other than x — choose from t, n, k, m, or p depending on what fits naturally',
+  'include negative numbers or fractions in the given values rather than only positive integers',
 ];
 
 function startPracticeMode() {
   // "Practice SAT/ACT problems" — inject the practice mode marker as the
   // first user message. The backend detects [SAT_ACT_PRACTICE_MODE] and
   // applies the practice-mode system prompt addition.
-  // Frontend picks a random opener topic so sessions don't all start with
-  // the same problem type. Kay honors this in the system prompt.
+  // Frontend picks a random opener topic AND a random style constraint so
+  // sessions don't cluster around the same problem prototypes. 35 topics ×
+  // 7 constraints = 245 distinct opener combinations.
   const openerTopic = PRACTICE_OPENER_TOPICS[Math.floor(Math.random() * PRACTICE_OPENER_TOPICS.length)];
+  const constraint  = PRACTICE_CONSTRAINTS[Math.floor(Math.random() * PRACTICE_CONSTRAINTS.length)];
   document.getElementById('topic-label').textContent = 'Practice mode · SAT/ACT Math';
-  sendMessage(`[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. For the first problem, pick a question about: ${openerTopic}.`);
+  sendMessage(`[SAT_ACT_PRACTICE_MODE] Start a SAT/ACT Math practice session. For the first problem, pick a question about: ${openerTopic}. Style constraint for this problem: ${constraint}.`);
 }
 
 function showComingSoon() {
