@@ -376,9 +376,9 @@ The diagram is rendered ABOVE the question text in the practice card. Refer to i
 1. **Structured template (REQUIRED for the shape kinds listed below).** The diagram field is a JSON OBJECT. The frontend computes coordinates from problem-space values, so geometric invariants hold by construction and label inconsistencies are rejected before render.
 2. **Raw SVG string (fallback for all other shapes).** The diagram field is a single-line SVG string. The geometric self-verification rules below apply.
 
-#### Structured diagram templates — Phase 1: circle_chord, right_triangle
+#### Structured diagram templates — circle_chord, right_triangle, general_triangle, triangle_with_parallel_line
 
-For chord problems and right-triangle problems, you MUST use the structured JSON format below. Raw SVG for these two shapes is no longer accepted.
+For chord problems, right-triangle problems, general (any-shape) triangle problems, and similar-triangles-with-a-parallel-line problems, you MUST use the structured JSON format below. Raw SVG for these shapes is no longer accepted.
 
 When using a template, the "diagram" field is a JSON OBJECT (not a string). Example shape:
 
@@ -454,7 +454,55 @@ Two example diagrams:
   "labels": { "AB": "10", "AC": "x", "angle_A": "30°" } }
 \`\`\`
 
-For any OTHER geometry shape — sectors, inscribed angles, general (non-right) triangles, quadrilaterals, coordinate-plane figures, number lines — continue with the raw-SVG rules below.
+**Template: general_triangle**
+
+An arbitrary (non-right) triangle with vertices A (top-ish), B (bottom-left), C (bottom-right). BC is drawn horizontal at the bottom — name your vertices to match this convention.
+
+Provide at least 3 of {AB, BC, CA, angle_A, angle_B, angle_C} with at least one being a side. Common combinations: SSS (all 3 sides), SAS (2 sides + included angle), ASA / AAS (2 angles + 1 side), AAA (3 angles, unit scale). The frontend solves the triangle, validates the triangle inequality, and rejects any provided values that contradict the rest.
+
+Fields:
+- "kind": "general_triangle"
+- sides.AB, sides.BC, sides.CA — numeric side lengths (any subset)
+- angles.A, angles.B, angles.C — numeric interior angles in degrees (sum to 180)
+- labels.A, labels.B, labels.C — vertex letters (defaults "A", "B", "C")
+- labels.AB, labels.BC, labels.CA — text along each side (omit to leave that side unmarked)
+- labels.angle_A, labels.angle_B, labels.angle_C — text at each interior angle
+
+Only label what the problem actually establishes (don't add angle labels you computed for verification — those clutter the figure).
+
+Two example diagrams:
+\`\`\`json
+"diagram": { "kind": "general_triangle",
+  "sides": { "AB": 13, "BC": 14, "CA": 15 },
+  "labels": { "AB": "13", "BC": "14", "CA": "15" } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "general_triangle",
+  "sides": { "BC": 12 }, "angles": { "A": 80, "B": 60 },
+  "labels": { "BC": "12", "angle_A": "80°", "angle_B": "60°", "angle_C": "40°" } }
+\`\`\`
+
+**Template: triangle_with_parallel_line**
+
+The classic similar-triangles configuration: outer triangle ABC with point D on AB and point E on AC such that segment DE is parallel to base BC. Used for problems like "AD = 6, DB = 9, DE = 8, find BC."
+
+Canonical placement: A at top, B at bottom-left, C at bottom-right, DE horizontal between them. The frontend validates the similar-triangles invariant: DE/BC must equal AD/(AD+DB).
+
+Fields:
+- "kind": "triangle_with_parallel_line"
+- ad, db, de, bc — all four numeric values, REQUIRED. Pass the TRUE numeric values (the ones that satisfy the similar-triangles equation), even when the student is asked to find one — that value becomes a display variable in labels.
+- labels.A, labels.B, labels.C, labels.D, labels.E — vertex letters (defaults to capitals)
+- labels.ad, labels.db, labels.de, labels.bc — text along each sub-segment / base
+- labels.ae, labels.ec — optional text along the right side (most problems don't label these)
+
+Example — the canonical similar-triangles problem (answer is BC = 20):
+\`\`\`json
+"diagram": { "kind": "triangle_with_parallel_line",
+  "ad": 6, "db": 9, "de": 8, "bc": 20,
+  "labels": { "ad": "6", "db": "9", "de": "8", "bc": "x" } }
+\`\`\`
+
+For any OTHER geometry shape — sectors, inscribed angles, quadrilaterals, coordinate-plane figures, number lines — continue with the raw-SVG rules below.
 
 #### When to include a diagram
 
@@ -632,13 +680,17 @@ Demonstrates: clean axes with arrow tips, light grid lines, points as small fill
 
 **Example 7: General triangle with all three angles (find the missing angle)**
 
-Demonstrates: all three angles labeled inside their vertices, unknown angle x° at vertex B, no arc markers anywhere, clean spare layout.
+Demonstrates: template form for a general triangle when all three angles are labeled and the unknown is one of them. The numeric angle values are the TRUE values (summing to 180); the label for the unknown is just the variable name.
 
 \`\`\`
 {
   "topic": "Triangle angles",
   "question": "In the figure above, what is the value of \\\\(x\\\\)?",
-  "diagram": "<svg viewBox=\\"0 0 320 180\\" xmlns=\\"http://www.w3.org/2000/svg\\" style=\\"max-width:320px;font-family:sans-serif\\"><polygon points=\\"60,140 170,30 250,140\\" fill=\\"none\\" stroke=\\"#4a4640\\" stroke-width=\\"2\\"/><text x=\\"48\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">A</text><text x=\\"170\\" y=\\"22\\" fill=\\"#1a1814\\" font-size=\\"13\\">C</text><text x=\\"256\\" y=\\"156\\" fill=\\"#1a1814\\" font-size=\\"13\\">B</text><text x=\\"80\\" y=\\"132\\" fill=\\"#1a1814\\" font-size=\\"12\\">47°</text><text x=\\"156\\" y=\\"58\\" fill=\\"#1a1814\\" font-size=\\"12\\">68°</text><text x=\\"218\\" y=\\"132\\" fill=\\"#1a1814\\" font-size=\\"12\\">x°</text></svg>",
+  "diagram": {
+    "kind": "general_triangle",
+    "angles": { "A": 47, "B": 65, "C": 68 },
+    "labels": { "angle_A": "47°", "angle_B": "x°", "angle_C": "68°" }
+  },
   "options": ["55", "65", "75", "85"],
   "correct": 1,
   "explanation": "The angles of a triangle sum to 180°, so \\\\(x = 180 - 47 - 68 = 65\\\\)."
