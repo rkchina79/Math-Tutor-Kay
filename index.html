@@ -3000,6 +3000,277 @@ function handleQuizAnswer(msgIdx, qi, selectedOi, correctOi) {
 // Declared with let so it can be reset on session change.
 let practiceAnswers = {};
 
+// ── Diagram templates (Phase 1: circle_chord, right_triangle) ────────────────
+// Kay's diagram field is polymorphic: a STRING renders as legacy raw SVG (used
+// for any shape we haven't templated yet), an OBJECT routes through the
+// dispatcher below. Templates compute coordinates from problem-space values,
+// so geometric invariants (point on circle, midpoint, Pythagoras, angle sum)
+// hold by construction. Validators reject inconsistent inputs *before* render.
+//
+// On any validation/render error, renderDiagramFromTemplate returns '' and
+// logs to console. The practice card then renders without a diagram —
+// graceful degrade rather than a broken figure.
+
+function renderDiagramFromTemplate(d) {
+  try {
+    if (!d || typeof d !== 'object' || typeof d.kind !== 'string') {
+      throw new Error('diagram object missing or has no "kind"');
+    }
+    switch (d.kind) {
+      case 'circle_chord':    return renderCircleChordTemplate(d);
+      case 'right_triangle':  return renderRightTriangleTemplate(d);
+      default:
+        throw new Error(`unknown diagram kind: "${d.kind}"`);
+    }
+  } catch (err) {
+    console.warn('Tutor Kay: diagram template failed, skipping figure:', err.message, d);
+    return '';
+  }
+}
+
+// Helper: escape arbitrary label text for safe insertion into SVG <text>.
+// Allows raw LaTeX in labels (e.g. "\\(\\sqrt{3}\\)") to flow through to KaTeX
+// since the SVG is injected as innerHTML and KaTeX scans after render.
+function svgEscapeLabel(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// circle_chord: a circle with a chord, optionally showing a perpendicular
+// from the center to the chord's midpoint, and optionally a radius drawn
+// to one endpoint. Common shapes for: "find the distance from center to
+// chord", "find the radius given chord and distance", "find chord length".
+//
+// Required: radius (problem-space), chord (problem-space)
+// Optional: labels.{center, a, b, chord, perpendicular, radius}
+//           show_perpendicular (bool, default: true if labels.perpendicular present)
+//           show_radius_to_b   (bool, default: true if labels.radius present)
+function renderCircleChordTemplate(d) {
+  const r = Number(d.radius);
+  const c = Number(d.chord);
+  if (!Number.isFinite(r) || r <= 0) throw new Error('circle_chord: "radius" must be a positive number');
+  if (!Number.isFinite(c) || c <= 0) throw new Error('circle_chord: "chord" must be a positive number');
+  if (c > 2 * r + 1e-6) throw new Error(`circle_chord: chord (${c}) cannot exceed diameter (${2*r})`);
+
+  const labels = d.labels || {};
+  const showPerp   = d.show_perpendicular !== undefined ? !!d.show_perpendicular : (labels.perpendicular != null);
+  const showRadius = d.show_radius_to_b    !== undefined ? !!d.show_radius_to_b    : (labels.radius != null);
+
+  // Canvas + visual radius. Fixed dimensions match the existing prompt
+  // examples so the practice card stays visually consistent.
+  const W = 320, H = 230;
+  const cx = 160, cy = 130;
+  const vr = 85;                       // visual radius in pixels
+  const scale = vr / r;                // pixels per problem-unit
+
+  // Geometry: chord placed horizontally ABOVE the center (matches the
+  // canonical SAT presentation; the dashed perpendicular then drops down).
+  const halfChord  = c / 2;
+  const perpDist   = Math.sqrt(r*r - halfChord*halfChord);
+  const halfChordPx = halfChord * scale;
+  const perpDistPx  = perpDist  * scale;
+
+  const ax = cx - halfChordPx, ay = cy - perpDistPx;
+  const bx = cx + halfChordPx, by = cy - perpDistPx;
+  const mx = cx,                my = cy - perpDistPx;
+
+  // Vertex label positions: radially OUTSIDE the circle, anchored by
+  // text-anchor so the offset is direction-agnostic.
+  const labelOff = 12;
+  const aDx = (ax - cx) / vr, aDy = (ay - cy) / vr;
+  const bDx = (bx - cx) / vr, bDy = (by - cy) / vr;
+  const aLx = cx + (vr + labelOff) * aDx;
+  const aLy = cy + (vr + labelOff) * aDy + 4;     // +4 vertical centering
+  const bLx = cx + (vr + labelOff) * bDx;
+  const bLy = cy + (vr + labelOff) * bDy + 4;
+  const aAnchor = 'end';                           // A is on the left
+  const bAnchor = 'start';                         // B is on the right
+
+  // Side & feature labels
+  const chordLabel = labels.chord != null ? String(labels.chord) : '';
+  const perpLabel  = labels.perpendicular != null ? String(labels.perpendicular) : '';
+  const radLabel   = labels.radius != null ? String(labels.radius) : '';
+
+  const chordLx = (ax + bx) / 2;
+  const chordLy = ay - 6;                          // above the chord
+  const perpLx  = mx + 6;                          // right of dashed line
+  const perpLy  = (my + cy) / 2 + 4;
+  const radLx   = (cx + bx) / 2 + 6;               // right of radius line
+  const radLy   = (cy + by) / 2 - 2;
+
+  const ms = 10;                                   // right-angle marker size
+  const E = svgEscapeLabel;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${vr}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Chord AB (solid)
+  svg += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#4a4640" stroke-width="2"/>`;
+  // Perpendicular OM (dashed) + right-angle marker at M
+  if (showPerp) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" stroke="#4a4640" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    svg += `<path d="M ${mx} ${my+ms} L ${mx+ms} ${my+ms} L ${mx+ms} ${my}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+  }
+  // Radius OB (solid)
+  if (showRadius) {
+    svg += `<line x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}" stroke="#4a4640" stroke-width="2"/>`;
+  }
+  // Center dot
+  svg += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#1a1814"/>`;
+  // Vertex labels
+  svg += `<text x="${aLx-3}" y="${aLy}" fill="#1a1814" font-size="13" text-anchor="${aAnchor}">${E(labels.a || 'A')}</text>`;
+  svg += `<text x="${bLx+3}" y="${bLy}" fill="#1a1814" font-size="13" text-anchor="${bAnchor}">${E(labels.b || 'B')}</text>`;
+  svg += `<text x="${cx}"   y="${cy+18}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.center || 'O')}</text>`;
+  // Feature labels
+  if (chordLabel) svg += `<text x="${chordLx}" y="${chordLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(chordLabel)}</text>`;
+  if (showPerp && perpLabel) svg += `<text x="${perpLx}" y="${perpLy}" fill="#1a1814" font-size="12">${E(perpLabel)}</text>`;
+  if (showRadius && radLabel) svg += `<text x="${radLx}" y="${radLy}" fill="#1a1814" font-size="12">${E(radLabel)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// right_triangle: right angle at C, hypotenuse AB, legs AC and BC.
+// Drawn with C at lower-left, A directly above C, B directly right of C.
+//
+// Kay provides any subset of sides (AB, AC, BC) and angles (A, B) sufficient
+// to determine the triangle (≥2 non-redundant pieces). The solver fills in
+// the rest; any redundantly-provided values must agree within tolerance, or
+// validation throws. This catches "30-60-90 with hypotenuse 10 and one leg 5"
+// — internally inconsistent labels — before render.
+function renderRightTriangleTemplate(d) {
+  const solved = solveRightTriangle({
+    AB:   d.sides  && d.sides.AB,
+    AC:   d.sides  && d.sides.AC,
+    BC:   d.sides  && d.sides.BC,
+    angA: d.angles && d.angles.A,
+    angB: d.angles && d.angles.B,
+  });
+  const labels = d.labels || {};
+  const { AC, BC } = solved;
+
+  const W = 320, H = 230;
+  const maxLegPx = 150;
+  const scale = maxLegPx / Math.max(AC, BC);
+  const acPx = AC * scale;
+  const bcPx = BC * scale;
+
+  // C at lower-left, leaving room for labels.
+  const cx = 70, cy = H - 40;
+  const ax = cx,        ay = cy - acPx;
+  const bx = cx + bcPx, by = cy;
+
+  // Vertex labels — outside the triangle in the "away from interior" direction.
+  // The interior is up-and-right of C, so:
+  //   A label sits ABOVE A (interior is below A)
+  //   B label sits to the RIGHT of B (interior is to the left of B)
+  //   C label sits to the LOWER-LEFT of C (interior is upper-right of C)
+  const aLx = ax,       aLy = ay - 6;
+  const bLx = bx + 6,   bLy = by + 5;
+  const cLx = cx - 6,   cLy = cy + 15;
+
+  // Side labels (midpoints, offset away from the triangle interior)
+  const acLx = ax - 8,          acLy = (ay + cy) / 2 + 4;   // left of AC
+  const bcLx = (cx + bx) / 2,   bcLy = cy + 16;             // below BC
+  const abLx = (ax + bx) / 2 + 8, abLy = (ay + by) / 2 - 6; // upper-right of hypotenuse
+
+  // Angle labels — just inside the vertex, in the interior direction.
+  const angALx = ax + 6,  angALy = ay + 18;     // below-right of A (interior)
+  const angBLx = bx - 30, angBLy = by - 6;      // above-left of B (interior)
+
+  const ms = 12;
+  const E = svgEscapeLabel;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  svg += `<polygon points="${ax},${ay} ${bx},${by} ${cx},${cy}" fill="none" stroke="#4a4640" stroke-width="2"/>`;
+  // Right-angle marker at C (interior is up-and-right)
+  svg += `<path d="M ${cx} ${cy - ms} L ${cx + ms} ${cy - ms} L ${cx + ms} ${cy}" fill="none" stroke="#4a4640" stroke-width="1.5"/>`;
+  // Vertex labels
+  svg += `<text x="${aLx}" y="${aLy}" fill="#1a1814" font-size="13" text-anchor="middle">${E(labels.A || 'A')}</text>`;
+  svg += `<text x="${bLx}" y="${bLy}" fill="#1a1814" font-size="13" text-anchor="start">${E(labels.B || 'B')}</text>`;
+  svg += `<text x="${cLx}" y="${cLy}" fill="#1a1814" font-size="13" text-anchor="end">${E(labels.C || 'C')}</text>`;
+  // Side labels
+  if (labels.AC) svg += `<text x="${acLx}" y="${acLy}" fill="#1a1814" font-size="12" text-anchor="end">${E(labels.AC)}</text>`;
+  if (labels.BC) svg += `<text x="${bcLx}" y="${bcLy}" fill="#1a1814" font-size="12" text-anchor="middle">${E(labels.BC)}</text>`;
+  if (labels.AB) svg += `<text x="${abLx}" y="${abLy}" fill="#1a1814" font-size="12">${E(labels.AB)}</text>`;
+  // Angle labels
+  if (labels.angle_A) svg += `<text x="${angALx}" y="${angALy}" fill="#1a1814" font-size="11">${E(labels.angle_A)}</text>`;
+  if (labels.angle_B) svg += `<text x="${angBLx}" y="${angBLy}" fill="#1a1814" font-size="11">${E(labels.angle_B)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// Solves a right triangle (right angle at C) from any sufficient subset of
+// {AB hypotenuse, AC leg, BC leg, angA, angB}. Throws on inconsistency
+// (e.g., labels AB=10, BC=5, angA=60 — impossible). Tolerance: 0.01 in
+// problem-space units, 0.1 degrees.
+function solveRightTriangle(input) {
+  const numOrNull = v => (v == null || v === '' || !Number.isFinite(Number(v))) ? null : Number(v);
+  const inAB   = numOrNull(input.AB);
+  const inAC   = numOrNull(input.AC);
+  const inBC   = numOrNull(input.BC);
+  const inAngA = numOrNull(input.angA);
+  const inAngB = numOrNull(input.angB);
+
+  if ([inAB, inAC, inBC, inAngA, inAngB].filter(v => v != null).length < 2) {
+    throw new Error('right_triangle: need at least 2 of {AB, AC, BC, angle_A, angle_B} to determine the triangle');
+  }
+  if (inAB != null && inAC != null && inAC > inAB + 1e-6) {
+    throw new Error(`right_triangle: leg AC (${inAC}) cannot exceed hypotenuse AB (${inAB})`);
+  }
+  if (inAB != null && inBC != null && inBC > inAB + 1e-6) {
+    throw new Error(`right_triangle: leg BC (${inBC}) cannot exceed hypotenuse AB (${inAB})`);
+  }
+  if (inAngA != null && (inAngA <= 0 || inAngA >= 90)) {
+    throw new Error(`right_triangle: angle_A (${inAngA}°) must be strictly between 0 and 90`);
+  }
+  if (inAngB != null && (inAngB <= 0 || inAngB >= 90)) {
+    throw new Error(`right_triangle: angle_B (${inAngB}°) must be strictly between 0 and 90`);
+  }
+
+  // Compute canonical (AB, angA) from a 2-input subset. Priority order is
+  // chosen so any valid 2-input combination is handled exactly once.
+  let AB, angA;
+  const rad = x => x * Math.PI / 180;
+  if (inAB != null && inAngA != null)      { AB = inAB; angA = inAngA; }
+  else if (inAB != null && inAngB != null) { AB = inAB; angA = 90 - inAngB; }
+  else if (inAB != null && inAC != null)   { AB = inAB; angA = Math.acos(inAC / inAB) * 180 / Math.PI; }
+  else if (inAB != null && inBC != null)   { AB = inAB; angA = Math.asin(inBC / inAB) * 180 / Math.PI; }
+  else if (inAC != null && inBC != null)   { AB = Math.sqrt(inAC*inAC + inBC*inBC); angA = Math.atan2(inBC, inAC) * 180 / Math.PI; }
+  else if (inAC != null && inAngA != null) { AB = inAC / Math.cos(rad(inAngA)); angA = inAngA; }
+  else if (inAC != null && inAngB != null) { AB = inAC / Math.sin(rad(inAngB)); angA = 90 - inAngB; }
+  else if (inBC != null && inAngA != null) { AB = inBC / Math.sin(rad(inAngA)); angA = inAngA; }
+  else if (inBC != null && inAngB != null) { AB = inBC / Math.cos(rad(inAngB)); angA = 90 - inAngB; }
+  else if (inAngA != null && inAngB != null) {
+    throw new Error('right_triangle: two angles alone do not determine the triangle (need a side)');
+  }
+  else throw new Error('right_triangle: insufficient information');
+
+  const angB = 90 - angA;
+  const AC = AB * Math.cos(rad(angA));
+  const BC = AB * Math.sin(rad(angA));
+
+  // Verify every PROVIDED value agrees with the canonical solution.
+  const TOL_LEN = 0.01, TOL_DEG = 0.1;
+  const checks = [
+    [inAB,   AB,   'AB',      TOL_LEN],
+    [inAC,   AC,   'AC',      TOL_LEN],
+    [inBC,   BC,   'BC',      TOL_LEN],
+    [inAngA, angA, 'angle_A', TOL_DEG],
+    [inAngB, angB, 'angle_B', TOL_DEG],
+  ];
+  for (const [provided, computed, name, tol] of checks) {
+    if (provided != null && Math.abs(provided - computed) > tol) {
+      throw new Error(
+        `right_triangle: inconsistent labels — ${name} provided as ${provided} ` +
+        `but the rest of the triangle forces ${name} = ${computed.toFixed(3)}`
+      );
+    }
+  }
+  return { AB, AC, BC, angA, angB };
+}
+
 function renderPracticeCard(p, msgIdx) {
   if (!p || !Array.isArray(p.options)) return '';
   const letters = ['A', 'B', 'C', 'D'];
@@ -3043,11 +3314,18 @@ function renderPracticeCard(p, msgIdx) {
       `<button class="practice-next-btn" onclick="requestNextProblem(${msgIdx})">Next problem →</button>`;
   }
 
-  // Diagram (if present) — render raw SVG so it bypasses escapeAndFormat.
-  // The diagram field comes from Kay as a single-line SVG string.
-  const diagramHTML = p.diagram
-    ? `<div class="practice-diagram">${p.diagram}</div>`
-    : '';
+  // Diagram: polymorphic field. STRING → legacy raw SVG (current behavior,
+  // unchanged for any shape we haven't templated yet). OBJECT → route through
+  // the template dispatcher above. On template failure, render the card
+  // WITHOUT a diagram and log the reason to console; question text is still
+  // usable. Phase 1 templates: circle_chord, right_triangle.
+  let diagramSVG = '';
+  if (typeof p.diagram === 'string') {
+    diagramSVG = p.diagram;
+  } else if (p.diagram && typeof p.diagram === 'object') {
+    diagramSVG = renderDiagramFromTemplate(p.diagram);
+  }
+  const diagramHTML = diagramSVG ? `<div class="practice-diagram">${diagramSVG}</div>` : '';
 
   return `<div class="practice-card" id="practice-${msgIdx}">
     <div class="practice-header">
