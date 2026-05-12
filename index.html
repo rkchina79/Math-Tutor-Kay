@@ -42,7 +42,10 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .kay-title { font-size: 10px; color: rgba(245,240,232,0.4); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
 .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0 18px; }
 .sidebar-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(245,240,232,0.5); font-weight: 500; margin-bottom: 8px; }
-.sessions { flex: 1; overflow-y: auto; scrollbar-width: none; }
+/* Sessions section no longer flex-grows — it takes only natural content
+   height (capped at 2 items by renderSessions). The freed vertical space
+   goes to the mastery and practice wraps below. */
+.sessions { flex: 0 1 auto; overflow-y: auto; min-height: 0; scrollbar-width: none; }
 .sessions::-webkit-scrollbar { display: none; }
 .session-item { padding: 9px 10px; border-radius: 7px; cursor: pointer; margin-bottom: 2px; font-size: 12px; color: rgba(245,240,232,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: background 0.15s; }
 .session-item:hover { background: rgba(255,255,255,0.06); color: rgba(245,240,232,0.9); }
@@ -794,7 +797,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
    has more content than fits, the other still gets its fair half (then both
    scroll internally). This prevents one big section from squeezing the other. */
 .sidebar-mastery-wrap, .sidebar-practice-wrap {
-  flex: 1 1 0; min-height: 40px; overflow-y: auto;
+  flex: 1 1 0; min-height: 24px; overflow-y: auto;
   padding-right: 4px; margin-right: -4px;
   scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.18) transparent;
 }
@@ -5117,7 +5120,10 @@ function loadSession(id) {
   autoCloseSidebarOnMobile();
 }
 function renderSessions() {
-  document.getElementById('sessions-list').innerHTML = sessions.map(s =>
+  // Show only the 2 most recent sessions to keep the sidebar focused.
+  // Older sessions are still saved in localStorage (loadable via direct
+  // session ID) — this is a UI scope decision, not data deletion.
+  document.getElementById('sessions-list').innerHTML = sessions.slice(0, 2).map(s =>
     `<div class="session-item ${s.id===currentSessionId?'active':''}" onclick="loadSession('${s.id}')" title="${s.title}">${s.title}</div>`
   ).join('');
 }
