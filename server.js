@@ -255,11 +255,13 @@ print(f"Solutions: {solutions}")
 3. If the question asks about vertex C but the diagram shows x° at vertex B — STOP. Either fix the diagram to mark vertex C, OR rewrite the question to ask about vertex B. They must match.
 4. If the question asks about a "shaded sector" — the diagram must actually shade that sector visually.
 5. If the question describes specific given values (e.g., "AC = 7 and BC = 24"), the diagram must label those exact segments with those exact values.
+6. **If the question refers to MULTIPLE objects, the diagram must show ALL of them.** "The two triangles are similar" → there must be two distinct triangles in the figure. "Lines L and M are parallel" → there must be two distinct lines drawn. "The chord intersects the diameter" → both the chord and the diameter must appear. A single object diagram cannot match a multi-object question.
 
 **Common failure pattern to avoid:**
 - Question says "find the exterior angle at vertex C" — but diagram shows x° at vertex B with a line extension at B.
 - Question says "find the area of the shaded region" — but diagram has no shading.
 - Question gives angle A = 47° and B = 63° — but diagram labels different vertices with those values.
+- Question says "the two triangles are similar" — but diagram shows only one triangle. For similar-triangles problems, use the triangle_with_parallel_line template (which renders both the outer triangle ABC and the inner sub-triangle ADE), or include both triangles in a raw-SVG fallback.
 
 In these cases, the math may compute correctly when read from the text alone, but the figure misleads any student who looks at it. **A student looking at the figure should be able to identify the exact unknown the question is asking about.** If they can't, regenerate.
 
@@ -440,7 +442,7 @@ Fields:
 - labels.AB, labels.AC, labels.BC — text along each side (omit a side label to leave that side unmarked)
 - labels.angle_A, labels.angle_B — text inside each acute angle (omit to leave unmarked)
 
-**Only label what the problem actually establishes.** Don't add labels.angle_A just because you happen to know the angle; only add it if the angle is given in the problem statement or relevant to the figure. Same for side labels. Cleaner: provide only sides/angles the problem gives, plus the unknown the problem asks for.
+**Always label values the problem text states.** If the question says "AB = 16" or "angle A = 60°", that value MUST appear in the labels — don't leave it off the figure. Equally, the unknown the question asks for must be labeled with its variable name. What to AVOID adding: values you computed for your own verification but that the problem text doesn't mention.
 
 Two example diagrams:
 \`\`\`json
@@ -464,13 +466,20 @@ Fields:
 - "kind": "general_triangle"
 - sides.AB, sides.BC, sides.CA — numeric side lengths (any subset)
 - angles.A, angles.B, angles.C — numeric interior angles in degrees (sum to 180)
+- altitude — optional. Draws a perpendicular from one vertex to the opposite side, with right-angle marker at the foot. Fields:
+  - altitude.from — "A", "B", or "C" (which vertex the altitude drops from)
+  - altitude.value — numeric height in problem units (validated against the triangle's actual altitude)
+  - altitude.label — text along the altitude segment (e.g. "9", "h")
 - labels.A, labels.B, labels.C — vertex letters (defaults "A", "B", "C")
 - labels.AB, labels.BC, labels.CA — text along each side (omit to leave that side unmarked)
 - labels.angle_A, labels.angle_B, labels.angle_C — text at each interior angle
+- labels.foot — text label for the foot of the altitude (e.g. "D"); rarely needed
 
-Only label what the problem actually establishes (don't add angle labels you computed for verification — those clutter the figure).
+**Altitude shortcut for "base and height" area problems.** If the problem only gives the base length and the altitude (typical "Area = (1/2) · b · h" setup), provide just that side and the altitude — the template will default to an isoceles triangle with the apex above the midpoint of the base. You don't need to invent extra side lengths or angles.
 
-Two example diagrams:
+**Always label values the problem text states.** If the question says "BC = 14" or "the angle at A is 60°", that value MUST appear in the labels — don't leave it off the figure. Equally, the unknown the question asks for must be labeled with its variable name. What to AVOID adding: values you computed for your own verification but that the problem text doesn't mention (e.g., the answer to the problem, or angles you derived from given side lengths). The figure should show exactly what the question text gives plus exactly the unknown it asks for.
+
+Three example diagrams:
 \`\`\`json
 "diagram": { "kind": "general_triangle",
   "sides": { "AB": 13, "BC": 14, "CA": 15 },
@@ -480,6 +489,12 @@ Two example diagrams:
 "diagram": { "kind": "general_triangle",
   "sides": { "BC": 12 }, "angles": { "A": 80, "B": 60 },
   "labels": { "BC": "12", "angle_A": "80°", "angle_B": "60°", "angle_C": "40°" } }
+\`\`\`
+\`\`\`json
+"diagram": { "kind": "general_triangle",
+  "sides": { "BC": 14 },
+  "altitude": { "from": "A", "value": 9, "label": "9" },
+  "labels": { "BC": "14" } }
 \`\`\`
 
 **Template: triangle_with_parallel_line**
