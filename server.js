@@ -849,7 +849,13 @@ app.post('/chat', async (req, res) => {
     const requestBody = {
       model: 'claude-sonnet-4-6',
       max_tokens: maxTokens,
-      system: systemPrompt,
+      system: [
+        {
+          type: 'text',
+          text: systemPrompt,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages,
     };
     if (tools) requestBody.tools = tools;
