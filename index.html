@@ -4717,6 +4717,11 @@ function escapeAndFormat(text) {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
+        // Kay sometimes writes **bold** around table cell content (LaTeX/markdown
+        // habit). Inline markdown doesn't process inside cells in this parser,
+        // so the asterisks would render literally. Strip them — emphasis inside
+        // a table cell is rarely meaningful and the result is cleaner.
+        .replace(/^\*\*(.*)\*\*$/, '$1')
         // Resolve nested math placeholders here so KaTeX can render them.
         .replace(/\u0002(\d+)\u0003/g, (_, i) => stash[+i]);
       const headerCells = splitRow(lines[0]);
