@@ -4820,24 +4820,37 @@ async function sendMessage(overrideText) {
   const msgImageDataURL = pendingImageDataURL;
   if (pendingImageBase64) clearImage();
 
-  // Control messages don't count as "questions" for stats purposes.
-  // [SAT_ACT_PRACTICE_MODE] is the one-time session-start ping when the
-  // student clicks "Practice SAT/ACT" — not a real question.
-  // [END_SESSION] and [QUIZ_RESULTS] are session-lifecycle signals.
-  // [PRACTICE_ANSWER] IS counted: it represents the student answering a
-  // problem and triggering Kay's next response — a real Kay interaction
-  // with explanation and the next problem generation, worth counting.
-  const isControlMessage = text.startsWith('[END_SESSION]')
+  // Two different decisions about each system-injected message, and they
+  // don't always agree — so they need separate flags:
+  //
+  // 1) isHiddenFromChat — should the message show up in the chat history?
+  //    [END_SESSION], [QUIZ_RESULTS], [SAT_ACT_PRACTICE_MODE], [PRACTICE_ANSWER]
+  //    are all internal protocol messages, never shown to the student.
+  //
+  // 2) isCountedAsQuestion — does this represent a real Kay tutoring turn
+  //    worth counting in the public stats counter?
+  //    [SAT_ACT_PRACTICE_MODE] is just a session-start signal, not a question.
+  //    [END_SESSION] / [QUIZ_RESULTS] are session lifecycle, not questions.
+  //    [PRACTICE_ANSWER] IS counted — student answering a practice card
+  //    triggers Kay's next real tutoring response (explanation + next problem).
+  const isHiddenFromChat = text.startsWith('[END_SESSION]')
     || text.startsWith('[QUIZ_RESULTS]')
-    || text.startsWith('[SAT_ACT_PRACTICE_MODE]');
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
+    || text.startsWith('[PRACTICE_ANSWER]');
+
+  const isCountedAsQuestion = !(
+       text.startsWith('[END_SESSION]')
+    || text.startsWith('[QUIZ_RESULTS]')
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
+  );
 
   // Ping stats counter for every real student message
-  if (!isControlMessage) pingQuestion();
+  if (isCountedAsQuestion) pingQuestion();
 
   const userMsg = {
     role: 'user',
     content: text || '',
-    hidden: isControlMessage, // flag to hide from display
+    hidden: isHiddenFromChat,
     ...(msgImageBase64 ? { imageBase64: msgImageBase64, imageMediaType: msgImageMediaType, imageDataURL: msgImageDataURL } : {})
   };
   messages.push(userMsg);
