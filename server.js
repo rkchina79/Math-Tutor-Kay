@@ -898,6 +898,32 @@ app.post('/chat', async (req, res) => {
     }
 
     const data = await response.json();
+    // ── Prompt cache diagnostic ──────────────────────────────────────────
+    // Logs whether prompt caching is actually working. Three possible states:
+    //   cache_creation > 0, cache_read = 0 — first message of a session, cache
+    //     was just written (this is correct on the first hit)
+    //   cache_creation = 0, cache_read > 0 — subsequent message hit the cache
+    //     (this is the win — should see this on most messages)
+    //   cache_creation = 0, cache_read = 0 — cache is NOT engaged at all (bug,
+    //     probably means the request shape doesn't match what was cached)
+    // Watch Render logs after a few exchanges in a single session — should
+    // see mostly "READ" entries, not "CREATE" or "MISS".
+    if (data.usage) {
+      const u = data.usage;
+      const cacheCreate = u.cache_creation_input_tokens || 0;
+      const cacheRead   = u.cache_read_input_tokens    || 0;
+      const inputTok    = u.input_tokens               || 0;
+      const outputTok   = u.output_tokens              || 0;
+      let cacheState;
+      if (cacheRead > 0)        cacheState = 'READ';
+      else if (cacheCreate > 0) cacheState = 'CREATE';
+      else                      cacheState = 'MISS';
+      console.log(
+        `[cache:${cacheState}] in=${inputTok} out=${outputTok} ` +
+        `cached_read=${cacheRead} cached_create=${cacheCreate}`
+      );
+    }
+
     // Response content is an array of typed blocks. With code execution
     // enabled (practice mode), Sonnet naturally writes connective prose
     // between tool calls — "let me check that", "I need to verify this
