@@ -400,9 +400,9 @@ The diagram is rendered ABOVE the question text in the practice card. Refer to i
 1. **Structured template (REQUIRED for the shape kinds listed below).** The diagram field is a JSON OBJECT. The frontend computes coordinates from problem-space values, so geometric invariants hold by construction and label inconsistencies are rejected before render.
 2. **Raw SVG string (fallback for all other shapes).** The diagram field is a single-line SVG string. The geometric self-verification rules below apply.
 
-#### Structured diagram templates — circle_chord, circle_with_angles, right_triangle, general_triangle, triangle_with_parallel_line
+#### Structured diagram templates — circle_chord, circle_with_angles, right_triangle, general_triangle, triangle_with_parallel_line, parallel_lines_transversal
 
-For these five shape kinds, you MUST use the structured JSON format below. Raw SVG for these shapes is no longer accepted.
+For these six shape kinds, you MUST use the structured JSON format below. Raw SVG for these shapes is no longer accepted.
 
 When using a template, the "diagram" field is a JSON OBJECT (not a string). Example shape:
 
@@ -565,6 +565,45 @@ Three example diagrams:
 "diagram": { "kind": "circle_with_angles",
   "inscribed": { "value": 40, "label": "40°" } }
 \`\`\`
+
+**Template: parallel_lines_transversal**
+
+Two parallel horizontal lines (top labeled \`m\`, bottom labeled \`n\`) cut by a transversal. Eight angles are formed. You specify ONE angle's value and its position, and the position of the unknown — the frontend computes the unknown's value based on the angle relationship (vertical, corresponding, alternate interior/exterior, co-interior, linear pair) and validates your stated answer against the geometry.
+
+Position codes (8 positions, two-part: intersection + corner):
+- \`top_UL\`, \`top_UR\`, \`top_LL\`, \`top_LR\` — top intersection (with line m); UL/UR/LL/LR = upper-left, upper-right, lower-left, lower-right of that intersection
+- \`bot_UL\`, \`bot_UR\`, \`bot_LL\`, \`bot_LR\` — same scheme for bottom intersection (with line n)
+
+The eight angles split into two groups of four (one group equals the given angle, the other equals 180° minus the given). Within each intersection, vertical angles are equal; across intersections, corresponding positions are equal because the lines are parallel.
+
+Required fields:
+- \`"kind": "parallel_lines_transversal"\`
+- \`angle\` — numeric value of the given angle, strictly between 0 and 180 (exclusive), and NOT 90 (a 90° transversal is degenerate — all 8 angles would equal 90° and the figure has no didactic value). Use raw SVG for the 90° case.
+- \`angle_at\` — position code where the given angle is labeled
+- \`unknown_at\` — position code where the unknown (e.g., x°) is labeled. Must differ from \`angle_at\`.
+- \`unknown_value\` — REQUIRED. The numeric value of the unknown that YOU computed. The frontend validates that this matches the geometry; if it doesn't, the figure is rejected and you'll need to fix either your reasoning or the position assignment.
+
+Optional fields:
+- \`angle_label\` — display text for the given angle (default: \`"118°"\` style, derived from \`angle\`)
+- \`unknown_label\` — display text for the unknown (default: \`"x°"\`)
+
+Worked example — the classic "118° on top, find x° on bottom" alternate-exterior problem (correct answer is **118**, because alternate exterior angles are equal):
+
+\`\`\`json
+"diagram": { "kind": "parallel_lines_transversal",
+  "angle": 118, "angle_at": "top_UR",
+  "unknown_at": "bot_LL", "unknown_value": 118 }
+\`\`\`
+
+Worked example — co-interior (same-side interior) angles, supplementary:
+
+\`\`\`json
+"diagram": { "kind": "parallel_lines_transversal",
+  "angle": 110, "angle_at": "top_LR",
+  "unknown_at": "bot_UR", "unknown_value": 70 }
+\`\`\`
+
+**Why this template matters more than the others for accuracy.** Parallel-lines-transversal problems are uniquely error-prone for freehand reasoning because the answer depends on correctly *identifying which angle relationship applies* (corresponding? alternate interior? co-interior? vertical?). Naming the relationship wrong gives the wrong answer even when the arithmetic is right. By specifying positions, you let the frontend compute the relationship for you — you only need to identify WHERE the angles sit in the figure, not name the relationship.
 
 For any OTHER geometry shape — sectors with shading, quadrilaterals, coordinate-plane figures, number lines, exterior-angle figures with line extensions, reflex/semicircle inscribed-angle cases — continue with the raw-SVG rules below.
 

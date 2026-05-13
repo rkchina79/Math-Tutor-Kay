@@ -3036,6 +3036,7 @@ function renderDiagramFromTemplate(d) {
       case 'right_triangle':              return renderRightTriangleTemplate(d);
       case 'general_triangle':            return renderGeneralTriangleTemplate(d);
       case 'triangle_with_parallel_line': return renderTriangleWithParallelLineTemplate(d);
+      case 'parallel_lines_transversal':  return renderParallelLinesTransversalTemplate(d);
       default:
         throw new Error(`unknown diagram kind: "${d.kind}"`);
     }
@@ -3947,6 +3948,229 @@ function renderTriangleWithParallelLineTemplate(d) {
   if (labels.ec) svg += `<text x="${ecLab.x.toFixed(2)}" y="${ecLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="start">${Esc(labels.ec)}</text>`;
   if (labels.de) svg += `<text x="${deLab.x.toFixed(2)}" y="${deLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.de)}</text>`;
   if (labels.bc) svg += `<text x="${bcLab.x.toFixed(2)}" y="${bcLab.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle">${Esc(labels.bc)}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── parallel_lines_transversal template ──────────────────────────────────────
+// Two parallel horizontal lines (top labeled m, bottom labeled n) cut by a
+// transversal. Eight angles are formed (four at each intersection). Kay
+// specifies ONE angle's value and its position, plus the position of the
+// unknown — the template computes the unknown's value based on the angle
+// relationship, validates Kay's stated answer, and renders the figure.
+//
+// Position codes (8 angles total):
+//   top_UL  top_UR     ← above line m, left/right of transversal
+//          ╲           top intersection
+//   top_LL  top_LR     ← below line m
+//
+//   bot_UL  bot_UR     ← above line n
+//          ╲           bottom intersection
+//   bot_LL  bot_LR     ← below line n
+//
+// At each intersection, the four angles satisfy:
+//   UL + UR = 180   (linear pair across the line)
+//   LL + LR = 180
+//   UL = LR          (vertical angles)
+//   UR = LL          (vertical angles)
+// Between the two intersections, corresponding positions are equal
+// (parallel lines): top_UL = bot_UL, top_UR = bot_UR, etc.
+//
+// So with one given angle A and the eight positions, four positions have
+// value A and four have value (180 - A), determined by symmetry.
+
+function renderParallelLinesTransversalTemplate(d) {
+  const POSITIONS = ['top_UL','top_UR','top_LL','top_LR','bot_UL','bot_UR','bot_LL','bot_LR'];
+
+  const angleVal = Number(d.angle);
+  if (!Number.isFinite(angleVal) || angleVal <= 0 || angleVal >= 180) {
+    throw new Error('parallel_lines_transversal: angle must be a number in (0, 180)');
+  }
+  if (angleVal === 90) {
+    throw new Error('parallel_lines_transversal: 90° transversal is degenerate (all 8 angles equal 90°). Use a different angle, or fall back to raw SVG.');
+  }
+  if (!POSITIONS.includes(d.angle_at)) {
+    throw new Error(`parallel_lines_transversal: angle_at must be one of ${POSITIONS.join(', ')}`);
+  }
+  if (!POSITIONS.includes(d.unknown_at)) {
+    throw new Error(`parallel_lines_transversal: unknown_at must be one of ${POSITIONS.join(', ')}`);
+  }
+  if (d.angle_at === d.unknown_at) {
+    throw new Error('parallel_lines_transversal: angle_at and unknown_at must be different positions');
+  }
+
+  // Compute the value at every position from the given angle.
+  // The four positions equal to the given angle (call them "primary"):
+  // these share vertical-angle or corresponding-angle relationships.
+  //
+  // Within one intersection: UL = LR, UR = LL.
+  // Across intersections (parallel lines): corresponding positions are equal,
+  // so top_UL = bot_UL, top_UR = bot_UR, etc.
+  //
+  // Combining: UL & LR at BOTH intersections are equal; UR & LL at BOTH
+  // intersections are equal. So the 8 positions split into two groups of 4:
+  //   Group "A" (equal to given angle if it sits here):
+  //     {top_UR, top_LL, bot_UR, bot_LL}  — call this the "UR-group"
+  //   Group "B" (equal to given angle if it sits here):
+  //     {top_UL, top_LR, bot_UL, bot_LR}  — call this the "UL-group"
+  // And group A + group B = 180 (supplementary).
+  const groupUR = new Set(['top_UR','top_LL','bot_UR','bot_LL']);
+  const groupUL = new Set(['top_UL','top_LR','bot_UL','bot_LR']);
+
+  const inGroupUR = (pos) => groupUR.has(pos);
+  const givenInGroupUR = inGroupUR(d.angle_at);
+  const computedUnknown = inGroupUR(d.unknown_at) === givenInGroupUR
+    ? angleVal
+    : 180 - angleVal;
+
+  // Validate Kay's stated answer (if she provided one). Strict: she must
+  // supply the numerical answer she expects, and it must match the geometry.
+  if (d.unknown_value != null) {
+    const stated = Number(d.unknown_value);
+    if (!Number.isFinite(stated)) {
+      throw new Error('parallel_lines_transversal: unknown_value must be a number if provided');
+    }
+    if (Math.abs(stated - computedUnknown) > 0.1) {
+      throw new Error(
+        `parallel_lines_transversal: inconsistent answer — with the given angle ${angleVal}° at ${d.angle_at}, ` +
+        `the angle at ${d.unknown_at} must be ${computedUnknown}°, but unknown_value was given as ${stated}°`
+      );
+    }
+  }
+
+  // ── Layout ───────────────────────────────────────────────────────────────
+  // Canvas: wide rectangle. Two horizontal lines, one above the other.
+  // Transversal slope chosen so the given angle visually matches its value
+  // (so a 30° angle looks acute, a 150° looks obtuse, etc.).
+  const W = 380, H = 280;
+  const lineY_m = 90;   // y-coordinate of line m (top)
+  const lineY_n = 200;  // y-coordinate of line n (bottom)
+  const lineExtent = { x1: 40, x2: W - 40 };
+
+  // The transversal: pick its angle with the horizontal based on the given
+  // angle's position, so the visible obtuse/acute relationship matches the
+  // value. We want the angle at top_UR (or whichever position is the given)
+  // to visually match angleVal.
+  //
+  // Convention: transversal at the top intersection makes angle θ with the
+  // RIGHT-going part of line m, measured CCW (so θ is the angle in the
+  // top_UR position). Then the angle in top_UL is 180-θ, etc.
+  //
+  // So we need θ = value at top_UR. Which is either angleVal (if angle_at is
+  // in groupUR) or 180-angleVal (if angle_at is in groupUL).
+  const thetaDeg = givenInGroupUR ? angleVal : (180 - angleVal);
+  const thetaRad = thetaDeg * Math.PI / 180;
+
+  // Top intersection: somewhere middle-left so transversal can slope down
+  // and still hit line n within bounds.
+  const topX = W * 0.45;
+  const topY = lineY_m;
+  // Compute bottom intersection from slope of transversal.
+  // Transversal direction "upward" at top intersection: angle thetaDeg above
+  // line m. So slope vector going UP-and-direction is (cos θ, -sin θ) since
+  // SVG y is inverted. Going DOWN through the figure, the transversal extends
+  // in direction (-cos θ, sin θ) from top intersection... wait, need to be
+  // careful here.
+  //
+  // Restart: in math coords, the transversal makes angle thetaDeg with
+  // positive x-axis (line m going right), measured CCW from line m to the
+  // transversal going "upward" (above line m). When thetaDeg > 90, this
+  // points up-and-to-the-LEFT; when thetaDeg < 90, up-and-to-the-RIGHT.
+  //
+  // The transversal continues in the opposite direction below line m, going
+  // toward line n. That direction (in math coords) is (cos(thetaDeg + 180),
+  // sin(thetaDeg + 180)) = (-cos θ, -sin θ). To convert to SVG (where y
+  // points down): the direction vector becomes (-cos θ, sin θ).
+  //
+  // Distance from line m to line n in y: (lineY_n - lineY_m) = 110 pixels.
+  // Need to find x-offset on the transversal that drops y by 110.
+  // Direction has y-component sin θ. So parameter t such that t * sin θ = 110.
+  // t = 110 / sin θ. Then x-offset = t * (-cos θ) = -110 * cos θ / sin θ.
+  const dx = -110 * Math.cos(thetaRad) / Math.sin(thetaRad);
+  const botX = topX + dx;
+  const botY = lineY_n;
+
+  // Transversal endpoints: extend beyond both intersections so it visually
+  // crosses both lines clearly. Extend by ~50px in both directions.
+  const transLen = 65;
+  const dirX = (botX - topX);
+  const dirY = (botY - topY);
+  const transLineLen = Math.hypot(dirX, dirY);
+  const dirUnitX = dirX / transLineLen;
+  const dirUnitY = dirY / transLineLen;
+  const transTopX = topX - dirUnitX * transLen;
+  const transTopY = topY - dirUnitY * transLen;
+  const transBotX = botX + dirUnitX * transLen;
+  const transBotY = botY + dirUnitY * transLen;
+
+  // ── Label positions ──────────────────────────────────────────────────────
+  // For each of the 8 angle positions, place the label in the angular wedge
+  // formed by that position. We use the shared computeAngleLabelPos helper:
+  // for each angle, the vertex is the intersection, and the two "neighbor"
+  // rays are the line direction and the transversal direction.
+  //
+  // For position decoding:
+  //   top_UL: vertex=top, neighbor1=line m going LEFT, neighbor2=transversal going UP (toward transTop)
+  //   top_UR: vertex=top, neighbor1=line m going RIGHT, neighbor2=transversal going UP
+  //   top_LL: vertex=top, neighbor1=line m going LEFT, neighbor2=transversal going DOWN (toward bot)
+  //   top_LR: vertex=top, neighbor1=line m going RIGHT, neighbor2=transversal going DOWN
+  //   bot_*:  vertex=bot, same conventions w.r.t. line n
+  const lineLeft  = (vx) => ({ x: lineExtent.x1, y: (vx === topX) ? lineY_m : lineY_n });
+  const lineRight = (vx) => ({ x: lineExtent.x2, y: (vx === topX) ? lineY_m : lineY_n });
+  const transUp   = { x: transTopX, y: transTopY };
+  const transDown = { x: transBotX, y: transBotY };
+
+  function labelPosFor(pos, text, angleDeg) {
+    const isTop = pos.startsWith('top_');
+    const vx = isTop ? topX : botX;
+    const vy = isTop ? topY : botY;
+    const isLeft  = pos.endsWith('UL') || pos.endsWith('LL');
+    const isUpper = pos.endsWith('UL') || pos.endsWith('UR');
+    const lineNeighbor = isLeft
+      ? { x: lineExtent.x1, y: vy }
+      : { x: lineExtent.x2, y: vy };
+    // For the TOP intersection: "Upper" means transversal going UP (away from bot intersection)
+    //   = transUp direction. "Lower" means transversal going DOWN = transDown direction.
+    // For the BOTTOM intersection: it's reversed in space — the "upper" side
+    //   of bot intersection is the side facing back toward top, which is the
+    //   direction (topX - botX, topY - botY). And "lower" is the direction
+    //   away from top, which is the same as transDown direction.
+    let transNeighbor;
+    if (isTop) {
+      transNeighbor = isUpper ? transUp : { x: botX, y: botY };
+    } else {
+      transNeighbor = isUpper ? { x: topX, y: topY } : transDown;
+    }
+    return computeAngleLabelPos({
+      vx, vy,
+      neighbor1: lineNeighbor,
+      neighbor2: transNeighbor,
+      angleDeg, text, fontSize: 12,
+    });
+  }
+
+  const givenText   = (d.angle_label   || `${angleVal}°`);
+  const unknownText = (d.unknown_label || 'x°');
+  const givenAngleVal   = angleVal;
+  const unknownAngleVal = computedUnknown;
+  const givenPos   = labelPosFor(d.angle_at,   givenText,   givenAngleVal);
+  const unknownPos = labelPosFor(d.unknown_at, unknownText, unknownAngleVal);
+
+  // ── Render ───────────────────────────────────────────────────────────────
+  const E = svgEscapeLabel;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:${W}px;font-family:sans-serif">`;
+  // Line m
+  svg += `<line x1="${lineExtent.x1}" y1="${lineY_m}" x2="${lineExtent.x2}" y2="${lineY_m}" stroke="#4a4640" stroke-width="2"/>`;
+  // Line n
+  svg += `<line x1="${lineExtent.x1}" y1="${lineY_n}" x2="${lineExtent.x2}" y2="${lineY_n}" stroke="#4a4640" stroke-width="2"/>`;
+  // Transversal
+  svg += `<line x1="${transTopX.toFixed(2)}" y1="${transTopY.toFixed(2)}" x2="${transBotX.toFixed(2)}" y2="${transBotY.toFixed(2)}" stroke="#4a4640" stroke-width="2"/>`;
+  // Line labels (m, n) — at right end, just above/right of the line
+  svg += `<text x="${lineExtent.x2 + 4}" y="${lineY_m + 4}" fill="#1a1814" font-size="13" font-style="italic">m</text>`;
+  svg += `<text x="${lineExtent.x2 + 4}" y="${lineY_n + 4}" fill="#1a1814" font-size="13" font-style="italic">n</text>`;
+  // Angle labels
+  svg += `<text x="${givenPos.x.toFixed(2)}" y="${givenPos.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle" dominant-baseline="central">${E(givenText)}</text>`;
+  svg += `<text x="${unknownPos.x.toFixed(2)}" y="${unknownPos.y.toFixed(2)}" fill="#1a1814" font-size="12" text-anchor="middle" dominant-baseline="central">${E(unknownText)}</text>`;
   svg += `</svg>`;
   return svg;
 }
