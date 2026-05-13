@@ -4820,10 +4820,16 @@ async function sendMessage(overrideText) {
   const msgImageDataURL = pendingImageDataURL;
   if (pendingImageBase64) clearImage();
 
+  // Control messages don't count as "questions" for stats purposes.
+  // [SAT_ACT_PRACTICE_MODE] is the one-time session-start ping when the
+  // student clicks "Practice SAT/ACT" — not a real question.
+  // [END_SESSION] and [QUIZ_RESULTS] are session-lifecycle signals.
+  // [PRACTICE_ANSWER] IS counted: it represents the student answering a
+  // problem and triggering Kay's next response — a real Kay interaction
+  // with explanation and the next problem generation, worth counting.
   const isControlMessage = text.startsWith('[END_SESSION]')
     || text.startsWith('[QUIZ_RESULTS]')
-    || text.startsWith('[SAT_ACT_PRACTICE_MODE]')
-    || text.startsWith('[PRACTICE_ANSWER]');
+    || text.startsWith('[SAT_ACT_PRACTICE_MODE]');
 
   // Ping stats counter for every real student message
   if (!isControlMessage) pingQuestion();
