@@ -218,6 +218,18 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .msg-segment-text:not(:first-child) {
   margin-top: 4px;
 }
+/* Equation forms widget — stacked rows, each labeled.
+   Previously this was a tabbed interface; we switched to stacked so both
+   STANDARD and FACTORED (and any additional forms) are visible without
+   requiring a click. Scales gracefully to 3+ forms. */
+.eq-form-row { border-top: 1px solid var(--paper-3); display: flex; align-items: stretch; }
+.eq-form-row:first-child { border-top: none; }
+.eq-form-row-label { flex: 0 0 100px; padding: 12px 14px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); background: rgba(0,0,0,0.02); border-right: 1px solid var(--paper-3); display: flex; align-items: center; font-family: var(--sans); }
+.eq-form-row-body { flex: 1; padding: 12px 14px; font-size: 13px; display: flex; align-items: center; min-height: 38px; }
+
+/* Legacy tabbed widget classes — preserved so any old cached version of the
+   page still renders reasonably during deploy transition. New responses use
+   .eq-form-row classes above. */
 .eq-forms-header { display: flex; border-bottom: 1px solid var(--paper-3); }
 .eq-form-tab { flex: 1; padding: 7px 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); background: none; border: none; border-right: 1px solid var(--paper-3); cursor: pointer; transition: all 0.15s; font-family: var(--sans); }
 .eq-form-tab:last-child { border-right: none; }
@@ -4652,25 +4664,6 @@ function renderMessages() {
       throwOnError: false,
     });
   });
-  container.querySelectorAll('.eq-forms').forEach(el => {
-    const tabs = el.querySelectorAll('.eq-form-tab');
-    const body = el.querySelector('.eq-form-body');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        body.setAttribute('data-content', tab.dataset.content);
-        body.innerHTML = tab.dataset.content;
-        renderMathInElement(body, {
-          delimiters: [
-            { left: '\\(', right: '\\)', display: false },
-            { left: '\\[', right: '\\]', display: true },
-          ],
-          throwOnError: false
-        });
-      });
-    });
-  });
   container.scrollTop = container.scrollHeight;
 }
 
@@ -4836,18 +4829,16 @@ function messageHTML(m, idx) {
 
     if (parsed.formsData) {
       const forms = parsed.formsData;
-      const formKeys = Object.keys(forms);
-      const firstKey = formKeys[0];
-      const firstVal = forms[firstKey];
-      // Wrap each equation form in \(...\) so KaTeX renders it as math.
-      // (Dollar signs are no longer math delimiters — currency only.)
-      const tabsHTML = formKeys.map((k, i) =>
-        `<button class="eq-form-tab${i===0?' active':''}" data-content="\\(${forms[k]}\\)">${k.charAt(0).toUpperCase()+k.slice(1)}</button>`
+      // Stacked rows: each form is its own labeled line. No tabs, no clicks
+      // — both forms visible at once. Wrap each form in \(...\) so KaTeX
+      // renders the math properly.
+      const rowsHTML = Object.keys(forms).map(k =>
+        `<div class="eq-form-row">
+          <div class="eq-form-row-label">${k.charAt(0).toUpperCase()+k.slice(1)}</div>
+          <div class="eq-form-row-body">\\(${forms[k]}\\)</div>
+        </div>`
       ).join('');
-      extraHTML += `<div class="eq-forms">
-        <div class="eq-forms-header">${tabsHTML}</div>
-        <div class="eq-form-body" data-content="\\(${firstVal}\\)">\\(${firstVal}\\)</div>
-      </div>`;
+      extraHTML += `<div class="eq-forms">${rowsHTML}</div>`;
     }
 
     if (parsed.achievementsData) {
