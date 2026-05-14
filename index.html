@@ -1000,6 +1000,25 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .pd-meta-value {
   font-size: 13px; color: rgba(245,240,232,0.85);
 }
+/* Concept list inside a meta cell — replaces the big number when we have
+   actual concept names to show. Custom terracotta marker matches the rest
+   of Kay's brand language. */
+.pd-concept-list {
+  list-style: none; padding: 0; margin: 0;
+  font-size: 13px; color: rgba(245,240,232,0.85);
+}
+.pd-concept-list li {
+  padding-left: 14px; position: relative;
+  line-height: 1.4; margin-bottom: 4px;
+}
+.pd-concept-list li::before {
+  content: ""; position: absolute;
+  left: 0; top: 7px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(232,128,103,0.7);  /* soft terracotta */
+}
+.pd-concept-list li:last-child { margin-bottom: 0; }
 .pd-section-label {
   font-size: 9px; font-weight: 500;
   letter-spacing: 0.14em; text-transform: uppercase;
@@ -2236,24 +2255,38 @@ function updateMasteryFromAchievement(achievementsData) {
 
   topics.forEach(topic => {
     const key = topic.toLowerCase().trim();
-    if (!data[key]) data[key] = { label: topic, sessions: 0, masteredCount: 0, reviewCount: 0, pct: 20 };
-    else data[key].label = topic;
+    if (!data[key]) data[key] = { label: topic, sessions: 0, masteredCount: 0, reviewCount: 0, masteredConcepts: [], reviewConcepts: [], pct: 20 };
+    else {
+      data[key].label = topic;
+      // Migration: ensure concept-name arrays exist on older records
+      if (!Array.isArray(data[key].masteredConcepts)) data[key].masteredConcepts = [];
+      if (!Array.isArray(data[key].reviewConcepts))   data[key].reviewConcepts   = [];
+    }
     data[key].sessions += 1;
   });
 
   mastered.forEach(concept => {
     const matchKey = findBestTopicMatch(concept, data);
     if (matchKey) {
-      data[matchKey].masteredCount += 1;
-      data[matchKey].pct = Math.min(100, data[matchKey].pct + 18);
+      const arr = data[matchKey].masteredConcepts || (data[matchKey].masteredConcepts = []);
+      // Dedupe case-insensitively — a concept mastered in 3 sessions still counts once
+      if (!arr.some(c => c.toLowerCase() === concept.toLowerCase())) {
+        arr.push(concept);
+        data[matchKey].masteredCount = arr.length;
+        data[matchKey].pct = Math.min(100, data[matchKey].pct + 18);
+      }
     }
   });
 
   review.forEach(concept => {
     const matchKey = findBestTopicMatch(concept, data);
     if (matchKey) {
-      data[matchKey].reviewCount += 1;
-      data[matchKey].pct = Math.max(10, data[matchKey].pct - 8);
+      const arr = data[matchKey].reviewConcepts || (data[matchKey].reviewConcepts = []);
+      if (!arr.some(c => c.toLowerCase() === concept.toLowerCase())) {
+        arr.push(concept);
+        data[matchKey].reviewCount = arr.length;
+        data[matchKey].pct = Math.max(10, data[matchKey].pct - 8);
+      }
     }
   });
 
@@ -2269,7 +2302,7 @@ function findBestTopicMatch(concept, data) {
     if (c.includes(key) || key.includes(c.split(' ')[0])) return key;
   }
   const newKey = c.trim();
-  data[newKey] = { label: concept, sessions: 1, masteredCount: 1, reviewCount: 0, pct: 30 };
+  data[newKey] = { label: concept, sessions: 1, masteredCount: 1, reviewCount: 0, masteredConcepts: [concept], reviewConcepts: [], pct: 30 };
   return newKey;
 }
 
@@ -2487,6 +2520,17 @@ function openProgressDetail(kind, topicKey) {
       else if (pct >= 40) note = 'Solid foundation forming. Keep returning to this topic to push toward mastery.';
       else                note = 'Early days here — more sessions on this topic will deepen understanding.';
 
+      // Show concept names if we have them; fall back to the bare count for
+      // legacy data (users who used Kay before we started storing names).
+      const masteredArr = Array.isArray(t.masteredConcepts) ? t.masteredConcepts : [];
+      const reviewArr   = Array.isArray(t.reviewConcepts)   ? t.reviewConcepts   : [];
+      const masteredCell = masteredArr.length > 0
+        ? '<ul class="pd-concept-list">' + masteredArr.map(c => '<li>' + escapeHTML(c) + '</li>').join('') + '</ul>'
+        : '<div class="pd-meta-value">' + (t.masteredCount || 0) + '</div>';
+      const reviewCell = reviewArr.length > 0
+        ? '<ul class="pd-concept-list">' + reviewArr.map(c => '<li>' + escapeHTML(c) + '</li>').join('') + '</ul>'
+        : '<div class="pd-meta-value">' + (t.reviewCount || 0) + '</div>';
+
       html =
         '<div class="pd-title">' + escapeHTML(t.label || decoded) + '</div>' +
         '<div class="pd-kind">Concept Mastery</div>' +
@@ -2497,8 +2541,8 @@ function openProgressDetail(kind, topicKey) {
           '<div class="pd-accuracy-label">' + pct + '% progress</div>' +
         '</div>' +
         '<div class="pd-meta-grid">' +
-          '<div class="pd-meta-cell"><div class="pd-meta-label">Concepts understood</div><div class="pd-meta-value">' + (t.masteredCount || 0) + '</div></div>' +
-          '<div class="pd-meta-cell"><div class="pd-meta-label">Worth revisiting</div><div class="pd-meta-value">' + (t.reviewCount || 0) + '</div></div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Concepts understood</div>' + masteredCell + '</div>' +
+          '<div class="pd-meta-cell"><div class="pd-meta-label">Worth revisiting</div>' + reviewCell + '</div>' +
         '</div>' +
         '<div class="pd-note">' + note + '</div>';
     }
