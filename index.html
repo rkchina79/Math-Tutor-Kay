@@ -2934,30 +2934,72 @@ let quizAnswers = {};
 
 function renderQuizBlock(quizData, msgIdx) {
   const questions = quizData.questions || [];
+  // Read prior state so completed quizzes survive re-renders. Without this,
+  // each renderMessages() call rebuilds the quiz card with fresh "0 / N
+  // answered" text and no answered-state styling, even though quizAnswers
+  // still holds the data. This was the "quiz shows 0/3 after I finished"
+  // bug a student reported.
+  const prior = quizAnswers[msgIdx] || {};
+  const answeredKeys = Object.keys(prior).filter(k => !k.startsWith('_'));
+  const isFullyAnswered = answeredKeys.length === questions.length;
+
   const qHtml = questions.map((q, qi) => {
     const letters = ['A','B','C','D'];
-    const optHtml = q.options.map((opt, oi) =>
-      `<button class="quiz-option" id="qopt-${msgIdx}-${qi}-${oi}"
+    const finalAnswer = prior[qi];      // undefined if not yet finalized
+    const wasAnswered = finalAnswer !== undefined;
+    const wasCorrect = wasAnswered && finalAnswer === q.correct;
+
+    const optHtml = q.options.map((opt, oi) => {
+      // Compute classes/disabled attribute for this option based on prior state.
+      let extraClass = '';
+      let disabledAttr = '';
+      if (wasAnswered) {
+        disabledAttr = 'disabled';
+        if (oi === q.correct)         extraClass = wasCorrect ? ' correct' : ' reveal';
+        else if (oi === finalAnswer)  extraClass = ' incorrect';
+      }
+      return `<button class="quiz-option${extraClass}" id="qopt-${msgIdx}-${qi}-${oi}"
         onclick="handleQuizAnswer(${msgIdx}, ${qi}, ${oi}, ${q.correct})"
-        data-qi="${qi}" data-oi="${oi}">
+        data-qi="${qi}" data-oi="${oi}" ${disabledAttr}>
         <span class="quiz-option-letter">${letters[oi]}</span>
         <span>${opt}</span>
-      </button>`
-    ).join('');
+      </button>`;
+    }).join('');
+
+    // Rebuild the feedback box if this question was answered.
+    let feedbackHTML = '';
+    if (wasAnswered) {
+      const prefix = wasCorrect ? '✓ ' : '✗ ';
+      // Use escapeHTML on the explanation so any HTML chars are safe; KaTeX
+      // will re-run on this content during the post-render pass in renderMessages.
+      feedbackHTML = `${prefix}<span>${escapeHTML(q.explanation || '')}</span>`;
+    }
+    const feedbackClass = wasAnswered
+      ? `quiz-feedback ${wasCorrect ? 'correct' : 'incorrect'}`
+      : 'quiz-feedback';
+
     return `<div class="quiz-question" id="qq-${msgIdx}-${qi}">
       <div class="quiz-question-text">${qi+1}. ${q.q}</div>
       <div class="quiz-options">${optHtml}</div>
-      <div class="quiz-feedback" id="qfeedback-${msgIdx}-${qi}"></div>
+      <div class="${feedbackClass}" id="qfeedback-${msgIdx}-${qi}">${feedbackHTML}</div>
     </div>`;
   }).join('');
+
+  // Progress text and final-score row both restored from prior state.
+  const progressText = `${answeredKeys.length} / ${questions.length} answered`;
+  let scoreRowHTML = '';
+  if (isFullyAnswered) {
+    const correctCount = answeredKeys.filter(k => prior[k] === questions[parseInt(k)].correct).length;
+    scoreRowHTML = `<div class="quiz-score-final">Final score: ${correctCount} / ${questions.length}</div>`;
+  }
 
   return `<div class="quiz-card" id="quiz-${msgIdx}">
     <div class="quiz-header">
       <span class="quiz-header-label">✦ Quick Check</span>
-      <span class="quiz-progress" id="quiz-progress-${msgIdx}">0 / ${questions.length} answered</span>
+      <span class="quiz-progress" id="quiz-progress-${msgIdx}">${progressText}</span>
     </div>
     <div class="quiz-questions">${qHtml}</div>
-    <div class="quiz-score-row" id="quiz-score-${msgIdx}"></div>
+    <div class="quiz-score-row" id="quiz-score-${msgIdx}">${scoreRowHTML}</div>
   </div>`;
 }
 
@@ -4688,20 +4730,6 @@ function classifyMessage(text, msgIdx) {
     if (affirmPatterns.some(p => p.test(opening))) return 'affirmation';
   }
 
-  // Question badge
-  const hasQuestion = text.includes('?');
-  const questionPhrases = [
-    /what (do|did|does|is|are|would|can|could)/i,
-    /how (do|did|does|would|can|could|might)/i,
-    /can you (tell|show|explain|think|see|try)/i,
-    /do you (know|think|see|understand|remember)/i,
-    /why (do|did|does|is|would)/i,
-    /where (do|did|does|is|are)/i,
-    /which (of|one|step|approach)/i,
-    /have you (tried|thought|considered)/i,
-  ];
-  if (hasQuestion || questionPhrases.some(p => p.test(text))) return 'question';
-
   return 'statement';
 }
 
@@ -4737,12 +4765,7 @@ function messageHTML(m, idx) {
     if (parsed.practiceData) m._practiceData = parsed.practiceData;
 
     const msgType = classifyMessage(parsed.cleanText, idx);
-    if (msgType === 'question') {
-      extraHTML = `<span class="msg-type-badge badge-question">
-        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Question
-      </span>`;
-    } else if (msgType === 'affirmation') {
+    if (msgType === 'affirmation') {
       extraHTML = `<span class="msg-type-badge badge-affirmation">
         <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Correct
@@ -5372,7 +5395,17 @@ function saveCurrentSession() {
     title = 'Untitled';
   }
   const idx = sessions.findIndex(s => s.id === currentSessionId);
-  const obj = { id: currentSessionId, title, messages: [...messages] };
+  // Bundle answer state with the session so quiz/practice progress survives
+  // a page reload OR re-opening this session later from the sidebar. Without
+  // this, students see "0 / 3 answered" on a previously-completed quiz when
+  // they come back to it.
+  const obj = {
+    id: currentSessionId,
+    title,
+    messages: [...messages],
+    quizAnswers: JSON.parse(JSON.stringify(quizAnswers)),
+    practiceAnswers: JSON.parse(JSON.stringify(practiceAnswers)),
+  };
   if (idx >= 0) sessions[idx] = obj; else sessions.unshift(obj);
   if (sessions.length > 20) sessions = sessions.slice(0, 20);
   localStorage.setItem('kay_sessions', JSON.stringify(sessions));
@@ -5381,7 +5414,10 @@ function loadSession(id) {
   if (currentSessionId && messages.length > 0) saveCurrentSession();
   const s = sessions.find(s => s.id === id); if (!s) return;
   currentSessionId = id; messages = [...s.messages];
-  quizAnswers = {}; practiceAnswers = {};
+  // Restore answer state if this session has it (sessions saved before this
+  // feature shipped won't have these fields — default to empty objects).
+  quizAnswers     = s.quizAnswers     ? JSON.parse(JSON.stringify(s.quizAnswers))     : {};
+  practiceAnswers = s.practiceAnswers ? JSON.parse(JSON.stringify(s.practiceAnswers)) : {};
   renderMessages(); renderSessions();
   // Set topic-label cleanly — practice sessions get a friendly label instead
   // of the raw [SAT_ACT_PRACTICE_MODE] marker
