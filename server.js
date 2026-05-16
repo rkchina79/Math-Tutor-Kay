@@ -1,3 +1,11 @@
+/**
+ * Tutor Kay — AI-powered math tutoring
+ * Copyright © 2026 Radhika Kolachina. All rights reserved.
+ *
+ * This source code is published for transparency but is not licensed
+ * for reuse, modification, or distribution without written permission.
+ */
+
 const express = require('express');
 const cors = require('cors');
 const { Redis } = require('@upstash/redis');
