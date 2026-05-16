@@ -2265,12 +2265,17 @@ function updateMasteryFromAchievement(achievementsData) {
   const data = loadMasteryData();
   const { topics = [], mastered = [], review = [] } = achievementsData;
 
+  // Track which topic keys came from THIS achievement block — these are the
+  // candidates for attribution of concepts in this block. Without this,
+  // concepts get matched against ALL historical topics (or none) and end
+  // up creating phantom topic entries keyed by the concept itself.
+  const blockTopicKeys = [];
   topics.forEach(topic => {
     const key = topic.toLowerCase().trim();
+    blockTopicKeys.push(key);
     if (!data[key]) data[key] = { label: topic, sessions: 0, masteredCount: 0, reviewCount: 0, masteredConcepts: [], reviewConcepts: [], pct: 20 };
     else {
       data[key].label = topic;
-      // Migration: ensure concept-name arrays exist on older records
       if (!Array.isArray(data[key].masteredConcepts)) data[key].masteredConcepts = [];
       if (!Array.isArray(data[key].reviewConcepts))   data[key].reviewConcepts   = [];
     }
@@ -2278,10 +2283,9 @@ function updateMasteryFromAchievement(achievementsData) {
   });
 
   mastered.forEach(concept => {
-    const matchKey = findBestTopicMatch(concept, data);
+    const matchKey = findBestTopicMatch(concept, data, blockTopicKeys);
     if (matchKey) {
       const arr = data[matchKey].masteredConcepts || (data[matchKey].masteredConcepts = []);
-      // Dedupe case-insensitively — a concept mastered in 3 sessions still counts once
       if (!arr.some(c => c.toLowerCase() === concept.toLowerCase())) {
         arr.push(concept);
         data[matchKey].masteredCount = arr.length;
@@ -2291,7 +2295,7 @@ function updateMasteryFromAchievement(achievementsData) {
   });
 
   review.forEach(concept => {
-    const matchKey = findBestTopicMatch(concept, data);
+    const matchKey = findBestTopicMatch(concept, data, blockTopicKeys);
     if (matchKey) {
       const arr = data[matchKey].reviewConcepts || (data[matchKey].reviewConcepts = []);
       if (!arr.some(c => c.toLowerCase() === concept.toLowerCase())) {
@@ -2306,13 +2310,41 @@ function updateMasteryFromAchievement(achievementsData) {
   renderSidebarMastery();
 }
 
-function findBestTopicMatch(concept, data) {
+function findBestTopicMatch(concept, data, blockTopicKeys) {
   const c = concept.toLowerCase();
+  // (1) Exact match on the concept name itself (rare, but cheap to check)
   if (data[c]) return c;
+
+  // (2) PREFERRED PATH: attribute to a topic from the SAME achievement block.
+  // The learning-summary block lists topics first, then concepts within those
+  // topics — so concepts in this block belong to one of these topics. If
+  // there's exactly one block topic, the answer is unambiguous. If there are
+  // multiple, try to pick the best match by word overlap; otherwise default
+  // to the first topic (better than creating a phantom entry).
+  if (blockTopicKeys && blockTopicKeys.length > 0) {
+    if (blockTopicKeys.length === 1) return blockTopicKeys[0];
+    // Multiple topics: pick the one with the most word overlap with the concept
+    const conceptWords = new Set(c.split(/\s+/).filter(w => w.length > 3));
+    let best = blockTopicKeys[0], bestScore = -1;
+    for (const key of blockTopicKeys) {
+      const keyWords = key.split(/\s+/);
+      let score = 0;
+      for (const kw of keyWords) if (conceptWords.has(kw)) score++;
+      if (score > bestScore) { bestScore = score; best = key; }
+    }
+    return best;
+  }
+
+  // (3) Legacy fallback: word-overlap match against all known topics.
+  // Only fires for concepts coming from older code paths that don't pass
+  // blockTopicKeys. Preserves prior behavior for those callers.
   const keys = Object.keys(data);
   for (const key of keys) {
     if (c.includes(key) || key.includes(c.split(' ')[0])) return key;
   }
+
+  // (4) Last resort: create a new topic keyed by the concept itself.
+  // Should rarely fire now that (2) is in place.
   const newKey = c.trim();
   data[newKey] = { label: concept, sessions: 1, masteredCount: 1, reviewCount: 0, masteredConcepts: [concept], reviewConcepts: [], pct: 30 };
   return newKey;
