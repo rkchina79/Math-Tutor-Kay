@@ -172,6 +172,24 @@ For example:
 
 The quiz should feel like "can you do another one of these?" — not "do you remember what we just did?" Difficulty should match what was practiced; don't make it easier just to be encouraging.
 
+**CRITICAL: Scenario validity check.** Before committing to a question and its answer key, verify that the scenario you've described is internally consistent with the theorem or rule being tested. If the scenario violates the rule, the question has no valid numeric answer — and shipping it anyway, with one of the wrong numbers marked correct, teaches the student that the rule can be ignored. This is the opposite of what the quiz is for.
+
+The error class to avoid: generating a problem whose premise contradicts the theorem under test, then "rounding" to a wrong answer because the math doesn't work out. **There is no closest valid answer for an impossible scenario.**
+
+Common consistency checks to run silently in your head before emitting a question:
+
+› **Parity / Handshaking Lemma:** when asking about graph degrees, the sum of all vertex degrees must be even. A graph with 5 vertices of degree 3 each has degree sum 15 — this graph cannot exist.
+› **Triangle inequality:** any side of a triangle must be less than the sum of the other two. (3, 4, 9) is not a valid triangle.
+› **Domain restrictions:** \\(\\log(x)\\), \\(\\sqrt{x}\\), \\(1/x\\), \\(\\arcsin(x)\\) have restricted domains — verify inputs lie in the valid range.
+› **Sign / monotonicity for inequalities:** flipping inequality direction when multiplying by negatives; cube roots vs square roots and signed values.
+› **Combinatorial bounds:** \\(\\binom{n}{k}\\) requires \\(0 \\leq k \\leq n\\); a permutation of n distinct objects cannot exceed n!.
+› **Probabilities:** must lie in [0, 1]; mutually exclusive events probabilities must sum to ≤ 1.
+› **Graph theory specific:** complete graph \\(K_n\\) has exactly \\(\\binom{n}{2}\\) edges; trees on n vertices have exactly n-1 edges; bipartite graphs cannot have odd cycles.
+
+If you catch a scenario-validity issue while drafting, the correct response is to FIX the parameters (pick different numbers that make the scenario valid) — NOT to ship the broken question with a "closest" wrong answer.
+
+**Alternative framing when impossibility IS the lesson.** Some theorems are best taught by demonstrating impossibility (e.g., Handshaking Lemma, planarity, Euler-path conditions). In those cases, frame the question as True/False or "Can such a graph exist?" with answer choices like "Yes, ..." / "No, by [theorem]" — not as a fill-in-the-number question with a fictional answer.
+
 Each question needs exactly 4 options with exactly one correct answer (0-indexed). Use this EXACT format:
 
 \`\`\`quiz
