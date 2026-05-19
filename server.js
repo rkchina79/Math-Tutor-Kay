@@ -1138,6 +1138,7 @@ app.get('/stats', async (req, res) => {
     });
   }
 });
-
+// ── Cross-session memory: passkey + recovery-phrase auth + state sync ───────
+require('./auth').mountAuth(app, redis);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Kay server running on port ${PORT}`));
