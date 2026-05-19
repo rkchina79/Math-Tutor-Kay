@@ -5102,9 +5102,10 @@ function addTypingIndicator() {
 }
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
-// ── API ──────────────────────────────────────────────────────────────────────
-// BACKEND_URL points at the production Render service hosting Kay's API.
-const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
+// — API ————————————————————————————————————————————————
+// BACKEND_URL points at the staging Render service for the cross-session-memory work.
+// Before merging to main, change this back to https://math-tutor-kay.onrender.com
+const BACKEND_URL = 'https://math-tutor-kay-staging.onrender.com';
 
 async function callKay() {
   // Build API messages — convert any with images to multimodal content blocks
