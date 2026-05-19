@@ -5719,6 +5719,236 @@ renderSidebarPracticeStats();
 fetchStats();
 setInterval(fetchStats, 60000); // refresh stats every 60s
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: passkey + recovery-phrase auth (Phase 3a) ──────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 3a adds the foundation: bearer-token storage, an authenticated fetch
+// wrapper, the WebAuthn registration ceremony, and the two modals. Nothing is
+// triggered automatically yet — phase 3b wires the opt-in trigger.
+//
+// Testing in devtools:
+//   kayAuth.register()         — run the full enrollment flow
+//   kayAuth.isAuthenticated()  — true once a session token is stored
+//   kayAuth.getPseudonym()     — returns the current pseudonym
+//   openEnrollmentPrompt()     — manually open the prompt (without trigger)
+//
+// All auth state lives in localStorage under keys prefixed with `kay_auth_`.
+// Clear it with `kayAuth.clearToken()` to reset for testing.
+
+const KAY_AUTH_TOKEN_KEY     = 'kay_auth_token';
+const KAY_AUTH_PSEUDONYM_KEY = 'kay_auth_pseudonym';
+
+// kayAuth namespace — entry points exposed on window so they're callable from
+// the browser console and from inline event handlers on the modal buttons.
+window.kayAuth = (function () {
+
+  function getToken()     { try { return localStorage.getItem(KAY_AUTH_TOKEN_KEY); } catch (e) { return null; } }
+  function setToken(t)    { try { localStorage.setItem(KAY_AUTH_TOKEN_KEY, t); } catch (e) {} }
+  function getPseudonym() { try { return localStorage.getItem(KAY_AUTH_PSEUDONYM_KEY); } catch (e) { return null; } }
+  function setPseudonym(p){ try { localStorage.setItem(KAY_AUTH_PSEUDONYM_KEY, p); } catch (e) {} }
+  function clearToken() {
+    try {
+      localStorage.removeItem(KAY_AUTH_TOKEN_KEY);
+      localStorage.removeItem(KAY_AUTH_PSEUDONYM_KEY);
+    } catch (e) {}
+  }
+  function isAuthenticated() { return !!getToken(); }
+
+  // Authenticated fetch wrapper. Adds Authorization: Bearer <token> when we
+  // have one, falls through to a plain fetch otherwise so unauthenticated
+  // routes (like /auth/passkey/register/options) still work.
+  //
+  // If the server responds with 401 we clear local auth state immediately —
+  // the token must have expired or been revoked, so any further use of it is
+  // pointless and the UI should revert to the unauthenticated path.
+  async function kayFetch(path, options = {}) {
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    const token = getToken();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(BACKEND_URL + path, Object.assign({}, options, { headers }));
+    if (res.status === 401) clearToken();
+    return res;
+  }
+
+  // ── Registration ceremony ────────────────────────────────────────────────
+  // Three-step: server hands us options + a nonce, browser does the WebAuthn
+  // credential creation (this triggers the OS passkey prompt), we post the
+  // credential back with the nonce. On success the server returns the session
+  // token AND the one-time recovery phrase (we'll only ever see it now).
+  async function register() {
+    if (typeof SimpleWebAuthnBrowser === 'undefined') {
+      throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+    }
+    if (!SimpleWebAuthnBrowser.browserSupportsWebAuthn ||
+        !SimpleWebAuthnBrowser.browserSupportsWebAuthn()) {
+      throw new Error('Your browser doesn\'t support passkeys. Try a recent Chrome, Safari, Edge, or Firefox.');
+    }
+
+    // Step 1 — options
+    const optsRes = await kayFetch('/auth/passkey/register/options', { method: 'POST', body: '{}' });
+    if (!optsRes.ok) {
+      const err = await optsRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not start enrollment (server error ' + optsRes.status + ').');
+    }
+    const { nonce, pseudonym, options } = await optsRes.json();
+
+    // Step 2 — browser ceremony (OS passkey prompt)
+    let registrationResponse;
+    try {
+      registrationResponse = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options });
+    } catch (err) {
+      // InvalidStateError means a passkey already exists for this RP on this
+      // authenticator. The most useful next step for the user is to sign in,
+      // not to retry registration — that's a phase 3c hook.
+      if (err && err.name === 'InvalidStateError') {
+        throw new Error('A passkey already exists for Tutor Kay on this device. Try signing in instead.');
+      }
+      // NotAllowedError covers both an explicit user cancel and a timeout.
+      // Treating both as "cancelled" is the friendliest framing.
+      if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+        throw new Error('Passkey setup was cancelled.');
+      }
+      throw new Error(err && err.message ? err.message : 'Passkey setup failed.');
+    }
+
+    // Step 3 — verify (server records credential, issues session, returns phrase)
+    const verifyRes = await kayFetch('/auth/passkey/register/verify', {
+      method: 'POST',
+      body: JSON.stringify({ nonce, registrationResponse }),
+    });
+    if (!verifyRes.ok) {
+      const err = await verifyRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not finish enrollment (server error ' + verifyRes.status + ').');
+    }
+    const result = await verifyRes.json();
+
+    setToken(result.sessionToken);
+    setPseudonym(result.pseudonym);
+    return result;  // { pseudonym, sessionToken, recoveryPhrase }
+  }
+
+  return { register, getToken, getPseudonym, isAuthenticated, clearToken, kayFetch };
+})();
+
+// ── Enrollment prompt modal ──────────────────────────────────────────────────
+// Phase 3a exposes openEnrollmentPrompt() for testing; phase 3b adds the
+// automatic trigger from the first kay_mastery or kay_practice_stats write.
+function openEnrollmentPrompt() {
+  // Defensive reset — restore button state in case a previous attempt failed
+  const btn = document.getElementById('enroll-confirm-btn');
+  const cancelBtn = document.getElementById('enroll-cancel-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Yes, set it up'; }
+  if (cancelBtn) cancelBtn.disabled = false;
+  document.getElementById('enroll-overlay').classList.add('open');
+}
+function closeEnrollmentPrompt() {
+  document.getElementById('enroll-overlay').classList.remove('open');
+}
+
+// Click handler for the "Yes, set it up" button. Runs the register ceremony,
+// surfaces errors via showAlert, on success closes this modal and opens the
+// recovery-phrase display modal.
+async function handleEnrollClick() {
+  const btn = document.getElementById('enroll-confirm-btn');
+  const cancelBtn = document.getElementById('enroll-cancel-btn');
+  btn.disabled = true; cancelBtn.disabled = true;
+  btn.textContent = 'Setting up…';
+
+  try {
+    const result = await kayAuth.register();
+    closeEnrollmentPrompt();
+    openPhraseModal(result.recoveryPhrase, result.pseudonym);
+  } catch (err) {
+    showAlert(err.message, 'error', 6000);
+    btn.disabled = false; cancelBtn.disabled = false;
+    btn.textContent = 'Yes, set it up';
+  }
+}
+
+// ── Recovery phrase display modal ────────────────────────────────────────────
+// One-time display. User must check the "I've saved this" checkbox before the
+// close button enables — outside-clicks and Escape are blocked while locked.
+let phraseModalLockedClose = true;
+
+function openPhraseModal(phrase, pseudonym) {
+  const phraseEl     = document.getElementById('phrase-words');
+  const pseudonymEl  = document.getElementById('phrase-pseudonym');
+  const confirmCheck = document.getElementById('phrase-confirm-check');
+  const closeBtn     = document.getElementById('phrase-close-btn');
+
+  phraseEl.textContent = phrase;
+  phraseEl.dataset.phrase = phrase;  // stored on the DOM so copy/download work
+  pseudonymEl.textContent = pseudonym;
+  confirmCheck.checked = false;
+  phraseModalLockedClose = true;
+  closeBtn.disabled = true;
+  closeBtn.textContent = 'Confirm checkbox to close';
+
+  document.getElementById('phrase-overlay').classList.add('open');
+}
+
+function closePhraseModal() {
+  if (phraseModalLockedClose) return;
+  document.getElementById('phrase-overlay').classList.remove('open');
+}
+
+function handlePhraseConfirmCheck(cb) {
+  phraseModalLockedClose = !cb.checked;
+  const closeBtn = document.getElementById('phrase-close-btn');
+  closeBtn.disabled = !cb.checked;
+  closeBtn.textContent = cb.checked ? 'Done' : 'Confirm checkbox to close';
+}
+
+function copyPhrase() {
+  const phrase = document.getElementById('phrase-words').dataset.phrase;
+  if (!phrase) return;
+  navigator.clipboard.writeText(phrase).then(() => {
+    const btn = document.getElementById('phrase-copy-btn');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(() => { btn.innerHTML = original; }, 1800);
+  }).catch(() => {
+    showAlert('Could not copy automatically — please select the words and copy manually.', 'error', 4000);
+  });
+}
+
+function downloadPhrase() {
+  const phrase    = document.getElementById('phrase-words').dataset.phrase;
+  const pseudonym = document.getElementById('phrase-pseudonym').textContent;
+  if (!phrase) return;
+  const contents = [
+    'Tutor Kay — recovery phrase',
+    '',
+    'Account: ' + pseudonym,
+    '',
+    'Recovery phrase:',
+    phrase,
+    '',
+    '— Keep this safe. Anyone with this phrase can access your progress.',
+    '— Use it on a new device by choosing "I have a phrase from another device".',
+    '— Tutor Kay cannot show you this phrase again.',
+  ].join('\n');
+  const blob = new Blob([contents], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'tutor-kay-recovery-' + pseudonym + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// Escape closes enrollment, and closes phrase modal only when not locked.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('enroll-overlay').classList.contains('open')) {
+    closeEnrollmentPrompt();
+  }
+  if (document.getElementById('phrase-overlay').classList.contains('open')) {
+    closePhraseModal();  // no-op while locked
+  }
+});
 </script>
 <!-- ─────────────────────────────────────────────────────────────────────── -->
 <!-- ── Cross-session memory: auth modals (Phase 3a) ──────────────────────── -->
