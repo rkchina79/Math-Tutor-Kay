@@ -5949,6 +5949,189 @@ document.addEventListener('keydown', (e) => {
     closePhraseModal();  // no-op while locked
   }
 });
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: opt-in trigger + state sync (Phase 3b) ─────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Wires up:
+//   1. Auto-open enrollment prompt when user's progress is "worth saving"
+//      (first time kay_mastery or kay_practice_stats has any real entry, and
+//      they haven't dismissed it already)
+//   2. Once authenticated, every mastery/practice save also POSTs to /state
+//      (debounced 800 ms so rapid sequential writes coalesce into one request)
+//   3. On page load with a valid session, GET /state and hydrate local state
+//      from the server (server-wins-on-hydrate)
+//   4. Swap the sidebar privacy message between the anonymous + authenticated
+//      tiers based on current auth state.
+//
+// Testing helpers in devtools:
+//   localStorage.removeItem('kay_auth_enroll_dismissed')  // reset dismissal
+//   kayHydrateFromServer()      // manually pull state from server
+//   kaySyncStateToServer()      // manually push state to server (debounced)
+
+const KAY_AUTH_ENROLL_DISMISSED_KEY = 'kay_auth_enroll_dismissed';
+
+// True iff there's any mastery or practice data worth offering to sync.
+function kayHasMeaningfulProgress() {
+  try {
+    const mastery = JSON.parse(localStorage.getItem('kay_mastery') || '{}');
+    if (mastery && typeof mastery === 'object' && Object.keys(mastery).length > 0) return true;
+  } catch (e) {}
+  try {
+    const practice = JSON.parse(localStorage.getItem('kay_practice_stats') || '{}');
+    if (practice && typeof practice === 'object' && Object.keys(practice).length > 0) return true;
+  } catch (e) {}
+  return false;
+}
+
+// True iff we should auto-open the enrollment prompt right now.
+function kayShouldPromptEnrollment() {
+  if (kayAuth.isAuthenticated()) return false;
+  try {
+    if (localStorage.getItem(KAY_AUTH_ENROLL_DISMISSED_KEY) === 'true') return false;
+  } catch (e) {}
+  return true;
+}
+
+// Wrap closeEnrollmentPrompt so a "Not now" click remembers the dismissal —
+// don't want to keep nagging in this browser. (Phase 3c "Account" UI can
+// offer a "set up sync" button to bring this prompt back.)
+(function () {
+  const original = window.closeEnrollmentPrompt;
+  window.closeEnrollmentPrompt = function () {
+    if (!kayAuth.isAuthenticated()) {
+      try { localStorage.setItem(KAY_AUTH_ENROLL_DISMISSED_KEY, 'true'); } catch (e) {}
+    }
+    return original.apply(this, arguments);
+  };
+})();
+
+// Debounced POST /state. saveMasteryData() and savePracticeStats() can fire
+// several times in one user action (e.g. unlocking an achievement updates
+// multiple keys); the debounce coalesces those into a single HTTP request.
+let _kayStateSyncTimer = null;
+function kaySyncStateToServer() {
+  if (!kayAuth.isAuthenticated()) return;
+  clearTimeout(_kayStateSyncTimer);
+  _kayStateSyncTimer = setTimeout(async () => {
+    try {
+      let mastery = {}, practiceStats = {}, sessions = [];
+      try { mastery = JSON.parse(localStorage.getItem('kay_mastery') || '{}') || {}; } catch (e) {}
+      try { practiceStats = JSON.parse(localStorage.getItem('kay_practice_stats') || '{}') || {}; } catch (e) {}
+      try { sessions = JSON.parse(localStorage.getItem('kay_sessions') || '[]') || []; } catch (e) {}
+
+      // Strip chat content — only session metadata gets synced. This preserves
+      // Kay's "we don't store your conversations" guarantee.
+      const sessionMeta = (Array.isArray(sessions) ? sessions : []).map(s => ({
+        id:        String((s && s.id) ? s.id : ''),
+        title:     String((s && s.title) ? s.title : ''),
+        createdAt: Number((s && s.createdAt) ? s.createdAt : 0),
+        updatedAt: Number((s && s.updatedAt) ? s.updatedAt : 0),
+      })).filter(s => s.id);
+
+      const res = await kayAuth.kayFetch('/state', {
+        method: 'POST',
+        body: JSON.stringify({ state: { mastery, practiceStats, sessions: sessionMeta } }),
+      });
+      if (!res.ok) console.warn('state sync failed:', res.status);
+    } catch (err) {
+      console.warn('state sync error:', err);
+    }
+  }, 800);
+}
+
+// GET /state and merge server state into localStorage. Called on page load
+// when authenticated.
+async function kayHydrateFromServer() {
+  if (!kayAuth.isAuthenticated()) return;
+  try {
+    const res = await kayAuth.kayFetch('/state', { method: 'GET' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const serverState = (data && data.state) ? data.state : {};
+
+    // Server-wins merge: if server has mastery/practice data, use it. If
+    // server is empty but local has data, keep local (next save will push it).
+    if (serverState.mastery && typeof serverState.mastery === 'object' &&
+        Object.keys(serverState.mastery).length > 0) {
+      localStorage.setItem('kay_mastery', JSON.stringify(serverState.mastery));
+    }
+    if (serverState.practiceStats && typeof serverState.practiceStats === 'object' &&
+        Object.keys(serverState.practiceStats).length > 0) {
+      localStorage.setItem('kay_practice_stats', JSON.stringify(serverState.practiceStats));
+    }
+    // Note: server stores session metadata (id, title, timestamps) but not
+    // chat content, so we don't hydrate kay_sessions — there's nothing to
+    // populate the message arrays with. Phase 3c can show a "your sessions
+    // on other devices" listing if useful.
+
+    // Re-render sidebar so the new mastery/practice data shows up
+    if (typeof renderSidebarMastery === 'function') {
+      try { renderSidebarMastery(); } catch (e) { console.warn(e); }
+    }
+    if (typeof renderSidebarPracticeStats === 'function') {
+      try { renderSidebarPracticeStats(); } catch (e) { console.warn(e); }
+    }
+  } catch (err) {
+    console.warn('hydrate error:', err);
+  }
+}
+
+// Monkey-patch saveMasteryData + savePracticeStats. Every write triggers:
+//   - opt-in check (if not authenticated and progress is worth saving)
+//   - server sync (if authenticated, debounced)
+(function () {
+  if (typeof window.saveMasteryData === 'function') {
+    const original = window.saveMasteryData;
+    window.saveMasteryData = function () {
+      const result = original.apply(this, arguments);
+      if (kayShouldPromptEnrollment() && kayHasMeaningfulProgress()) {
+        setTimeout(() => openEnrollmentPrompt(), 400);
+      }
+      kaySyncStateToServer();
+      return result;
+    };
+  }
+  if (typeof window.savePracticeStats === 'function') {
+    const original = window.savePracticeStats;
+    window.savePracticeStats = function () {
+      const result = original.apply(this, arguments);
+      if (kayShouldPromptEnrollment() && kayHasMeaningfulProgress()) {
+        setTimeout(() => openEnrollmentPrompt(), 400);
+      }
+      kaySyncStateToServer();
+      return result;
+    };
+  }
+})();
+
+// Swap the sidebar privacy message between the two tiers based on auth state.
+function kayUpdatePrivacyMessage() {
+  const el = document.querySelector('.sidebar-mastery-privacy');
+  if (!el) return;
+  if (kayAuth.isAuthenticated()) {
+    el.textContent = '🔒 Synced across your devices. No name, email, or identifying info — just a random nickname and a key only you hold.';
+  } else {
+    el.textContent = '🔒 Anonymous by default. Progress lives only on this device.';
+  }
+}
+
+// Hook kayAuth.register so newly-authenticated users get an immediate privacy-
+// message update and an immediate push of any existing local state.
+(function () {
+  const original = kayAuth.register;
+  kayAuth.register = async function () {
+    const result = await original.apply(this, arguments);
+    kayUpdatePrivacyMessage();
+    setTimeout(kaySyncStateToServer, 100);  // one-shot post-register sync
+    return result;
+  };
+})();
+
+// Initial setup — fires as soon as this script block parses. DOM is fully
+// built by now since we're at the end of <body>, so .sidebar-mastery-privacy
+// definitely exists if it's going to.
+kayUpdatePrivacyMessage();
+kayHydrateFromServer();
 </script>
 <!-- ─────────────────────────────────────────────────────────────────────── -->
 <!-- ── Cross-session memory: auth modals (Phase 3a) ──────────────────────── -->
