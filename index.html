@@ -1595,6 +1595,115 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .phrase-action-row { flex-direction: column; gap: 6px; }
   .phrase-action-btn { width: 100%; }
 }
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* ── Cross-session memory: account section + restore/add-passkey (Phase 3c) ── */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Account section (sidebar, dark) ─────────────────────────────────────── */
+.sidebar-account { flex-shrink: 0; }
+.account-pseudonym {
+  font-family: var(--mono); font-size: 12px; color: var(--accent-2);
+  padding: 2px 2px 8px; letter-spacing: 0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.account-anon-text {
+  font-size: 10.5px; color: rgba(245,240,232,0.45);
+  line-height: 1.5; padding: 0 2px 8px;
+}
+.account-actions { display: flex; gap: 6px; }
+.account-btn {
+  flex: 1; padding: 7px 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 7px; cursor: pointer;
+  font-family: var(--sans); font-size: 11px; color: rgba(245,240,232,0.75);
+  transition: all 0.15s;
+}
+.account-btn:hover { background: rgba(255,255,255,0.1); color: #f5f0e8; border-color: rgba(255,255,255,0.25); }
+.account-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.account-btn-danger:hover { border-color: rgba(217,83,79,0.5); color: var(--accent-2); background: rgba(217,83,79,0.12); }
+.account-btn-primary {
+  width: 100%; margin-bottom: 6px;
+  background: rgba(196,96,42,0.18); border-color: rgba(196,96,42,0.4); color: var(--accent-2);
+}
+.account-btn-primary:hover { background: rgba(196,96,42,0.28); color: #f5f0e8; }
+.account-btn-link {
+  width: 100%; background: none; border: none; padding: 4px;
+  color: rgba(245,240,232,0.55); text-decoration: underline; font-size: 10.5px;
+}
+.account-btn-link:hover { color: #f5f0e8; background: none; }
+
+/* ── Restore modal (light) ───────────────────────────────────────────────── */
+.restore-overlay {
+  display: none; position: fixed; inset: 0; z-index: 952;
+  background: rgba(26,24,20,0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.restore-overlay.open { display: flex; }
+.restore-modal {
+  background: var(--paper); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 420px; max-height: 92vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22); animation: fbRise 0.2s ease;
+}
+.restore-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 14px; border-bottom: 1px solid var(--paper-3);
+}
+.restore-title { font-family: var(--serif); font-size: 19px; color: var(--ink); }
+.restore-close {
+  width: 28px; height: 28px; border-radius: 6px; background: none; border: none;
+  cursor: pointer; color: var(--ink-3); font-size: 18px; line-height: 1;
+}
+.restore-close:hover { background: var(--paper-3); color: var(--ink-2); }
+.restore-body { padding: 18px 20px 20px; overflow-y: auto; }
+.restore-section-label { font-size: 12px; color: var(--ink-2); margin-bottom: 8px; line-height: 1.4; }
+.restore-passkey-btn {
+  width: 100%; padding: 11px; border-radius: 8px;
+  background: var(--ink); color: white; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s;
+}
+.restore-passkey-btn:hover { background: var(--accent); }
+.restore-passkey-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+.restore-divider {
+  display: flex; align-items: center; gap: 10px; margin: 16px 0;
+  color: var(--ink-3); font-size: 11px;
+}
+.restore-divider::before, .restore-divider::after { content: ''; flex: 1; height: 1px; background: var(--paper-3); }
+.restore-phrase-input {
+  width: 100%; box-sizing: border-box; padding: 10px 12px;
+  background: white; border: 1px solid var(--paper-3); border-radius: 8px;
+  font-family: var(--mono); font-size: 13px; color: var(--ink);
+  resize: vertical; outline: none; line-height: 1.5; margin-bottom: 8px;
+}
+.restore-phrase-input:focus { border-color: var(--accent); }
+.restore-phrase-btn {
+  width: 100%; padding: 10px; border-radius: 8px;
+  background: var(--accent); color: white; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s;
+}
+.restore-phrase-btn:hover { background: var(--accent-2); }
+.restore-phrase-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+.restore-status { font-size: 12px; margin-top: 12px; line-height: 1.4; min-height: 1em; color: var(--ink-3); }
+.restore-status.error { color: #991b1b; }
+
+/* ── Add-passkey-after-recovery prompt (light) ───────────────────────────── */
+.addpk-overlay {
+  display: none; position: fixed; inset: 0; z-index: 958;
+  background: rgba(26,24,20,0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.addpk-overlay.open { display: flex; }
+.addpk-modal {
+  background: var(--paper); border-radius: 14px; padding: 22px 24px 18px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22); animation: fbRise 0.2s ease;
+}
+.addpk-title { font-family: var(--serif); font-size: 19px; color: var(--ink); margin-bottom: 8px; }
+.addpk-text { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 18px; }
+.addpk-text strong { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.addpk-footer { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
 <body>
