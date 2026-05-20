@@ -6244,6 +6244,293 @@ function kayUpdatePrivacyMessage() {
 // definitely exists if it's going to.
 kayUpdatePrivacyMessage();
 kayHydrateFromServer();
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: recovery + account section (Phase 3c) ──────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Final piece. Adds:
+//   1. kayAuth.authenticate()  — usernameless passkey sign-in (returning device)
+//   2. kayAuth.recover(phrase) — redeem a 6-word recovery phrase (new device)
+//   3. kayAuth.addPasskey()    — add a credential to the current account
+//   4. kayAuth.logout()        — invalidate the session, keep local data
+//   5. kayAuth.deleteAccount() — wipe the account server-side (GDPR/CCPA)
+//   6. Restore modal (passkey sign-in OR recovery phrase)
+//   7. Add-passkey prompt shown after a successful phrase recovery
+//   8. Account section in the sidebar (state-aware)
+
+// Shared writer for the auth localStorage keys (KAY_AUTH_* declared in 3a).
+function kaySetAuth(token, pseudonym) {
+  try {
+    localStorage.setItem(KAY_AUTH_TOKEN_KEY, token);
+    localStorage.setItem(KAY_AUTH_PSEUDONYM_KEY, pseudonym);
+  } catch (e) {}
+}
+
+// ── kayAuth.authenticate — usernameless passkey sign-in ──────────────────────
+kayAuth.authenticate = async function () {
+  if (typeof SimpleWebAuthnBrowser === 'undefined') {
+    throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+  }
+  const optsRes = await kayAuth.kayFetch('/auth/passkey/authenticate/options', { method: 'POST', body: '{}' });
+  if (!optsRes.ok) {
+    const err = await optsRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not start sign-in (server error ' + optsRes.status + ').');
+  }
+  const { nonce, options } = await optsRes.json();
+
+  let authenticationResponse;
+  try {
+    authenticationResponse = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: options });
+  } catch (err) {
+    if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+      throw new Error('Sign-in was cancelled, or no passkey for Tutor Kay was found on this device.');
+    }
+    throw new Error(err && err.message ? err.message : 'Sign-in failed.');
+  }
+
+  const verifyRes = await kayAuth.kayFetch('/auth/passkey/authenticate/verify', {
+    method: 'POST',
+    body: JSON.stringify({ nonce, authenticationResponse }),
+  });
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not complete sign-in (server error ' + verifyRes.status + ').');
+  }
+  const result = await verifyRes.json();
+  kaySetAuth(result.sessionToken, result.pseudonym);
+  return result;  // { pseudonym, sessionToken }
+};
+
+// ── kayAuth.recover — redeem a recovery phrase ───────────────────────────────
+kayAuth.recover = async function (phrase) {
+  const res = await kayAuth.kayFetch('/auth/recovery/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ phrase }),
+  });
+  if (res.status === 401) {
+    throw new Error('That phrase doesn\'t match any account. Check the spelling and word order.');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not restore (server error ' + res.status + ').');
+  }
+  const result = await res.json();
+  kaySetAuth(result.sessionToken, result.pseudonym);
+  return result;  // { pseudonym, sessionToken }
+};
+
+// ── kayAuth.addPasskey — add a credential to the current account ─────────────
+kayAuth.addPasskey = async function () {
+  if (typeof SimpleWebAuthnBrowser === 'undefined') {
+    throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+  }
+  const optsRes = await kayAuth.kayFetch('/auth/passkey/add/options', { method: 'POST', body: '{}' });
+  if (!optsRes.ok) {
+    const err = await optsRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not start adding a passkey (server error ' + optsRes.status + ').');
+  }
+  const { options } = await optsRes.json();
+
+  let registrationResponse;
+  try {
+    registrationResponse = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options });
+  } catch (err) {
+    if (err && err.name === 'InvalidStateError') {
+      throw new Error('This device already has a passkey for your account.');
+    }
+    if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+      throw new Error('Adding a passkey was cancelled.');
+    }
+    throw new Error(err && err.message ? err.message : 'Could not add a passkey.');
+  }
+
+  const verifyRes = await kayAuth.kayFetch('/auth/passkey/add/verify', {
+    method: 'POST',
+    body: JSON.stringify({ registrationResponse }),
+  });
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not finish adding a passkey (server error ' + verifyRes.status + ').');
+  }
+  return await verifyRes.json();  // { ok: true, credentialId }
+};
+
+// ── kayAuth.logout — invalidate session, keep local progress ─────────────────
+kayAuth.logout = async function () {
+  try {
+    await kayAuth.kayFetch('/auth/logout', { method: 'POST', body: '{}' });
+  } catch (e) { /* best effort — clear locally regardless */ }
+  kayAuth.clearToken();
+};
+
+// ── kayAuth.deleteAccount — full server-side wipe ────────────────────────────
+kayAuth.deleteAccount = async function () {
+  const res = await kayAuth.kayFetch('/account', { method: 'DELETE' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not delete account (server error ' + res.status + ').');
+  }
+  kayAuth.clearToken();
+  return await res.json();  // { ok: true }
+};
+
+// ── Account section rendering (sidebar) ──────────────────────────────────────
+function kayRenderAccount() {
+  const el = document.getElementById('sidebar-account');
+  if (!el) return;
+  if (kayAuth.isAuthenticated()) {
+    const pseudonym = kayAuth.getPseudonym() || 'your account';
+    const safe = (typeof escapeHTML === 'function') ? escapeHTML(pseudonym) : pseudonym;
+    el.innerHTML =
+      '<div class="sidebar-label" style="margin-top:14px;">Account</div>' +
+      '<div class="account-pseudonym" title="Your anonymous account name">' + safe + '</div>' +
+      '<div class="account-actions">' +
+        '<button class="account-btn" onclick="handleSignOut()">Sign out</button>' +
+        '<button class="account-btn account-btn-danger" onclick="handleDeleteAccount()">Delete account</button>' +
+      '</div>';
+  } else {
+    el.innerHTML =
+      '<div class="sidebar-label" style="margin-top:14px;">Account</div>' +
+      '<div class="account-anon-text">Save your progress across devices with a passkey — no email or password.</div>' +
+      '<button class="account-btn account-btn-primary" onclick="openEnrollmentPrompt()">Set up sync</button>' +
+      '<button class="account-btn account-btn-link" onclick="openRestoreModal()">Restore existing account</button>';
+  }
+}
+
+// Centralized auth-state-change hook — refreshes both the privacy message
+// (Phase 3b) and the account section.
+function kayOnAuthStateChange() {
+  if (typeof kayUpdatePrivacyMessage === 'function') kayUpdatePrivacyMessage();
+  kayRenderAccount();
+}
+
+// ── Account action handlers ──────────────────────────────────────────────────
+function handleSignOut() {
+  kayAuth.logout().finally(() => {
+    kayOnAuthStateChange();
+    showAlert('Signed out. Your progress stays saved on this device.', 'info', 3000);
+  });
+}
+
+function handleDeleteAccount() {
+  const pseudonym = kayAuth.getPseudonym() || 'your account';
+  const ok = confirm(
+    'Delete ' + pseudonym + '?\n\n' +
+    'This permanently erases your synced progress from the server and removes all passkeys for this account. ' +
+    'Progress already saved on this device will remain until you clear it. This cannot be undone.'
+  );
+  if (!ok) return;
+  kayAuth.deleteAccount().then(() => {
+    kayOnAuthStateChange();
+    showAlert('Account deleted. Your synced data has been erased from the server.', 'info', 4000);
+  }).catch(err => {
+    showAlert(err.message, 'error', 5000);
+  });
+}
+
+// ── Restore modal (passkey sign-in OR recovery phrase) ───────────────────────
+function openRestoreModal() {
+  const status = document.getElementById('restore-status');
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  const input = document.getElementById('restore-phrase-input');
+  if (input) input.value = '';
+  const pkBtn = document.getElementById('restore-passkey-btn');
+  const phBtn = document.getElementById('restore-phrase-btn');
+  if (pkBtn) { pkBtn.disabled = false; pkBtn.textContent = 'Sign in with a passkey'; }
+  if (phBtn) { phBtn.disabled = false; phBtn.textContent = 'Restore from phrase'; }
+  document.getElementById('restore-overlay').classList.add('open');
+}
+function closeRestoreModal() {
+  document.getElementById('restore-overlay').classList.remove('open');
+}
+
+async function handleRestorePasskey() {
+  const btn = document.getElementById('restore-passkey-btn');
+  const status = document.getElementById('restore-status');
+  btn.disabled = true; btn.textContent = 'Waiting for passkey…';
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  try {
+    const result = await kayAuth.authenticate();
+    closeRestoreModal();
+    kayOnAuthStateChange();
+    await kayHydrateFromServer();
+    showAlert('Welcome back, ' + result.pseudonym + '! Your progress is synced.', 'info', 4000);
+  } catch (err) {
+    if (status) { status.textContent = err.message; status.className = 'restore-status error'; }
+    btn.disabled = false; btn.textContent = 'Sign in with a passkey';
+  }
+}
+
+async function handleRestorePhrase() {
+  const input = document.getElementById('restore-phrase-input');
+  const btn = document.getElementById('restore-phrase-btn');
+  const status = document.getElementById('restore-status');
+  const phrase = (input.value || '').trim();
+  if (!phrase) {
+    if (status) { status.textContent = 'Please enter your 6-word recovery phrase.'; status.className = 'restore-status error'; }
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  try {
+    const result = await kayAuth.recover(phrase);
+    closeRestoreModal();
+    kayOnAuthStateChange();
+    await kayHydrateFromServer();
+    showAlert('Restored ' + result.pseudonym + '! Your progress is synced.', 'info', 4000);
+    openAddPasskeyPrompt(result.pseudonym);   // offer to bind a passkey here
+  } catch (err) {
+    if (status) { status.textContent = err.message; status.className = 'restore-status error'; }
+    btn.disabled = false; btn.textContent = 'Restore from phrase';
+  }
+}
+
+// ── Add-passkey prompt (shown after a successful phrase recovery) ─────────────
+function openAddPasskeyPrompt(pseudonym) {
+  const el = document.getElementById('addpk-pseudonym');
+  if (el) el.textContent = pseudonym || (kayAuth.getPseudonym() || 'your account');
+  const btn = document.getElementById('addpk-confirm-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Add passkey'; }
+  document.getElementById('addpk-overlay').classList.add('open');
+}
+function closeAddPasskeyPrompt() {
+  document.getElementById('addpk-overlay').classList.remove('open');
+}
+async function handleAddPasskeyClick() {
+  const btn = document.getElementById('addpk-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try {
+    await kayAuth.addPasskey();
+    closeAddPasskeyPrompt();
+    showAlert('Passkey added! Next time you can sign in on this device with your fingerprint or face.', 'info', 4500);
+  } catch (err) {
+    showAlert(err.message, 'error', 5000);
+    btn.disabled = false; btn.textContent = 'Add passkey';
+  }
+}
+
+// Re-wrap register so the Account section refreshes after a new enrollment.
+(function () {
+  const original = kayAuth.register;
+  kayAuth.register = async function () {
+    const result = await original.apply(this, arguments);
+    kayRenderAccount();
+    return result;
+  };
+})();
+
+// Escape closes the restore + add-passkey modals.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('restore-overlay') && document.getElementById('restore-overlay').classList.contains('open')) {
+    closeRestoreModal();
+  }
+  if (document.getElementById('addpk-overlay') && document.getElementById('addpk-overlay').classList.contains('open')) {
+    closeAddPasskeyPrompt();
+  }
+});
+
+// Initial render of the account section.
+kayRenderAccount();
 </script>
 <!-- ─────────────────────────────────────────────────────────────────────── -->
 <!-- ── Cross-session memory: auth modals (Phase 3a) ──────────────────────── -->
