@@ -6326,5 +6326,45 @@ kayHydrateFromServer();
     </div>
   </div>
 </div>
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!-- ── Cross-session memory: restore + add-passkey modals (Phase 3c) ─────── -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+
+<!-- Restore modal — two paths: sign in with an existing passkey on this
+     device, OR enter a 6-word recovery phrase (for a new device). -->
+<div class="restore-overlay" id="restore-overlay" onclick="if(event.target===this) closeRestoreModal()">
+  <div class="restore-modal" role="dialog" aria-label="Restore your account">
+    <div class="restore-header">
+      <div class="restore-title">Restore your progress</div>
+      <button class="restore-close" onclick="closeRestoreModal()" aria-label="Close">×</button>
+    </div>
+    <div class="restore-body">
+      <div class="restore-section">
+        <div class="restore-section-label">Used Kay on this device before?</div>
+        <button class="restore-passkey-btn" id="restore-passkey-btn" onclick="handleRestorePasskey()">Sign in with a passkey</button>
+      </div>
+      <div class="restore-divider"><span>or</span></div>
+      <div class="restore-section">
+        <div class="restore-section-label">New device? Enter your 6-word recovery phrase.</div>
+        <textarea class="restore-phrase-input" id="restore-phrase-input" rows="2" placeholder="word word word word word word" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+        <button class="restore-phrase-btn" id="restore-phrase-btn" onclick="handleRestorePhrase()">Restore from phrase</button>
+      </div>
+      <div class="restore-status" id="restore-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add-passkey prompt — shown after a successful phrase recovery, offering
+     to bind a passkey to this device so the phrase isn't needed next time. -->
+<div class="addpk-overlay" id="addpk-overlay" onclick="if(event.target===this) closeAddPasskeyPrompt()">
+  <div class="addpk-modal" role="dialog" aria-label="Add a passkey">
+    <div class="addpk-title">Add a passkey to this device?</div>
+    <div class="addpk-text">You're signed in as <strong id="addpk-pseudonym"></strong>. Add a passkey so next time you can sign in with your fingerprint or face — no recovery phrase needed.</div>
+    <div class="addpk-footer">
+      <button class="enroll-btn-secondary" onclick="closeAddPasskeyPrompt()">Skip for now</button>
+      <button class="enroll-btn-primary" id="addpk-confirm-btn" onclick="handleAddPasskeyClick()">Add passkey</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
