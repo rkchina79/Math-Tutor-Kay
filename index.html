@@ -5385,7 +5385,9 @@ function removeTypingIndicator() { const el = document.getElementById('typing');
 // — API ————————————————————————————————————————————————
 // BACKEND_URL points at the staging Render service for the cross-session-memory work.
 // Before merging to main, change this back to https://math-tutor-kay.onrender.com
-const BACKEND_URL = 'https://math-tutor-kay-staging.onrender.com';
+const BACKEND_URL = (location.hostname === 'tutorkay.ai' || location.hostname === 'www.tutorkay.ai')
+  ? 'https://math-tutor-kay.onrender.com'
+  : 'https://math-tutor-kay-staging.onrender.com';
 
 async function callKay() {
   // Build API messages — convert any with images to multimodal content blocks
