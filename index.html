@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script defer src="simplewebauthn-browser.umd.min.js"></script>
 <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,7 +45,7 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ── Sidebar ── */
-.sidebar { background: #2e2a25; color: var(--kay-text); display: flex; flex-direction: column; padding: 24px 18px 20px; border-right: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+.sidebar { background: #2e2a25; color: var(--kay-text); display: flex; flex-direction: column; padding: 24px 18px 20px; border-right: 1px solid rgba(255,255,255,0.06); overflow-x: hidden; overflow-y: auto; }
 .kay-name { font-family: var(--serif); font-size: 26px; color: #f5f0e8; letter-spacing: -0.5px; line-height: 1; }
 .kay-title { font-size: 10px; color: rgba(245,240,232,0.4); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
 .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0 18px; }
@@ -1427,6 +1428,282 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
   .alert { margin: 0 12px 8px; }
   .listening-bar { padding: 4px 12px 0; font-size: 10px; }
 }
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* ── Cross-session memory: enrollment + phrase modals (Phase 3a) ─────────── */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Enrollment prompt modal ─────────────────────────────────────────────── */
+.enroll-overlay {
+  display: none; position: fixed; inset: 0; z-index: 950;
+  background: rgba(26, 24, 20, 0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.enroll-overlay.open { display: flex; }
+.enroll-modal {
+  background: var(--paper); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 440px; max-height: 92vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  animation: fbRise 0.2s ease;
+}
+.enroll-body { padding: 22px 24px 12px; }
+.enroll-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(196,96,42,0.12); border: 1px solid rgba(196,96,42,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent); margin: 0 auto 14px;
+}
+.enroll-title {
+  font-family: var(--serif); font-size: 22px; color: var(--ink);
+  text-align: center; letter-spacing: -0.3px; margin-bottom: 6px;
+}
+.enroll-subtitle {
+  font-size: 13px; color: var(--ink-2); line-height: 1.55;
+  text-align: center; margin-bottom: 18px;
+}
+.enroll-features {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;
+  font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+}
+.enroll-feature { display: flex; align-items: flex-start; gap: 8px; }
+.enroll-feature-icon {
+  width: 14px; height: 14px; flex-shrink: 0; color: var(--accent); margin-top: 2px;
+}
+.enroll-privacy-note {
+  font-size: 11px; color: var(--ink-3); font-style: italic;
+  line-height: 1.55; padding: 10px 12px; background: var(--paper-2);
+  border: 1px solid var(--paper-3); border-radius: 7px; margin-bottom: 14px;
+}
+.enroll-footer {
+  padding: 12px 24px 18px;
+  display: flex; gap: 8px; justify-content: flex-end;
+  border-top: 1px solid var(--paper-3); background: var(--paper-2);
+}
+.enroll-btn-secondary {
+  background: none; border: 1px solid var(--paper-3); border-radius: 8px;
+  padding: 9px 16px; font-family: var(--sans); font-size: 12.5px;
+  color: var(--ink-2); cursor: pointer; transition: all 0.15s;
+}
+.enroll-btn-secondary:hover { border-color: var(--ink-3); color: var(--ink); }
+.enroll-btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.enroll-btn-primary {
+  background: var(--accent); color: white; border: none; border-radius: 8px;
+  padding: 9px 18px; font-family: var(--sans); font-size: 12.5px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+.enroll-btn-primary:hover { background: var(--accent-2); }
+.enroll-btn-primary:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+
+/* ── Recovery phrase display modal ───────────────────────────────────────── */
+.phrase-overlay {
+  display: none; position: fixed; inset: 0; z-index: 960;
+  background: rgba(26, 24, 20, 0.65);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.phrase-overlay.open { display: flex; }
+.phrase-modal {
+  background: #2e2a25; color: var(--kay-text);
+  border: 1px solid rgba(196,96,42,0.4); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 500px; max-height: 92vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  animation: fbRise 0.2s ease;
+}
+.phrase-header {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.phrase-title {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; letter-spacing: -0.3px; margin-bottom: 4px;
+}
+.phrase-subtitle {
+  font-size: 11px; color: rgba(245,240,232,0.45);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.phrase-body { padding: 18px 24px 12px; overflow-y: auto; }
+.phrase-account {
+  font-size: 11px; color: rgba(245,240,232,0.5);
+  margin-bottom: 4px; letter-spacing: 0.04em;
+}
+.phrase-account strong {
+  color: var(--accent-2); font-weight: 500;
+  font-family: var(--mono); letter-spacing: 0;
+}
+.phrase-explainer {
+  font-size: 12.5px; color: rgba(245,240,232,0.75);
+  line-height: 1.6; margin: 12px 0 14px;
+}
+.phrase-words-box {
+  background: rgba(0,0,0,0.22); border: 1px solid rgba(196,96,42,0.3);
+  border-radius: 10px; padding: 16px 18px;
+  font-family: var(--mono); font-size: 16px; color: #f5f0e8;
+  letter-spacing: 0.5px; line-height: 1.7;
+  word-spacing: 6px; user-select: all;
+  margin-bottom: 12px;
+}
+.phrase-action-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.phrase-action-btn {
+  flex: 1; padding: 9px 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  color: rgba(245,240,232,0.85); transition: all 0.15s;
+}
+.phrase-action-btn:hover {
+  background: rgba(255,255,255,0.1); color: #f5f0e8; border-color: rgba(255,255,255,0.28);
+}
+.phrase-warning {
+  background: rgba(196,96,42,0.1); border: 1px solid rgba(196,96,42,0.3);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+  font-size: 11.5px; color: rgba(232,149,106,0.9); line-height: 1.5;
+}
+.phrase-warning strong { color: var(--accent-2); }
+.phrase-confirm-row {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 10px 0; cursor: pointer;
+  font-size: 13px; color: rgba(245,240,232,0.85);
+}
+.phrase-confirm-row input {
+  margin-top: 2px; cursor: pointer;
+  width: 16px; height: 16px; accent-color: var(--accent);
+}
+.phrase-footer {
+  padding: 12px 24px 18px;
+  display: flex; justify-content: flex-end;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.18);
+}
+.phrase-close-btn {
+  background: var(--accent); color: white; border: none; border-radius: 8px;
+  padding: 10px 22px; font-family: var(--sans); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+.phrase-close-btn:hover { background: var(--accent-2); }
+.phrase-close-btn:disabled {
+  background: rgba(255,255,255,0.08); color: rgba(245,240,232,0.35);
+  cursor: not-allowed;
+}
+
+/* Mobile tweaks for both modals */
+@media (max-width: 640px) {
+  .enroll-body { padding: 18px 18px 10px; }
+  .enroll-footer { padding: 10px 18px 14px; }
+  .phrase-body { padding: 14px 18px 8px; }
+  .phrase-words-box { font-size: 14px; padding: 12px 14px; word-spacing: 4px; }
+  .phrase-action-row { flex-direction: column; gap: 6px; }
+  .phrase-action-btn { width: 100%; }
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* ── Cross-session memory: account section + restore/add-passkey (Phase 3c) ── */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Account section (sidebar, dark) ─────────────────────────────────────── */
+.sidebar-account { flex-shrink: 0; }
+.account-pseudonym {
+  font-family: var(--mono); font-size: 12px; color: var(--accent-2);
+  padding: 2px 2px 8px; letter-spacing: 0.02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.account-anon-text {
+  font-size: 10.5px; color: rgba(245,240,232,0.45);
+  line-height: 1.5; padding: 0 2px 8px;
+}
+.account-actions { display: flex; gap: 6px; }
+.account-btn {
+  flex: 1; padding: 7px 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 7px; cursor: pointer;
+  font-family: var(--sans); font-size: 11px; color: rgba(245,240,232,0.75);
+  transition: all 0.15s;
+}
+.account-btn:hover { background: rgba(255,255,255,0.1); color: #f5f0e8; border-color: rgba(255,255,255,0.25); }
+.account-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.account-btn-danger:hover { border-color: rgba(217,83,79,0.5); color: var(--accent-2); background: rgba(217,83,79,0.12); }
+.account-btn-primary {
+  width: 100%; margin-bottom: 6px;
+  background: rgba(196,96,42,0.18); border-color: rgba(196,96,42,0.4); color: var(--accent-2);
+}
+.account-btn-primary:hover { background: rgba(196,96,42,0.28); color: #f5f0e8; }
+.account-btn-link {
+  width: 100%; background: none; border: none; padding: 4px;
+  color: rgba(245,240,232,0.55); text-decoration: underline; font-size: 10.5px;
+}
+.account-btn-link:hover { color: #f5f0e8; background: none; }
+
+/* ── Restore modal (light) ───────────────────────────────────────────────── */
+.restore-overlay {
+  display: none; position: fixed; inset: 0; z-index: 952;
+  background: rgba(26,24,20,0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.restore-overlay.open { display: flex; }
+.restore-modal {
+  background: var(--paper); border-radius: 14px; overflow: hidden;
+  width: 100%; max-width: 420px; max-height: 92vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22); animation: fbRise 0.2s ease;
+}
+.restore-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 14px; border-bottom: 1px solid var(--paper-3);
+}
+.restore-title { font-family: var(--serif); font-size: 19px; color: var(--ink); }
+.restore-close {
+  width: 28px; height: 28px; border-radius: 6px; background: none; border: none;
+  cursor: pointer; color: var(--ink-3); font-size: 18px; line-height: 1;
+}
+.restore-close:hover { background: var(--paper-3); color: var(--ink-2); }
+.restore-body { padding: 18px 20px 20px; overflow-y: auto; }
+.restore-section-label { font-size: 12px; color: var(--ink-2); margin-bottom: 8px; line-height: 1.4; }
+.restore-passkey-btn {
+  width: 100%; padding: 11px; border-radius: 8px;
+  background: var(--ink); color: white; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s;
+}
+.restore-passkey-btn:hover { background: var(--accent); }
+.restore-passkey-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+.restore-divider {
+  display: flex; align-items: center; gap: 10px; margin: 16px 0;
+  color: var(--ink-3); font-size: 11px;
+}
+.restore-divider::before, .restore-divider::after { content: ''; flex: 1; height: 1px; background: var(--paper-3); }
+.restore-phrase-input {
+  width: 100%; box-sizing: border-box; padding: 10px 12px;
+  background: white; border: 1px solid var(--paper-3); border-radius: 8px;
+  font-family: var(--mono); font-size: 13px; color: var(--ink);
+  resize: vertical; outline: none; line-height: 1.5; margin-bottom: 8px;
+}
+.restore-phrase-input:focus { border-color: var(--accent); }
+.restore-phrase-btn {
+  width: 100%; padding: 10px; border-radius: 8px;
+  background: var(--accent); color: white; border: none;
+  font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s;
+}
+.restore-phrase-btn:hover { background: var(--accent-2); }
+.restore-phrase-btn:disabled { background: var(--paper-3); color: var(--ink-3); cursor: not-allowed; }
+.restore-status { font-size: 12px; margin-top: 12px; line-height: 1.4; min-height: 1em; color: var(--ink-3); }
+.restore-status.error { color: #991b1b; }
+
+/* ── Add-passkey-after-recovery prompt (light) ───────────────────────────── */
+.addpk-overlay {
+  display: none; position: fixed; inset: 0; z-index: 958;
+  background: rgba(26,24,20,0.5);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.addpk-overlay.open { display: flex; }
+.addpk-modal {
+  background: var(--paper); border-radius: 14px; padding: 22px 24px 18px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22); animation: fbRise 0.2s ease;
+}
+.addpk-title { font-family: var(--serif); font-size: 19px; color: var(--ink); margin-bottom: 8px; }
+.addpk-text { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 18px; }
+.addpk-text strong { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.addpk-footer { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
 <body>
@@ -1462,11 +1739,11 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
       <span>SAT/ACT Practice</span>
       <button onclick="resetPracticeStats()" style="background:none;border:none;color:rgba(245,240,232,0.25);font-size:10px;cursor:pointer;font-family:var(--sans);padding:0;" title="Reset practice stats">Reset</button>
     </div>
-    <div class="sidebar-practice-wrap">
+   <div class="sidebar-practice-wrap">
       <div id="sidebar-practice-stats"></div>
-      <div class="sidebar-mastery-privacy">
-        🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
-      </div>
+    </div>
+    <div class="sidebar-mastery-privacy">
+      🔒 Progress is saved privately on this device. Kay never collects or stores your identity.
     </div>
     <div class="sidebar-divider"></div>
     <!-- ── Live stats ── -->
@@ -1482,6 +1759,9 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
         <span class="sidebar-stats-label">students served</span>
       </div>
     </div>
+    <div class="sidebar-divider"></div>
+    <!-- ── Account section (cross-session memory) — filled by kayRenderAccount() ── -->
+    <div class="sidebar-account" id="sidebar-account"></div>
     <div class="sidebar-divider"></div>
     <button class="feedback-link" onclick="openFeedback()">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -5102,9 +5382,12 @@ function addTypingIndicator() {
 }
 function removeTypingIndicator() { const el = document.getElementById('typing'); if (el) el.remove(); }
 
-// ── API ──────────────────────────────────────────────────────────────────────
-// BACKEND_URL points at the production Render service hosting Kay's API.
-const BACKEND_URL = 'https://math-tutor-kay.onrender.com';
+// — API ————————————————————————————————————————————————
+// BACKEND_URL points at the staging Render service for the cross-session-memory work.
+// Before merging to main, change this back to https://math-tutor-kay.onrender.com
+const BACKEND_URL = (location.hostname === 'tutorkay.ai' || location.hostname === 'www.tutorkay.ai')
+  ? 'https://math-tutor-kay.onrender.com'
+  : 'https://math-tutor-kay-staging.onrender.com';
 
 async function callKay() {
   // Build API messages — convert any with images to multimodal content blocks
@@ -5550,6 +5833,830 @@ renderSidebarPracticeStats();
 fetchStats();
 setInterval(fetchStats, 60000); // refresh stats every 60s
 window.addEventListener('load', () => { if (messages.length > 0) renderMessages(); });
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: passkey + recovery-phrase auth (Phase 3a) ──────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 3a adds the foundation: bearer-token storage, an authenticated fetch
+// wrapper, the WebAuthn registration ceremony, and the two modals. Nothing is
+// triggered automatically yet — phase 3b wires the opt-in trigger.
+//
+// Testing in devtools:
+//   kayAuth.register()         — run the full enrollment flow
+//   kayAuth.isAuthenticated()  — true once a session token is stored
+//   kayAuth.getPseudonym()     — returns the current pseudonym
+//   openEnrollmentPrompt()     — manually open the prompt (without trigger)
+//
+// All auth state lives in localStorage under keys prefixed with `kay_auth_`.
+// Clear it with `kayAuth.clearToken()` to reset for testing.
+
+const KAY_AUTH_TOKEN_KEY     = 'kay_auth_token';
+const KAY_AUTH_PSEUDONYM_KEY = 'kay_auth_pseudonym';
+
+// kayAuth namespace — entry points exposed on window so they're callable from
+// the browser console and from inline event handlers on the modal buttons.
+window.kayAuth = (function () {
+
+  function getToken()     { try { return localStorage.getItem(KAY_AUTH_TOKEN_KEY); } catch (e) { return null; } }
+  function setToken(t)    { try { localStorage.setItem(KAY_AUTH_TOKEN_KEY, t); } catch (e) {} }
+  function getPseudonym() { try { return localStorage.getItem(KAY_AUTH_PSEUDONYM_KEY); } catch (e) { return null; } }
+  function setPseudonym(p){ try { localStorage.setItem(KAY_AUTH_PSEUDONYM_KEY, p); } catch (e) {} }
+  function clearToken() {
+    try {
+      localStorage.removeItem(KAY_AUTH_TOKEN_KEY);
+      localStorage.removeItem(KAY_AUTH_PSEUDONYM_KEY);
+    } catch (e) {}
+  }
+  function isAuthenticated() { return !!getToken(); }
+
+  // Authenticated fetch wrapper. Adds Authorization: Bearer <token> when we
+  // have one, falls through to a plain fetch otherwise so unauthenticated
+  // routes (like /auth/passkey/register/options) still work.
+  //
+  // If the server responds with 401 we clear local auth state immediately —
+  // the token must have expired or been revoked, so any further use of it is
+  // pointless and the UI should revert to the unauthenticated path.
+  async function kayFetch(path, options = {}) {
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    const token = getToken();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(BACKEND_URL + path, Object.assign({}, options, { headers }));
+    if (res.status === 401) clearToken();
+    return res;
+  }
+
+  // ── Registration ceremony ────────────────────────────────────────────────
+  // Three-step: server hands us options + a nonce, browser does the WebAuthn
+  // credential creation (this triggers the OS passkey prompt), we post the
+  // credential back with the nonce. On success the server returns the session
+  // token AND the one-time recovery phrase (we'll only ever see it now).
+  async function register() {
+    if (typeof SimpleWebAuthnBrowser === 'undefined') {
+      throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+    }
+    if (!SimpleWebAuthnBrowser.browserSupportsWebAuthn ||
+        !SimpleWebAuthnBrowser.browserSupportsWebAuthn()) {
+      throw new Error('Your browser doesn\'t support passkeys. Try a recent Chrome, Safari, Edge, or Firefox.');
+    }
+
+    // Step 1 — options
+    const optsRes = await kayFetch('/auth/passkey/register/options', { method: 'POST', body: '{}' });
+    if (!optsRes.ok) {
+      const err = await optsRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not start enrollment (server error ' + optsRes.status + ').');
+    }
+    const { nonce, pseudonym, options } = await optsRes.json();
+
+    // Step 2 — browser ceremony (OS passkey prompt)
+    let registrationResponse;
+    try {
+      registrationResponse = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options });
+    } catch (err) {
+      // InvalidStateError means a passkey already exists for this RP on this
+      // authenticator. The most useful next step for the user is to sign in,
+      // not to retry registration — that's a phase 3c hook.
+      if (err && err.name === 'InvalidStateError') {
+        throw new Error('A passkey already exists for Tutor Kay on this device. Try signing in instead.');
+      }
+      // NotAllowedError covers both an explicit user cancel and a timeout.
+      // Treating both as "cancelled" is the friendliest framing.
+      if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+        throw new Error('Passkey setup was cancelled.');
+      }
+      throw new Error(err && err.message ? err.message : 'Passkey setup failed.');
+    }
+
+    // Step 3 — verify (server records credential, issues session, returns phrase)
+    const verifyRes = await kayFetch('/auth/passkey/register/verify', {
+      method: 'POST',
+      body: JSON.stringify({ nonce, registrationResponse }),
+    });
+    if (!verifyRes.ok) {
+      const err = await verifyRes.json().catch(() => ({}));
+      throw new Error(err.error || 'Could not finish enrollment (server error ' + verifyRes.status + ').');
+    }
+    const result = await verifyRes.json();
+
+    setToken(result.sessionToken);
+    setPseudonym(result.pseudonym);
+    return result;  // { pseudonym, sessionToken, recoveryPhrase }
+  }
+
+  return { register, getToken, getPseudonym, isAuthenticated, clearToken, kayFetch };
+})();
+
+// ── Enrollment prompt modal ──────────────────────────────────────────────────
+// Phase 3a exposes openEnrollmentPrompt() for testing; phase 3b adds the
+// automatic trigger from the first kay_mastery or kay_practice_stats write.
+function openEnrollmentPrompt() {
+  // Defensive reset — restore button state in case a previous attempt failed
+  const btn = document.getElementById('enroll-confirm-btn');
+  const cancelBtn = document.getElementById('enroll-cancel-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Yes, set it up'; }
+  if (cancelBtn) cancelBtn.disabled = false;
+  document.getElementById('enroll-overlay').classList.add('open');
+}
+function closeEnrollmentPrompt() {
+  document.getElementById('enroll-overlay').classList.remove('open');
+}
+
+// Click handler for the "Yes, set it up" button. Runs the register ceremony,
+// surfaces errors via showAlert, on success closes this modal and opens the
+// recovery-phrase display modal.
+async function handleEnrollClick() {
+  const btn = document.getElementById('enroll-confirm-btn');
+  const cancelBtn = document.getElementById('enroll-cancel-btn');
+  btn.disabled = true; cancelBtn.disabled = true;
+  btn.textContent = 'Setting up…';
+
+  try {
+    const result = await kayAuth.register();
+    closeEnrollmentPrompt();
+    openPhraseModal(result.recoveryPhrase, result.pseudonym);
+  } catch (err) {
+    showAlert(err.message, 'error', 6000);
+    btn.disabled = false; cancelBtn.disabled = false;
+    btn.textContent = 'Yes, set it up';
+  }
+}
+
+// ── Recovery phrase display modal ────────────────────────────────────────────
+// One-time display. User must check the "I've saved this" checkbox before the
+// close button enables — outside-clicks and Escape are blocked while locked.
+let phraseModalLockedClose = true;
+
+function openPhraseModal(phrase, pseudonym) {
+  const phraseEl     = document.getElementById('phrase-words');
+  const pseudonymEl  = document.getElementById('phrase-pseudonym');
+  const confirmCheck = document.getElementById('phrase-confirm-check');
+  const closeBtn     = document.getElementById('phrase-close-btn');
+
+  phraseEl.textContent = phrase;
+  phraseEl.dataset.phrase = phrase;  // stored on the DOM so copy/download work
+  pseudonymEl.textContent = pseudonym;
+  confirmCheck.checked = false;
+  phraseModalLockedClose = true;
+  closeBtn.disabled = true;
+  closeBtn.textContent = 'Confirm checkbox to close';
+
+  document.getElementById('phrase-overlay').classList.add('open');
+}
+
+function closePhraseModal() {
+  if (phraseModalLockedClose) return;
+  document.getElementById('phrase-overlay').classList.remove('open');
+}
+
+function handlePhraseConfirmCheck(cb) {
+  phraseModalLockedClose = !cb.checked;
+  const closeBtn = document.getElementById('phrase-close-btn');
+  closeBtn.disabled = !cb.checked;
+  closeBtn.textContent = cb.checked ? 'Done' : 'Confirm checkbox to close';
+}
+
+function copyPhrase() {
+  const phrase = document.getElementById('phrase-words').dataset.phrase;
+  if (!phrase) return;
+  navigator.clipboard.writeText(phrase).then(() => {
+    const btn = document.getElementById('phrase-copy-btn');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(() => { btn.innerHTML = original; }, 1800);
+  }).catch(() => {
+    showAlert('Could not copy automatically — please select the words and copy manually.', 'error', 4000);
+  });
+}
+
+function downloadPhrase() {
+  const phrase    = document.getElementById('phrase-words').dataset.phrase;
+  const pseudonym = document.getElementById('phrase-pseudonym').textContent;
+  if (!phrase) return;
+  const contents = [
+    'Tutor Kay — recovery phrase',
+    '',
+    'Account: ' + pseudonym,
+    '',
+    'Recovery phrase:',
+    phrase,
+    '',
+    '— Keep this safe. Anyone with this phrase can access your progress.',
+    '— Use it on a new device by choosing "I have a phrase from another device".',
+    '— Tutor Kay cannot show you this phrase again.',
+  ].join('\n');
+  const blob = new Blob([contents], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'tutor-kay-recovery-' + pseudonym + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// Escape closes enrollment, and closes phrase modal only when not locked.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('enroll-overlay').classList.contains('open')) {
+    closeEnrollmentPrompt();
+  }
+  if (document.getElementById('phrase-overlay').classList.contains('open')) {
+    closePhraseModal();  // no-op while locked
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: opt-in trigger + state sync (Phase 3b) ─────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Wires up:
+//   1. Auto-open enrollment prompt when user's progress is "worth saving"
+//      (first time kay_mastery or kay_practice_stats has any real entry, and
+//      they haven't dismissed it already)
+//   2. Once authenticated, every mastery/practice save also POSTs to /state
+//      (debounced 800 ms so rapid sequential writes coalesce into one request)
+//   3. On page load with a valid session, GET /state and hydrate local state
+//      from the server (server-wins-on-hydrate)
+//   4. Swap the sidebar privacy message between the anonymous + authenticated
+//      tiers based on current auth state.
+//
+// Testing helpers in devtools:
+//   localStorage.removeItem('kay_auth_enroll_dismissed')  // reset dismissal
+//   kayHydrateFromServer()      // manually pull state from server
+//   kaySyncStateToServer()      // manually push state to server (debounced)
+
+const KAY_AUTH_ENROLL_DISMISSED_KEY = 'kay_auth_enroll_dismissed';
+
+// True iff there's any mastery or practice data worth offering to sync.
+function kayHasMeaningfulProgress() {
+  try {
+    const mastery = JSON.parse(localStorage.getItem('kay_mastery') || '{}');
+    if (mastery && typeof mastery === 'object' && Object.keys(mastery).length > 0) return true;
+  } catch (e) {}
+  try {
+    const practice = JSON.parse(localStorage.getItem('kay_practice_stats') || '{}');
+    if (practice && typeof practice === 'object' && Object.keys(practice).length > 0) return true;
+  } catch (e) {}
+  return false;
+}
+
+// True iff we should auto-open the enrollment prompt right now.
+function kayShouldPromptEnrollment() {
+  if (kayAuth.isAuthenticated()) return false;
+  try {
+    if (localStorage.getItem(KAY_AUTH_ENROLL_DISMISSED_KEY) === 'true') return false;
+  } catch (e) {}
+  return true;
+}
+
+// Wrap closeEnrollmentPrompt so a "Not now" click remembers the dismissal —
+// don't want to keep nagging in this browser. (Phase 3c "Account" UI can
+// offer a "set up sync" button to bring this prompt back.)
+(function () {
+  const original = window.closeEnrollmentPrompt;
+  window.closeEnrollmentPrompt = function () {
+    if (!kayAuth.isAuthenticated()) {
+      try { localStorage.setItem(KAY_AUTH_ENROLL_DISMISSED_KEY, 'true'); } catch (e) {}
+    }
+    return original.apply(this, arguments);
+  };
+})();
+
+// Debounced POST /state. saveMasteryData() and savePracticeStats() can fire
+// several times in one user action (e.g. unlocking an achievement updates
+// multiple keys); the debounce coalesces those into a single HTTP request.
+let _kayStateSyncTimer = null;
+function kaySyncStateToServer() {
+  if (!kayAuth.isAuthenticated()) return;
+  clearTimeout(_kayStateSyncTimer);
+  _kayStateSyncTimer = setTimeout(async () => {
+    try {
+      let mastery = {}, practiceStats = {}, sessions = [];
+      try { mastery = JSON.parse(localStorage.getItem('kay_mastery') || '{}') || {}; } catch (e) {}
+      try { practiceStats = JSON.parse(localStorage.getItem('kay_practice_stats') || '{}') || {}; } catch (e) {}
+      try { sessions = JSON.parse(localStorage.getItem('kay_sessions') || '[]') || []; } catch (e) {}
+
+      // Strip chat content — only session metadata gets synced. This preserves
+      // Kay's "we don't store your conversations" guarantee.
+      const sessionMeta = (Array.isArray(sessions) ? sessions : []).map(s => ({
+        id:        String((s && s.id) ? s.id : ''),
+        title:     String((s && s.title) ? s.title : ''),
+        createdAt: Number((s && s.createdAt) ? s.createdAt : 0),
+        updatedAt: Number((s && s.updatedAt) ? s.updatedAt : 0),
+      })).filter(s => s.id);
+
+      const res = await kayAuth.kayFetch('/state', {
+        method: 'POST',
+        body: JSON.stringify({ state: { mastery, practiceStats, sessions: sessionMeta } }),
+      });
+      if (!res.ok) console.warn('state sync failed:', res.status);
+    } catch (err) {
+      console.warn('state sync error:', err);
+    }
+  }, 800);
+}
+
+// GET /state and merge server state into localStorage. Called on page load
+// when authenticated.
+async function kayHydrateFromServer() {
+  if (!kayAuth.isAuthenticated()) return;
+  try {
+    const res = await kayAuth.kayFetch('/state', { method: 'GET' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const serverState = (data && data.state) ? data.state : {};
+
+    // Server-wins merge: if server has mastery/practice data, use it. If
+    // server is empty but local has data, keep local (next save will push it).
+    if (serverState.mastery && typeof serverState.mastery === 'object' &&
+        Object.keys(serverState.mastery).length > 0) {
+      localStorage.setItem('kay_mastery', JSON.stringify(serverState.mastery));
+    }
+    if (serverState.practiceStats && typeof serverState.practiceStats === 'object' &&
+        Object.keys(serverState.practiceStats).length > 0) {
+      localStorage.setItem('kay_practice_stats', JSON.stringify(serverState.practiceStats));
+    }
+    // Note: server stores session metadata (id, title, timestamps) but not
+    // chat content, so we don't hydrate kay_sessions — there's nothing to
+    // populate the message arrays with. Phase 3c can show a "your sessions
+    // on other devices" listing if useful.
+
+    // Re-render sidebar so the new mastery/practice data shows up
+    if (typeof renderSidebarMastery === 'function') {
+      try { renderSidebarMastery(); } catch (e) { console.warn(e); }
+    }
+    if (typeof renderSidebarPracticeStats === 'function') {
+      try { renderSidebarPracticeStats(); } catch (e) { console.warn(e); }
+    }
+  } catch (err) {
+    console.warn('hydrate error:', err);
+  }
+}
+
+// Monkey-patch saveMasteryData + savePracticeStats. Every write triggers:
+//   - opt-in check (if not authenticated and progress is worth saving)
+//   - server sync (if authenticated, debounced)
+(function () {
+  if (typeof window.saveMasteryData === 'function') {
+    const original = window.saveMasteryData;
+    window.saveMasteryData = function () {
+      const result = original.apply(this, arguments);
+      if (kayShouldPromptEnrollment() && kayHasMeaningfulProgress()) {
+        setTimeout(() => openEnrollmentPrompt(), 400);
+      }
+      kaySyncStateToServer();
+      return result;
+    };
+  }
+  if (typeof window.savePracticeStats === 'function') {
+    const original = window.savePracticeStats;
+    window.savePracticeStats = function () {
+      const result = original.apply(this, arguments);
+      if (kayShouldPromptEnrollment() && kayHasMeaningfulProgress()) {
+        setTimeout(() => openEnrollmentPrompt(), 400);
+      }
+      kaySyncStateToServer();
+      return result;
+    };
+  }
+})();
+
+// Swap the sidebar privacy message between the two tiers based on auth state.
+function kayUpdatePrivacyMessage() {
+  const el = document.querySelector('.sidebar-mastery-privacy');
+  if (!el) return;
+  if (kayAuth.isAuthenticated()) {
+    el.textContent = '🔒 Synced across your devices. No name, email, or identifying info — just a random nickname and a key only you hold.';
+  } else {
+    el.textContent = '🔒 Anonymous by default. Progress lives only on this device.';
+  }
+}
+
+// Hook kayAuth.register so newly-authenticated users get an immediate privacy-
+// message update and an immediate push of any existing local state.
+(function () {
+  const original = kayAuth.register;
+  kayAuth.register = async function () {
+    const result = await original.apply(this, arguments);
+    kayUpdatePrivacyMessage();
+    setTimeout(kaySyncStateToServer, 100);  // one-shot post-register sync
+    return result;
+  };
+})();
+
+// Initial setup — fires as soon as this script block parses. DOM is fully
+// built by now since we're at the end of <body>, so .sidebar-mastery-privacy
+// definitely exists if it's going to.
+kayUpdatePrivacyMessage();
+kayHydrateFromServer();
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Cross-session memory: recovery + account section (Phase 3c) ──────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Final piece. Adds:
+//   1. kayAuth.authenticate()  — usernameless passkey sign-in (returning device)
+//   2. kayAuth.recover(phrase) — redeem a 6-word recovery phrase (new device)
+//   3. kayAuth.addPasskey()    — add a credential to the current account
+//   4. kayAuth.logout()        — invalidate the session, keep local data
+//   5. kayAuth.deleteAccount() — wipe the account server-side (GDPR/CCPA)
+//   6. Restore modal (passkey sign-in OR recovery phrase)
+//   7. Add-passkey prompt shown after a successful phrase recovery
+//   8. Account section in the sidebar (state-aware)
+
+// Shared writer for the auth localStorage keys (KAY_AUTH_* declared in 3a).
+function kaySetAuth(token, pseudonym) {
+  try {
+    localStorage.setItem(KAY_AUTH_TOKEN_KEY, token);
+    localStorage.setItem(KAY_AUTH_PSEUDONYM_KEY, pseudonym);
+  } catch (e) {}
+}
+
+// ── kayAuth.authenticate — usernameless passkey sign-in ──────────────────────
+kayAuth.authenticate = async function () {
+  if (typeof SimpleWebAuthnBrowser === 'undefined') {
+    throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+  }
+  const optsRes = await kayAuth.kayFetch('/auth/passkey/authenticate/options', { method: 'POST', body: '{}' });
+  if (!optsRes.ok) {
+    const err = await optsRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not start sign-in (server error ' + optsRes.status + ').');
+  }
+  const { nonce, options } = await optsRes.json();
+
+  let authenticationResponse;
+  try {
+    authenticationResponse = await SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: options });
+  } catch (err) {
+    if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+      throw new Error('Sign-in was cancelled, or no passkey for Tutor Kay was found on this device.');
+    }
+    throw new Error(err && err.message ? err.message : 'Sign-in failed.');
+  }
+
+  const verifyRes = await kayAuth.kayFetch('/auth/passkey/authenticate/verify', {
+    method: 'POST',
+    body: JSON.stringify({ nonce, authenticationResponse }),
+  });
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not complete sign-in (server error ' + verifyRes.status + ').');
+  }
+  const result = await verifyRes.json();
+  kaySetAuth(result.sessionToken, result.pseudonym);
+  return result;  // { pseudonym, sessionToken }
+};
+
+// ── kayAuth.recover — redeem a recovery phrase ───────────────────────────────
+kayAuth.recover = async function (phrase) {
+  const res = await kayAuth.kayFetch('/auth/recovery/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ phrase }),
+  });
+  if (res.status === 401) {
+    throw new Error('That phrase doesn\'t match any account. Check the spelling and word order.');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not restore (server error ' + res.status + ').');
+  }
+  const result = await res.json();
+  kaySetAuth(result.sessionToken, result.pseudonym);
+  return result;  // { pseudonym, sessionToken }
+};
+
+// ── kayAuth.addPasskey — add a credential to the current account ─────────────
+kayAuth.addPasskey = async function () {
+  if (typeof SimpleWebAuthnBrowser === 'undefined') {
+    throw new Error('Passkey library hasn\'t loaded yet. Try reloading the page.');
+  }
+  const optsRes = await kayAuth.kayFetch('/auth/passkey/add/options', { method: 'POST', body: '{}' });
+  if (!optsRes.ok) {
+    const err = await optsRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not start adding a passkey (server error ' + optsRes.status + ').');
+  }
+  const { options } = await optsRes.json();
+
+  let registrationResponse;
+  try {
+    registrationResponse = await SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options });
+  } catch (err) {
+    if (err && err.name === 'InvalidStateError') {
+      throw new Error('This device already has a passkey for your account.');
+    }
+    if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+      throw new Error('Adding a passkey was cancelled.');
+    }
+    throw new Error(err && err.message ? err.message : 'Could not add a passkey.');
+  }
+
+  const verifyRes = await kayAuth.kayFetch('/auth/passkey/add/verify', {
+    method: 'POST',
+    body: JSON.stringify({ registrationResponse }),
+  });
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not finish adding a passkey (server error ' + verifyRes.status + ').');
+  }
+  return await verifyRes.json();  // { ok: true, credentialId }
+};
+
+// ── kayAuth.logout — invalidate session, keep local progress ─────────────────
+kayAuth.logout = async function () {
+  try {
+    await kayAuth.kayFetch('/auth/logout', { method: 'POST', body: '{}' });
+  } catch (e) { /* best effort — clear locally regardless */ }
+  kayAuth.clearToken();
+};
+
+// ── kayAuth.deleteAccount — full server-side wipe ────────────────────────────
+kayAuth.deleteAccount = async function () {
+  const res = await kayAuth.kayFetch('/account', { method: 'DELETE' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Could not delete account (server error ' + res.status + ').');
+  }
+  kayAuth.clearToken();
+  return await res.json();  // { ok: true }
+};
+
+// ── Account section rendering (sidebar) ──────────────────────────────────────
+function kayRenderAccount() {
+  const el = document.getElementById('sidebar-account');
+  if (!el) return;
+  if (kayAuth.isAuthenticated()) {
+    const pseudonym = kayAuth.getPseudonym() || 'your account';
+    const safe = (typeof escapeHTML === 'function') ? escapeHTML(pseudonym) : pseudonym;
+    el.innerHTML =
+      '<div class="sidebar-label" style="margin-top:14px;">Account</div>' +
+      '<div class="account-pseudonym" title="Your anonymous account name">' + safe + '</div>' +
+      '<div class="account-actions">' +
+        '<button class="account-btn" onclick="handleSignOut()">Sign out</button>' +
+        '<button class="account-btn account-btn-danger" onclick="handleDeleteAccount()">Delete account</button>' +
+      '</div>';
+  } else {
+    el.innerHTML =
+      '<div class="sidebar-label" style="margin-top:14px;">Account</div>' +
+      '<div class="account-anon-text">Save your progress across devices with a passkey — no email or password.</div>' +
+      '<button class="account-btn account-btn-primary" onclick="openEnrollmentPrompt()">Set up sync</button>' +
+      '<button class="account-btn account-btn-link" onclick="openRestoreModal()">Restore existing account</button>';
+  }
+}
+
+// Centralized auth-state-change hook — refreshes both the privacy message
+// (Phase 3b) and the account section.
+function kayOnAuthStateChange() {
+  if (typeof kayUpdatePrivacyMessage === 'function') kayUpdatePrivacyMessage();
+  kayRenderAccount();
+}
+
+// ── Account action handlers ──────────────────────────────────────────────────
+function handleSignOut() {
+  kayAuth.logout().finally(() => {
+    kayOnAuthStateChange();
+    showAlert('Signed out. Your progress stays saved on this device.', 'info', 3000);
+  });
+}
+
+function handleDeleteAccount() {
+  const pseudonym = kayAuth.getPseudonym() || 'your account';
+  const ok = confirm(
+    'Delete ' + pseudonym + '?\n\n' +
+    'This permanently erases your synced progress from the server and removes all passkeys for this account. ' +
+    'Progress already saved on this device will remain until you clear it. This cannot be undone.'
+  );
+  if (!ok) return;
+  kayAuth.deleteAccount().then(() => {
+    kayOnAuthStateChange();
+    showAlert('Account deleted. Your synced data has been erased from the server.', 'info', 4000);
+  }).catch(err => {
+    showAlert(err.message, 'error', 5000);
+  });
+}
+
+// ── Restore modal (passkey sign-in OR recovery phrase) ───────────────────────
+function openRestoreModal() {
+  const status = document.getElementById('restore-status');
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  const input = document.getElementById('restore-phrase-input');
+  if (input) input.value = '';
+  const pkBtn = document.getElementById('restore-passkey-btn');
+  const phBtn = document.getElementById('restore-phrase-btn');
+  if (pkBtn) { pkBtn.disabled = false; pkBtn.textContent = 'Sign in with a passkey'; }
+  if (phBtn) { phBtn.disabled = false; phBtn.textContent = 'Restore from phrase'; }
+  document.getElementById('restore-overlay').classList.add('open');
+}
+function closeRestoreModal() {
+  document.getElementById('restore-overlay').classList.remove('open');
+}
+
+async function handleRestorePasskey() {
+  const btn = document.getElementById('restore-passkey-btn');
+  const status = document.getElementById('restore-status');
+  btn.disabled = true; btn.textContent = 'Waiting for passkey…';
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  try {
+    const result = await kayAuth.authenticate();
+    closeRestoreModal();
+    kayOnAuthStateChange();
+    await kayHydrateFromServer();
+    showAlert('Welcome back, ' + result.pseudonym + '! Your progress is synced.', 'info', 4000);
+  } catch (err) {
+    if (status) { status.textContent = err.message; status.className = 'restore-status error'; }
+    btn.disabled = false; btn.textContent = 'Sign in with a passkey';
+  }
+}
+
+async function handleRestorePhrase() {
+  const input = document.getElementById('restore-phrase-input');
+  const btn = document.getElementById('restore-phrase-btn');
+  const status = document.getElementById('restore-status');
+  const phrase = (input.value || '').trim();
+  if (!phrase) {
+    if (status) { status.textContent = 'Please enter your 6-word recovery phrase.'; status.className = 'restore-status error'; }
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Restoring…';
+  if (status) { status.textContent = ''; status.className = 'restore-status'; }
+  try {
+    const result = await kayAuth.recover(phrase);
+    closeRestoreModal();
+    kayOnAuthStateChange();
+    await kayHydrateFromServer();
+    showAlert('Restored ' + result.pseudonym + '! Your progress is synced.', 'info', 4000);
+    openAddPasskeyPrompt(result.pseudonym);   // offer to bind a passkey here
+  } catch (err) {
+    if (status) { status.textContent = err.message; status.className = 'restore-status error'; }
+    btn.disabled = false; btn.textContent = 'Restore from phrase';
+  }
+}
+
+// ── Add-passkey prompt (shown after a successful phrase recovery) ─────────────
+function openAddPasskeyPrompt(pseudonym) {
+  const el = document.getElementById('addpk-pseudonym');
+  if (el) el.textContent = pseudonym || (kayAuth.getPseudonym() || 'your account');
+  const btn = document.getElementById('addpk-confirm-btn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Add passkey'; }
+  document.getElementById('addpk-overlay').classList.add('open');
+}
+function closeAddPasskeyPrompt() {
+  document.getElementById('addpk-overlay').classList.remove('open');
+}
+async function handleAddPasskeyClick() {
+  const btn = document.getElementById('addpk-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try {
+    await kayAuth.addPasskey();
+    closeAddPasskeyPrompt();
+    showAlert('Passkey added! Next time you can sign in on this device with your fingerprint or face.', 'info', 4500);
+  } catch (err) {
+    showAlert(err.message, 'error', 5000);
+    btn.disabled = false; btn.textContent = 'Add passkey';
+  }
+}
+
+// Re-wrap register so the Account section refreshes after a new enrollment.
+(function () {
+  const original = kayAuth.register;
+  kayAuth.register = async function () {
+    const result = await original.apply(this, arguments);
+    kayRenderAccount();
+    return result;
+  };
+})();
+
+// Escape closes the restore + add-passkey modals.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('restore-overlay') && document.getElementById('restore-overlay').classList.contains('open')) {
+    closeRestoreModal();
+  }
+  if (document.getElementById('addpk-overlay') && document.getElementById('addpk-overlay').classList.contains('open')) {
+    closeAddPasskeyPrompt();
+  }
+});
+
+// Initial render of the account section.
+kayRenderAccount();
 </script>
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!-- ── Cross-session memory: auth modals (Phase 3a) ──────────────────────── -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+
+<!-- Enrollment prompt modal — shown when a user with progress worth saving
+     opts in to cross-device sync. Phase 3a exposes it via openEnrollmentPrompt();
+     phase 3b wires the automatic trigger. -->
+<div class="enroll-overlay" id="enroll-overlay" onclick="if(event.target===this) closeEnrollmentPrompt()">
+  <div class="enroll-modal" role="dialog" aria-label="Save your progress">
+    <div class="enroll-body">
+      <div class="enroll-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="enroll-title">Save your progress?</div>
+      <div class="enroll-subtitle">
+        You've started tracking real progress. Set up a passkey so it follows you across devices and survives clearing your browser.
+      </div>
+      <div class="enroll-features">
+        <div class="enroll-feature">
+          <svg class="enroll-feature-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Your mastery and practice stats sync across phone, tablet, laptop</span>
+        </div>
+        <div class="enroll-feature">
+          <svg class="enroll-feature-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Sign in with your fingerprint, Face ID, or screen lock — no passwords</span>
+        </div>
+        <div class="enroll-feature">
+          <svg class="enroll-feature-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Get a 6-word recovery phrase as a backup</span>
+        </div>
+      </div>
+      <div class="enroll-privacy-note">
+        🔒 No name, email, or any identifying info — Kay assigns you a random nickname like "purple-tiger-7421". Chat content is never synced.
+      </div>
+    </div>
+    <div class="enroll-footer">
+      <button class="enroll-btn-secondary" id="enroll-cancel-btn" onclick="closeEnrollmentPrompt()">Not now</button>
+      <button class="enroll-btn-primary" id="enroll-confirm-btn" onclick="handleEnrollClick()">Yes, set it up</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recovery phrase display modal — shown once after a successful enrollment.
+     The 6-word phrase is the only way to recover the account if the user
+     loses access to all their passkey devices. User must explicitly confirm
+     they've saved it before they can close the modal. -->
+<div class="phrase-overlay" id="phrase-overlay" onclick="if(event.target===this) closePhraseModal()">
+  <div class="phrase-modal" role="dialog" aria-label="Recovery phrase">
+    <div class="phrase-header">
+      <div class="phrase-title">Your recovery phrase</div>
+      <div class="phrase-subtitle">Save this — you can't see it again</div>
+    </div>
+    <div class="phrase-body">
+      <div class="phrase-account">Account: <strong id="phrase-pseudonym"></strong></div>
+      <div class="phrase-explainer">
+        These six words let you restore access if you ever lose this device or clear your browser. Treat them like a password — anyone with the phrase can access your progress.
+      </div>
+      <div class="phrase-words-box" id="phrase-words"></div>
+      <div class="phrase-action-row">
+        <button class="phrase-action-btn" id="phrase-copy-btn" onclick="copyPhrase()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="phrase-action-btn" onclick="downloadPhrase()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download as .txt
+        </button>
+      </div>
+      <div class="phrase-warning">
+        <strong>Important:</strong> Tutor Kay can't recover this for you. If you lose the phrase AND every device with a passkey, your progress is gone.
+      </div>
+      <label class="phrase-confirm-row">
+        <input type="checkbox" id="phrase-confirm-check" onchange="handlePhraseConfirmCheck(this)">
+        <span>I've saved this phrase somewhere safe.</span>
+      </label>
+    </div>
+    <div class="phrase-footer">
+      <button class="phrase-close-btn" id="phrase-close-btn" onclick="closePhraseModal()" disabled>Confirm checkbox to close</button>
+    </div>
+  </div>
+</div>
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+<!-- ── Cross-session memory: restore + add-passkey modals (Phase 3c) ─────── -->
+<!-- ─────────────────────────────────────────────────────────────────────── -->
+
+<!-- Restore modal — two paths: sign in with an existing passkey on this
+     device, OR enter a 6-word recovery phrase (for a new device). -->
+<div class="restore-overlay" id="restore-overlay" onclick="if(event.target===this) closeRestoreModal()">
+  <div class="restore-modal" role="dialog" aria-label="Restore your account">
+    <div class="restore-header">
+      <div class="restore-title">Restore your progress</div>
+      <button class="restore-close" onclick="closeRestoreModal()" aria-label="Close">×</button>
+    </div>
+    <div class="restore-body">
+      <div class="restore-section">
+        <div class="restore-section-label">Used Kay on this device before?</div>
+        <button class="restore-passkey-btn" id="restore-passkey-btn" onclick="handleRestorePasskey()">Sign in with a passkey</button>
+      </div>
+      <div class="restore-divider"><span>or</span></div>
+      <div class="restore-section">
+        <div class="restore-section-label">New device? Enter your 6-word recovery phrase.</div>
+        <textarea class="restore-phrase-input" id="restore-phrase-input" rows="2" placeholder="word word word word word word" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+        <button class="restore-phrase-btn" id="restore-phrase-btn" onclick="handleRestorePhrase()">Restore from phrase</button>
+      </div>
+      <div class="restore-status" id="restore-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add-passkey prompt — shown after a successful phrase recovery, offering
+     to bind a passkey to this device so the phrase isn't needed next time. -->
+<div class="addpk-overlay" id="addpk-overlay" onclick="if(event.target===this) closeAddPasskeyPrompt()">
+  <div class="addpk-modal" role="dialog" aria-label="Add a passkey">
+    <div class="addpk-title">Add a passkey to this device?</div>
+    <div class="addpk-text">You're signed in as <strong id="addpk-pseudonym"></strong>. Add a passkey so next time you can sign in with your fingerprint or face — no recovery phrase needed.</div>
+    <div class="addpk-footer">
+      <button class="enroll-btn-secondary" onclick="closeAddPasskeyPrompt()">Skip for now</button>
+      <button class="enroll-btn-primary" id="addpk-confirm-btn" onclick="handleAddPasskeyClick()">Add passkey</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

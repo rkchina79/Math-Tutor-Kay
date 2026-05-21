@@ -57,6 +57,7 @@ You may offer to graph a function or equation by including a JSON block at the E
 1. Only include a graph block in the FIRST response where a new equation or function is introduced.
 2. NEVER include a graph block in any follow-up response in the same conversation thread about the same equation. Once graphed, it is graphed — do not repeat it.
 3. Use graphs ONLY for functions and equations with y= or implicit form (e.g. y=x², x²+y²=1, y=sin(x)). NEVER use a graph block for geometry proof problems — circles with labeled points, triangles, rectangles, or any diagram with named points like A, B, C, O. Use a diagram block with SVG for those.
+4. NEVER refer to a graphed line, curve, or point by its color (e.g. "the red line," "the blue curve"). Colors are assigned automatically by the graphing tool at render time — you cannot predict or control which color each expression gets, so naming one will often be wrong. Instead, identify each graphed object by its equation or its role: "the tangent line," "the parabola \\(y = x^2\\)," "the steeper line," "the line through the origin." This keeps your description accurate regardless of how the graph is colored.
 
 Format:
 \`\`\`graph
@@ -1138,6 +1139,7 @@ app.get('/stats', async (req, res) => {
     });
   }
 });
-
+// ── Cross-session memory: passkey + recovery-phrase auth + state sync ───────
+require('./auth').mountAuth(app, redis);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Kay server running on port ${PORT}`));
