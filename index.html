@@ -1734,6 +1734,24 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .sidebar-mastery-empty  { color: rgba(245,240,232,0.65); }
 .sidebar-mastery-privacy{ color: rgba(245,240,232,0.65); }
 .sidebar-copyright      { color: rgba(245,240,232,0.55); }
+
+  /* ── Option 2: typography pass on the dark sidebar ── */
+/* Bumps the smallest text up to 11px and eases letter-spacing on labels    */
+/* so secondary text feels composed and scannable rather than cramped.      */
+
+.kay-title             { font-size: 11px; letter-spacing: 0.1em; }
+.sidebar-label         { font-size: 11px; letter-spacing: 0.1em; }
+.sidebar-label button  { font-size: 11px !important; }
+.session-item          { line-height: 1.4; }
+.sidebar-stats-label   { font-size: 11px; }
+.sidebar-mastery-empty { font-size: 11.5px; line-height: 1.55; }
+.sidebar-mastery-privacy { font-size: 11px; line-height: 1.55; }
+.sidebar-copyright     { font-size: 10px; letter-spacing: 0.04em; }
+
+/* The mastery badges + topic names sit alongside section labels, so they  */
+/* get a small bump too so the section feels visually coherent.            */
+.mastery-topic-name    { font-size: 11.5px; }
+.mastery-badge         { font-size: 9.5px; }
 </style>
 </head>
 <body>
