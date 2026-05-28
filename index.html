@@ -1734,6 +1734,70 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .sidebar-mastery-empty  { color: rgba(245,240,232,0.65); }
 .sidebar-mastery-privacy{ color: rgba(245,240,232,0.65); }
 .sidebar-copyright      { color: rgba(245,240,232,0.55); }
+
+  /* ── Sidebar — light mode (overrides Option 1 dark-mode opacities) ── */
+
+/* Container + base text */
+.sidebar { background: var(--paper-2); color: var(--ink); border-right: 1px solid var(--paper-3); }
+.sidebar-divider { background: var(--paper-3); }
+
+/* Wordmark + tagline */
+.kay-name { color: var(--ink); }
+.kay-title { color: var(--ink-3); }
+
+/* Section labels + the small inline Reset buttons (override inline styles) */
+.sidebar-label { color: var(--ink-3); }
+.sidebar-label button { color: rgba(0,0,0,0.35) !important; }
+.sidebar-label button:hover { color: var(--ink-2) !important; }
+
+/* Sessions list */
+.session-item { color: var(--ink-2); }
+.session-item:hover { background: rgba(0,0,0,0.04); color: var(--ink); }
+.session-item.active { background: rgba(196,96,42,0.12); color: var(--accent); }
+
+/* Action buttons */
+.new-session-btn { background: rgba(196,96,42,0.08); border-color: rgba(196,96,42,0.3); color: var(--accent); }
+.new-session-btn:hover { background: rgba(196,96,42,0.14); }
+.support-btn { background: white; border-color: var(--paper-3); color: var(--ink-2); }
+.support-btn:hover { background: var(--paper-3); color: var(--ink); border-color: var(--ink-3); }
+.feedback-link { border-color: var(--paper-3); color: var(--ink-2); }
+.feedback-link:hover { background: var(--paper-3); color: var(--ink); border-color: var(--ink-3); }
+
+/* Stats */
+.sidebar-stats-value { color: var(--accent); }
+.sidebar-stats-label { color: var(--ink-3); }
+
+/* Mastery + practice progress */
+.sidebar-mastery-empty { color: var(--ink-3); }
+.sidebar-mastery-privacy { color: var(--ink-3); }
+.mastery-topic-name { color: var(--ink-2); }
+.mastery-bar-track { background: rgba(0,0,0,0.08); }
+.mastery-badge.learning   { background: rgba(217,119,6,0.14); color: #b45309; }
+.mastery-badge.developing { background: rgba(2,132,199,0.14); color: #0369a1; }
+.mastery-badge.mastered   { background: rgba(22,163,74,0.14); color: #15803d; }
+.mastery-bar-fill.learning   { background: #d97706; }
+.mastery-bar-fill.developing { background: #0284c7; }
+.mastery-bar-fill.mastered   { background: #16a34a; }
+.clickable-stat-row:hover { background: rgba(0,0,0,0.03); }
+
+/* Custom scrollbars (the dark cream-thumbs would be invisible now) */
+.sidebar-mastery-wrap, .sidebar-practice-wrap { scrollbar-color: rgba(0,0,0,0.18) transparent; }
+.sidebar-mastery-wrap::-webkit-scrollbar-thumb,
+.sidebar-practice-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); }
+
+/* Copyright */
+.sidebar-copyright { color: var(--ink-3); }
+
+/* Account section */
+.account-pseudonym { color: var(--accent); }
+.account-anon-text { color: var(--ink-3); }
+.account-btn { background: white; border-color: var(--paper-3); color: var(--ink-2); }
+.account-btn:hover { background: var(--paper-3); color: var(--ink); border-color: var(--ink-3); }
+.account-btn-primary { background: rgba(196,96,42,0.1); border-color: rgba(196,96,42,0.35); color: var(--accent); }
+.account-btn-primary:hover { background: rgba(196,96,42,0.18); color: var(--accent); }
+.account-btn-link { color: var(--ink-3); background: none; }
+.account-btn-link:hover { color: var(--ink); background: none; }
+.account-btn-danger:hover { border-color: rgba(217,83,79,0.5); color: #b91c1c; background: rgba(217,83,79,0.06); }
 </style>
 </head>
 <body>
