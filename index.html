@@ -1723,6 +1723,17 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .addpk-text { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 18px; }
 .addpk-text strong { font-family: var(--mono); font-size: 12px; color: var(--accent); }
 .addpk-footer { display: flex; gap: 8px; justify-content: flex-end; }
+/* ── Accessibility: raise sidebar text opacity for better readability ── */
+/* Earlier values dropped below WCAG 4.5:1 contrast on the dark BG; these */
+/* keep the same hierarchy (less-important text still reads as secondary) */
+/* but stay above the legibility threshold, especially for younger users. */
+.kay-title              { color: rgba(245,240,232,0.7); }
+.sidebar-label          { color: rgba(245,240,232,0.75); }
+.session-item           { color: rgba(245,240,232,0.8); }
+.sidebar-stats-label    { color: rgba(245,240,232,0.7); }
+.sidebar-mastery-empty  { color: rgba(245,240,232,0.65); }
+.sidebar-mastery-privacy{ color: rgba(245,240,232,0.65); }
+.sidebar-copyright      { color: rgba(245,240,232,0.55); }
 </style>
 </head>
 <body>
