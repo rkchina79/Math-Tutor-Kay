@@ -1,0 +1,340 @@
+{
+  "version": 1,
+  "module": "SAT Math — Module 1",
+  "description": "22-question SAT Math timed-test module (mirrors the digital-SAT Module 1 structure: 22 questions, 35 minutes, Desmos calculator allowed).",
+  "totalQuestions": 22,
+  "timeMinutes": 35,
+  "createdAt": "2026-05-28",
+  "answerFormat": {
+    "MC": "options is array of 4 strings (LaTeX-wrapped where math is involved). correct is 0-indexed integer.",
+    "SPR": "correctAnswer is the canonical string answer. UI should normalize student input (strip whitespace, handle equivalent forms like '3' / '3.0', '1/2' / '0.5')."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "source": "batch1-Q1",
+      "domain": "Algebra",
+      "skill": "Linear equations in one variable",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "If \\(3x + 7 = 22\\), what is the value of \\(x\\)?",
+      "options": [
+        "5",
+        "7",
+        "15",
+        "\\(\\frac{29}{3}\\)"
+      ],
+      "correct": 0,
+      "explanation": "\\(3x + 7 = 22 \\rightarrow 3x = 15 \\rightarrow x = 5\\)."
+    },
+    {
+      "id": 2,
+      "source": "batch1-Q2",
+      "domain": "Algebra",
+      "skill": "Systems of linear equations",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "The system of equations \\(y = 2x + 1\\) and \\(y = -x + 7\\) has one solution. What is the value of \\(x\\) at that solution?",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      "correct": 1,
+      "explanation": "Set \\(2x + 1 = -x + 7\\), so \\(3x = 6\\) and \\(x = 2\\)."
+    },
+    {
+      "id": 3,
+      "source": "batch1-Q3",
+      "domain": "Algebra",
+      "skill": "Slope from two points",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A line passes through the points \\((2, 5)\\) and \\((4, 11)\\). What is the slope of the line?",
+      "correctAnswer": "3",
+      "explanation": "slope \\(= \\frac{11 - 5}{4 - 2} = \\frac{6}{2} = 3\\)."
+    },
+    {
+      "id": 4,
+      "source": "batch1-Q4",
+      "domain": "Algebra",
+      "skill": "Linear inequalities",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "What is the greatest integer value of \\(x\\) that satisfies \\(2x - 3 < 7\\)?",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "correct": 1,
+      "explanation": "\\(2x - 3 < 7 \\rightarrow 2x < 10 \\rightarrow x < 5\\). The greatest integer less than 5 is 4."
+    },
+    {
+      "id": 5,
+      "source": "batch2-Q17",
+      "domain": "Algebra",
+      "skill": "Linear models / word problems",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A car rental company charges a flat fee of $25 plus $0.20 per mile driven. Jamal rented a car and was charged a total of $75. How many miles did he drive?",
+      "options": [
+        "200",
+        "250",
+        "300",
+        "500"
+      ],
+      "correct": 1,
+      "explanation": "Set up \\(25 + 0.20m = 75\\). Then \\(0.20m = 50\\), so \\(m = 250\\)."
+    },
+    {
+      "id": 6,
+      "source": "batch2-Q18",
+      "domain": "Algebra",
+      "skill": "Slope-intercept form",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "Line \\(\\ell\\) in the \\(xy\\)-plane has slope 2 and passes through the point \\((3, 7)\\). What is the \\(y\\)-intercept of line \\(\\ell\\)?",
+      "correctAnswer": "1",
+      "explanation": "Using \\(y = mx + b\\) with \\(m = 2\\) and the point \\((3, 7)\\): \\(7 = 2(3) + b\\), so \\(b = 1\\)."
+    },
+    {
+      "id": 7,
+      "source": "batch2-Q19",
+      "domain": "Algebra",
+      "skill": "Absolute value equations",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "What is the sum of all values of \\(x\\) that satisfy \\(|2x - 5| = 7\\)?",
+      "options": [
+        "\\(-6\\)",
+        "1",
+        "5",
+        "11"
+      ],
+      "correct": 2,
+      "explanation": "Split into \\(2x - 5 = 7 \\rightarrow x = 6\\), and \\(2x - 5 = -7 \\rightarrow x = -1\\). Sum: \\(6 + (-1) = 5\\)."
+    },
+    {
+      "id": 8,
+      "source": "batch1-Q6",
+      "domain": "Advanced Math",
+      "skill": "Evaluating functions",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "If \\(f(x) = 2x^2 - 3x + 1\\), what is the value of \\(f(3)\\)?",
+      "options": [
+        "4",
+        "8",
+        "10",
+        "28"
+      ],
+      "correct": 2,
+      "explanation": "\\(f(3) = 2(9) - 3(3) + 1 = 18 - 9 + 1 = 10\\)."
+    },
+    {
+      "id": 9,
+      "source": "batch1-Q5",
+      "domain": "Advanced Math",
+      "skill": "Quadratic equations",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "What is the sum of the solutions to \\(x^2 - 5x + 6 = 0\\)?",
+      "correctAnswer": "5",
+      "explanation": "\\(x^2 - 5x + 6 = (x - 2)(x - 3) = 0\\), so \\(x = 2\\) or \\(x = 3\\). Sum is \\(5\\)."
+    },
+    {
+      "id": 10,
+      "source": "batch1-Q8",
+      "domain": "Advanced Math",
+      "skill": "Factoring quadratics",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "The expression \\(x^2 + 8x + 12\\) can be written as \\((x + a)(x + b)\\), where \\(a\\) and \\(b\\) are positive integers. What is the value of \\(a + b\\)?",
+      "correctAnswer": "8",
+      "explanation": "\\(x^2 + 8x + 12 = (x + 2)(x + 6)\\), so \\(a + b = 2 + 6 = 8\\) (equals the coefficient of \\(x\\))."
+    },
+    {
+      "id": 11,
+      "source": "batch2-Q20",
+      "domain": "Advanced Math",
+      "skill": "Polynomial operations",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "The polynomial \\(p(x)\\) is defined as \\(p(x) = (2x + 3)(x - 4)\\). When \\(p(x)\\) is written in standard form, what is its constant term?",
+      "correctAnswer": "-12",
+      "explanation": "Expand: \\((2x + 3)(x - 4) = 2x^2 - 8x + 3x - 12 = 2x^2 - 5x - 12\\). The constant term is \\(-12\\)."
+    },
+    {
+      "id": 12,
+      "source": "batch2-Q22",
+      "domain": "Advanced Math",
+      "skill": "Function composition",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Let \\(f(x) = 2x - 1\\) and \\(g(x) = x^2 + 1\\). What is the value of \\(f(g(2))\\)?",
+      "options": [
+        "5",
+        "7",
+        "9",
+        "11"
+      ],
+      "correct": 2,
+      "explanation": "First \\(g(2) = 2^2 + 1 = 5\\). Then \\(f(5) = 2(5) - 1 = 9\\). The trap is computing \\(f(2) = 3\\) first."
+    },
+    {
+      "id": 13,
+      "source": "batch1-Q7",
+      "domain": "Advanced Math",
+      "skill": "Exponential growth",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A population of bacteria doubles every 3 hours. If it starts at 500, how many bacteria are there after 9 hours?",
+      "options": [
+        "1500",
+        "2000",
+        "4000",
+        "8000"
+      ],
+      "correct": 2,
+      "explanation": "\\(9 \\div 3 = 3\\) doublings, so \\(500 \\times 2^3 = 500 \\times 8 = 4000\\)."
+    },
+    {
+      "id": 14,
+      "source": "batch2-Q21",
+      "domain": "Advanced Math",
+      "skill": "Quadratic functions (vertex)",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "The function \\(f\\) is defined by \\(f(x) = x^2 - 6x + 13\\). What is the minimum value of \\(f(x)\\)?",
+      "options": [
+        "\\(-13\\)",
+        "\\(-4\\)",
+        "4",
+        "13"
+      ],
+      "correct": 2,
+      "explanation": "Complete the square: \\(x^2 - 6x + 13 = (x - 3)^2 - 9 + 13 = (x - 3)^2 + 4\\). The minimum is \\(4\\) (when \\(x = 3\\))."
+    },
+    {
+      "id": 15,
+      "source": "batch2-Q23",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percentages in context",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "A jacket originally costs $80. During a sale, the price is reduced by 30%. What is the sale price of the jacket?",
+      "options": [
+        "$24",
+        "$50",
+        "$56",
+        "$104"
+      ],
+      "correct": 2,
+      "explanation": "30% of 80 is 24, so the discount is $24. New price: \\(80 - 24 = \\$56\\). (Trap: $24 is the discount; $104 is if you added.)"
+    },
+    {
+      "id": 16,
+      "source": "batch1-Q10",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percent increase",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A shirt originally costs $40. Its price is increased by 25%. What is the new price?",
+      "options": [
+        "$10",
+        "$45",
+        "$50",
+        "$65"
+      ],
+      "correct": 2,
+      "explanation": "Increase \\(= 25\\%\\) of \\(40 = 10\\), so new price \\(= 40 + 10 = \\$50\\)."
+    },
+    {
+      "id": 17,
+      "source": "batch1-Q11",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Rates / proportions",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A car travels 150 miles in 3 hours at a constant rate. At this rate, how many miles will it travel in 5 hours?",
+      "correctAnswer": "250",
+      "explanation": "Rate \\(= 150 / 3 = 50\\) mph. Then \\(50 \\times 5 = 250\\) miles."
+    },
+    {
+      "id": 18,
+      "source": "batch1-Q12",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Mean (statistics)",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "The mean of 5 numbers is 12. A sixth number, 18, is added to the set. What is the mean of the 6 numbers?",
+      "options": [
+        "12",
+        "13",
+        "14",
+        "15"
+      ],
+      "correct": 1,
+      "explanation": "Sum of the first 5 \\(= 5 \\times 12 = 60\\). New sum \\(= 60 + 18 = 78\\). New mean \\(= 78 / 6 = 13\\)."
+    },
+    {
+      "id": 19,
+      "source": "batch1-Q15",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Pythagorean theorem",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A right triangle has legs of length 6 and 8. What is the length of the hypotenuse?",
+      "correctAnswer": "10",
+      "explanation": "\\(c = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10\\)."
+    },
+    {
+      "id": 20,
+      "source": "batch2-Q24",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Area in composite figures",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A rectangular garden measures 12 feet by 8 feet. A gardener wants to surround the garden with a path that is 2 feet wide on all sides. What is the area of the path alone, in square feet?",
+      "options": [
+        "40",
+        "80",
+        "96",
+        "192"
+      ],
+      "correct": 2,
+      "explanation": "Outer rectangle (garden + path): \\((12 + 4)(8 + 4) = 16 \\times 12 = 192\\). Inner garden: \\(12 \\times 8 = 96\\). Path area: \\(192 - 96 = 96\\)."
+    },
+    {
+      "id": 21,
+      "source": "batch2-Q25",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Volume / surface area of solids",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A cube has a surface area of 96 square inches. What is the volume of the cube, in cubic inches?",
+      "correctAnswer": "64",
+      "explanation": "Surface area of a cube is \\(6s^2\\). Setting \\(6s^2 = 96\\) gives \\(s^2 = 16\\), so \\(s = 4\\). Volume \\(= s^3 = 64\\)."
+    },
+    {
+      "id": 22,
+      "source": "batch1-Q16",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Right-triangle trigonometry",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In a right triangle, an acute angle \\(\\theta\\) has \\(\\sin \\theta = \\frac{3}{5}\\). What is the value of \\(\\cos \\theta\\)?",
+      "options": [
+        "\\(\\frac{3}{4}\\)",
+        "\\(\\frac{4}{5}\\)",
+        "\\(\\frac{5}{4}\\)",
+        "\\(\\frac{5}{3}\\)"
+      ],
+      "correct": 1,
+      "explanation": "With \\(\\sin \\theta = \\frac{3}{5}\\) (opposite \\(3\\), hypotenuse \\(5\\)), the adjacent leg \\(= \\sqrt{5^2 - 3^2} = 4\\), so \\(\\cos \\theta = \\frac{4}{5}\\)."
+    }
+  ]
+}
