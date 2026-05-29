@@ -2301,6 +2301,45 @@ body.in-timed-test-results .tt-results-overlay { display: flex; }
 
     </div>
 
+  <!-- ── Timed test mode (hidden until startTimedTest() is called) ── -->
+<div class="timed-test-container">
+  <div class="tt-header">
+    <span class="tt-timer" id="tt-timer">35:00</span>
+    <span class="tt-progress" id="tt-progress">Question 1 of 22</span>
+    <button class="tt-submit-btn" id="tt-submit-btn" onclick="ttRequestSubmit()">Submit test</button>
+  </div>
+  <div class="tt-question-area">
+    <div class="tt-question-card" id="tt-question-card"></div>
+  </div>
+  <div class="tt-footer">
+    <div class="tt-nav-row">
+      <button class="tt-prev-btn" id="tt-prev-btn" onclick="ttPrev()">← Previous</button>
+      <button class="tt-mark-toggle" id="tt-mark-toggle" onclick="ttToggleMark()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="tt-mark-text">Mark for review</span>
+      </button>
+      <button class="tt-next-btn" id="tt-next-btn" onclick="ttNext()">Next →</button>
+    </div>
+    <div class="tt-question-navigator" id="tt-question-navigator"></div>
+  </div>
+</div>
+
+<!-- ── Timed test results screen ── -->
+<div class="tt-results-overlay">
+  <div class="tt-results-inner" id="tt-results-inner"></div>
+</div>
+
+<!-- ── Submit confirmation modal ── -->
+<div class="tt-confirm-overlay" id="tt-confirm-overlay" onclick="if(event.target===this) ttCancelSubmit()">
+  <div class="tt-confirm-modal" role="dialog" aria-label="Confirm submit">
+    <div class="tt-confirm-title" id="tt-confirm-title">Submit your test?</div>
+    <div class="tt-confirm-text" id="tt-confirm-text">You'll see your score immediately.</div>
+    <div class="tt-confirm-footer">
+      <button class="tt-confirm-cancel" onclick="ttCancelSubmit()">Go back</button>
+      <button class="tt-confirm-go" onclick="ttFinalizeSubmit()">Submit</button>
+    </div>
+  </div>
+</div>
   </main>
 </div>
 
