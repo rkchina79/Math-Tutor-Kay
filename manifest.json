@@ -1,1 +1,28 @@
-
+{
+  "name": "Tutor Kay — AI Math Tutor",
+  "short_name": "Kay",
+  "description": "Your personal AI math tutor — guiding you through every problem step by step, from counting to topology.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2e2a25",
+  "theme_color": "#2e2a25",
+  "icons": [
+    {
+      "src": "icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
