@@ -6781,6 +6781,398 @@ function kayRenderAccount() {
 function kayOnAuthStateChange() {
   if (typeof kayUpdatePrivacyMessage === 'function') kayUpdatePrivacyMessage();
   kayRenderAccount();
+
+  // ─────────────────────────────────────────────────────────────────────────────
+// ── Timed Test Mode — SAT Math Module 1 ─────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 22 questions, 35 minutes, no help mid-test. Mirrors the digital-SAT Module 1
+// format. Question bank fetched from /sat-math-module-1.json at start. State
+// is in-memory only — refreshing the page during a test loses progress, by
+// design (real SAT doesn't allow restart-from-state either).
+//
+// Entry: window.startTimedTest() — called from console while gated; later from
+//        the home-screen card once that's wired up.
+
+let ttState = null;
+let ttTimerInterval = null;
+
+async function startTimedTest() {
+  if (ttState !== null) {
+    showAlert('A test is already in progress.', 'info', 3000);
+    return;
+  }
+  let bank;
+  try {
+    const res = await fetch('/sat-math-module-1.json');
+    if (!res.ok) throw new Error('Question bank fetch failed: ' + res.status);
+    bank = await res.json();
+  } catch (err) {
+    showAlert('Could not load the question bank. Make sure sat-math-module-1.json is in the repo root.', 'error', 6000);
+    console.error(err);
+    return;
+  }
+  ttState = {
+    bank: bank,
+    startTime: Date.now(),
+    durationMs: bank.timeMinutes * 60 * 1000,
+    currentIdx: 0,
+    answers: {},       // { idx: optionIndex for MC, "string" for SPR }
+    marked: new Set(),
+    submitted: false,
+    reviewMode: false,
+  };
+  document.body.classList.add('in-timed-test');
+  if (window.innerWidth <= 640) closeMobileSidebar();
+  ttShowQuestion(0);
+  ttRenderNavigator();
+  ttStartTimer();
+}
+
+function ttStartTimer() {
+  ttUpdateTimer();
+  ttTimerInterval = setInterval(ttUpdateTimer, 500);
+}
+
+function ttUpdateTimer() {
+  if (!ttState || ttState.submitted) return;
+  const remaining = ttState.durationMs - (Date.now() - ttState.startTime);
+  if (remaining <= 0) {
+    clearInterval(ttTimerInterval); ttTimerInterval = null;
+    ttFinalizeSubmit(true);
+    return;
+  }
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  const el = document.getElementById('tt-timer');
+  if (!el) return;
+  el.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+  el.classList.remove('warning', 'critical');
+  if (remaining <= 60 * 1000) el.classList.add('critical');
+  else if (remaining <= 5 * 60 * 1000) el.classList.add('warning');
+}
+
+function ttShowQuestion(idx) {
+  if (!ttState) return;
+  if (idx < 0 || idx >= ttState.bank.questions.length) return;
+  ttState.currentIdx = idx;
+  const q = ttState.bank.questions[idx];
+  const card = document.getElementById('tt-question-card');
+  const inReview = !!ttState.reviewMode;
+
+  document.getElementById('tt-progress').textContent =
+    'Question ' + (idx + 1) + ' of ' + ttState.bank.questions.length;
+  document.getElementById('tt-prev-btn').disabled = (idx === 0);
+  document.getElementById('tt-next-btn').disabled = (idx === ttState.bank.questions.length - 1);
+
+  if (!inReview) {
+    const markToggle = document.getElementById('tt-mark-toggle');
+    const isMarked = ttState.marked.has(idx);
+    markToggle.classList.toggle('marked', isMarked);
+    document.getElementById('tt-mark-text').textContent =
+      isMarked ? 'Marked for review' : 'Mark for review';
+  }
+
+  const diffClass = q.difficulty.toLowerCase();
+  let html =
+    '<div class="tt-question-meta">' +
+      '<span class="tt-meta-domain">' + q.domain + '</span>' +
+      '<span class="tt-meta-divider">·</span>' +
+      '<span class="tt-meta-difficulty ' + diffClass + '">' + q.difficulty + '</span>' +
+    '</div>';
+
+  // Review-mode badge
+  if (inReview) {
+    const userAns = ttState.answers[idx];
+    let cls, txt, icon;
+    if (userAns === undefined) { cls = 'skipped'; txt = 'Not answered'; icon = '○'; }
+    else {
+      const ok = q.type === 'MC' ? userAns === q.correct : ttIsCorrectSPR(userAns, q.correctAnswer);
+      if (ok) { cls = 'correct'; txt = 'Correct'; icon = '✓'; }
+      else    { cls = 'wrong';   txt = 'Incorrect'; icon = '✗'; }
+    }
+    html += '<div class="tt-review-marker ' + cls + '"><span>' + icon + '</span><span>' + txt + '</span></div>';
+  }
+
+  html += '<div class="tt-question-text">' + escapeAndFormat(q.question) + '</div>';
+
+  if (q.type === 'MC') {
+    const letters = ['A', 'B', 'C', 'D'];
+    const userAns = ttState.answers[idx];
+    html += '<div class="tt-mc-options">' + q.options.map(function(opt, i) {
+      const classes = ['tt-mc-option'];
+      if (!inReview) {
+        if (userAns === i) classes.push('selected');
+      } else {
+        if (i === q.correct) classes.push('correct-answer');
+        else if (userAns === i && userAns !== q.correct) classes.push('user-wrong');
+      }
+      const onclick = inReview ? '' : ' onclick="ttRecordMC(' + idx + ',' + i + ')"';
+      const dis = inReview ? ' disabled' : '';
+      return '<button class="' + classes.join(' ') + '"' + onclick + dis + '>' +
+        '<span class="tt-mc-option-letter">' + letters[i] + '</span>' +
+        '<span class="tt-mc-option-text">' + escapeAndFormat(opt) + '</span>' +
+      '</button>';
+    }).join('') + '</div>';
+  } else if (q.type === 'SPR') {
+    const v = ttState.answers[idx] || '';
+    const inputAttrs = inReview ? ' disabled' :
+      ' oninput="ttRecordSPR(' + idx + ', this.value)" autocomplete="off" autocapitalize="off" spellcheck="false"';
+    html += '<div class="tt-spr-area">' +
+      '<div class="tt-spr-label">Your answer</div>' +
+      '<input type="text" class="tt-spr-input" id="tt-spr-input-' + idx + '" value="' + escapeAttr(v) + '"' + inputAttrs + '>' +
+    '</div>';
+    if (inReview) {
+      const userAns = ttState.answers[idx];
+      const ok = userAns !== undefined && ttIsCorrectSPR(userAns, q.correctAnswer);
+      if (!ok) {
+        html += '<div class="tt-review-correct-answer"><strong>Correct answer:</strong> ' +
+          escapeAndFormat(q.correctAnswer) + '</div>';
+      }
+    }
+  }
+
+  if (inReview && q.explanation) {
+    html += '<div class="tt-review-explanation"><strong>Explanation:</strong> ' + escapeAndFormat(q.explanation) + '</div>';
+  }
+
+  card.innerHTML = html;
+
+  if (window.renderMathInElement) {
+    renderMathInElement(card, {
+      delimiters: [
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true },
+      ],
+      throwOnError: false,
+    });
+  }
+  ttRenderNavigator();
+}
+
+function ttRecordMC(idx, optionIdx) {
+  if (!ttState || ttState.reviewMode) return;
+  ttState.answers[idx] = optionIdx;
+  const card = document.getElementById('tt-question-card');
+  if (card) {
+    card.querySelectorAll('.tt-mc-option').forEach(function(btn, i) {
+      btn.classList.toggle('selected', i === optionIdx);
+    });
+  }
+  ttRenderNavigator();
+}
+
+function ttRecordSPR(idx, value) {
+  if (!ttState || ttState.reviewMode) return;
+  if (value.trim() === '') delete ttState.answers[idx];
+  else ttState.answers[idx] = value;
+  ttRenderNavigator();
+}
+
+function ttToggleMark() {
+  if (!ttState || ttState.reviewMode) return;
+  const idx = ttState.currentIdx;
+  if (ttState.marked.has(idx)) ttState.marked.delete(idx);
+  else ttState.marked.add(idx);
+  ttShowQuestion(idx);
+}
+
+function ttPrev() { if (ttState && ttState.currentIdx > 0) ttShowQuestion(ttState.currentIdx - 1); }
+function ttNext() { if (ttState && ttState.currentIdx < ttState.bank.questions.length - 1) ttShowQuestion(ttState.currentIdx + 1); }
+
+function ttRenderNavigator() {
+  if (!ttState) return;
+  const nav = document.getElementById('tt-question-navigator');
+  if (!nav) return;
+  const inReview = !!ttState.reviewMode;
+  nav.innerHTML = ttState.bank.questions.map(function(q, i) {
+    const classes = ['tt-nav-btn'];
+    if (inReview) {
+      const userAns = ttState.answers[i];
+      if (userAns !== undefined) {
+        const ok = q.type === 'MC' ? userAns === q.correct : ttIsCorrectSPR(userAns, q.correctAnswer);
+        classes.push(ok ? 'answered' : 'review-wrong');
+      }
+    } else {
+      if (ttState.answers[i] !== undefined) classes.push('answered');
+      if (ttState.marked.has(i)) classes.push('marked');
+    }
+    if (i === ttState.currentIdx) classes.push('current');
+    return '<button class="' + classes.join(' ') + '" onclick="ttShowQuestion(' + i + ')">' + (i + 1) + '</button>';
+  }).join('');
+}
+
+function ttRequestSubmit() {
+  if (!ttState || ttState.reviewMode) return;
+  const totalQ = ttState.bank.questions.length;
+  const answered = Object.keys(ttState.answers).length;
+  const unanswered = totalQ - answered;
+  const marked = ttState.marked.size;
+  const title = document.getElementById('tt-confirm-title');
+  const text = document.getElementById('tt-confirm-text');
+  if (unanswered > 0 || marked > 0) {
+    title.textContent = 'Submit with ' + unanswered + ' unanswered?';
+    const parts = [];
+    if (unanswered > 0) parts.push(unanswered + ' unanswered');
+    if (marked > 0) parts.push(marked + ' marked for review');
+    text.textContent = "You have " + parts.join(' and ') + ". Once submitted, you can't change your answers.";
+  } else {
+    title.textContent = 'Submit your test?';
+    text.textContent = "You'll see your score immediately. This can't be undone.";
+  }
+  document.getElementById('tt-confirm-overlay').classList.add('open');
+}
+
+function ttCancelSubmit() {
+  document.getElementById('tt-confirm-overlay').classList.remove('open');
+}
+
+function ttFinalizeSubmit(autoSubmitted) {
+  if (!ttState || ttState.submitted) return;
+  ttState.submitted = true;
+  ttState.endTime = Date.now();
+  document.getElementById('tt-confirm-overlay').classList.remove('open');
+  if (ttTimerInterval) { clearInterval(ttTimerInterval); ttTimerInterval = null; }
+  ttShowResults(!!autoSubmitted);
+}
+
+// SPR answer matching — normalize student input vs canonical
+function ttNormalizeSPR(s) { return String(s || '').trim().toLowerCase().replace(/[$,\s]/g, ''); }
+function ttIsCorrectSPR(userAns, canonAns) {
+  if (userAns === undefined || userAns === null || userAns === '') return false;
+  const u = ttNormalizeSPR(userAns), c = ttNormalizeSPR(canonAns);
+  if (u === c) return true;
+  const toNum = function(s) {
+    s = s.replace(/^\+/, '');
+    if (s.includes('/')) { const p = s.split('/'); if (p.length !== 2) return NaN; return parseFloat(p[0]) / parseFloat(p[1]); }
+    return parseFloat(s);
+  };
+  const uN = toNum(u), cN = toNum(c);
+  if (!isNaN(uN) && !isNaN(cN) && Math.abs(uN - cN) < 1e-9) return true;
+  return false;
+}
+
+function ttComputeScore() {
+  const qs = ttState.bank.questions;
+  let correct = 0;
+  const perDomain = {};
+  qs.forEach(function(q, i) {
+    const userAns = ttState.answers[i];
+    let ok = false;
+    if (userAns !== undefined && userAns !== '') {
+      if (q.type === 'MC') ok = userAns === q.correct;
+      else if (q.type === 'SPR') ok = ttIsCorrectSPR(userAns, q.correctAnswer);
+    }
+    if (ok) correct++;
+    if (!perDomain[q.domain]) perDomain[q.domain] = { correct: 0, total: 0 };
+    perDomain[q.domain].total++;
+    if (ok) perDomain[q.domain].correct++;
+  });
+  return { correct: correct, total: qs.length, percent: Math.round(100 * correct / qs.length), perDomain: perDomain };
+}
+
+function ttShowResults(autoSubmitted) {
+  if (!ttState) return;
+  const score = ttComputeScore();
+  ttState.score = score;
+  document.body.classList.remove('in-timed-test');
+  document.body.classList.add('in-timed-test-results');
+  const elapsedMs = ttState.endTime - ttState.startTime;
+  const elapsedMin = Math.floor(elapsedMs / 60000);
+  const elapsedSec = Math.floor((elapsedMs % 60000) / 1000);
+  const timeStr = elapsedMin + ' min ' + String(elapsedSec).padStart(2, '0') + ' sec';
+  const autoMsg = autoSubmitted ? '<div class="tt-results-meta">Time ran out — your test was auto-submitted.</div>' : '';
+  const domainsHTML = Object.entries(score.perDomain).map(function(entry) {
+    const domain = entry[0], d = entry[1];
+    const pct = Math.round(100 * d.correct / d.total);
+    let band = 'good';
+    if (pct < 50) band = 'poor';
+    else if (pct < 80) band = 'okay';
+    return '<div class="tt-domain-row">' +
+      '<div class="tt-domain-name">' + domain + '</div>' +
+      '<div class="tt-domain-fraction">' + d.correct + '/' + d.total + '</div>' +
+      '<div class="tt-domain-bar-container">' +
+        '<div class="tt-domain-bar-fill ' + band + '" style="width: ' + pct + '%"></div>' +
+      '</div>' +
+      '<div class="tt-domain-pct">' + pct + '%</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('tt-results-inner').innerHTML =
+    '<div class="tt-results-title">Module 1 — Complete</div>' +
+    '<div class="tt-results-subtitle">SAT Math Practice</div>' +
+    '<div class="tt-score-big">' +
+      '<div class="tt-score-fraction">' + score.correct + ' / ' + score.total + '</div>' +
+      '<div class="tt-score-pct">' + score.percent + '%</div>' +
+    '</div>' +
+    '<div class="tt-results-meta">Time used: ' + timeStr + ' of ' + ttState.bank.timeMinutes + ':00</div>' +
+    autoMsg +
+    '<div class="tt-domain-breakdown">' +
+      '<div class="tt-domain-breakdown-title">By domain</div>' +
+      domainsHTML +
+    '</div>' +
+    '<div class="tt-results-actions">' +
+      '<button class="tt-action-btn tt-action-btn-primary" onclick="ttStartReview()">Review questions</button>' +
+      '<button class="tt-action-btn tt-action-btn-secondary" onclick="ttReturnHome()">Return home</button>' +
+    '</div>';
+}
+
+function ttStartReview() {
+  if (!ttState) return;
+  document.body.classList.remove('in-timed-test-results');
+  document.body.classList.add('in-timed-test');
+  ttState.reviewMode = true;
+  // Hide the timer (no longer counting), repurpose submit button
+  const timer = document.getElementById('tt-timer');
+  if (timer) timer.style.visibility = 'hidden';
+  const submitBtn = document.getElementById('tt-submit-btn');
+  if (submitBtn) {
+    submitBtn.textContent = 'Back to results';
+    submitBtn.onclick = ttBackToResults;
+  }
+  const markToggle = document.getElementById('tt-mark-toggle');
+  if (markToggle) markToggle.style.display = 'none';
+  ttShowQuestion(0);
+}
+
+function ttBackToResults() {
+  if (!ttState) return;
+  ttState.reviewMode = false;
+  const timer = document.getElementById('tt-timer');
+  if (timer) timer.style.visibility = '';
+  const submitBtn = document.getElementById('tt-submit-btn');
+  if (submitBtn) {
+    submitBtn.textContent = 'Submit test';
+    submitBtn.onclick = ttRequestSubmit;
+  }
+  const markToggle = document.getElementById('tt-mark-toggle');
+  if (markToggle) markToggle.style.display = '';
+  document.body.classList.remove('in-timed-test');
+  document.body.classList.add('in-timed-test-results');
+}
+
+function ttReturnHome() {
+  if (ttTimerInterval) { clearInterval(ttTimerInterval); ttTimerInterval = null; }
+  ttState = null;
+  document.body.classList.remove('in-timed-test');
+  document.body.classList.remove('in-timed-test-results');
+  // Restore submit button defaults in case it was modified during review
+  const submitBtn = document.getElementById('tt-submit-btn');
+  if (submitBtn) {
+    submitBtn.textContent = 'Submit test';
+    submitBtn.onclick = ttRequestSubmit;
+  }
+  const timer = document.getElementById('tt-timer');
+  if (timer) timer.style.visibility = '';
+  const markToggle = document.getElementById('tt-mark-toggle');
+  if (markToggle) markToggle.style.display = '';
+  // Show empty state again
+  const empty = document.getElementById('empty-state');
+  const msgs = document.getElementById('messages');
+  if (empty) empty.style.display = 'flex';
+  if (msgs) msgs.style.display = 'none';
+}
+
+// Expose for console testing while the home-screen card is still gated.
+window.startTimedTest = startTimedTest;
 }
 
 // ── Account action handlers ──────────────────────────────────────────────────
