@@ -6781,7 +6781,7 @@ function kayRenderAccount() {
 function kayOnAuthStateChange() {
   if (typeof kayUpdatePrivacyMessage === 'function') kayUpdatePrivacyMessage();
   kayRenderAccount();
-
+}
   // ─────────────────────────────────────────────────────────────────────────────
 // ── Timed Test Mode — SAT Math Module 1 ─────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7173,7 +7173,6 @@ function ttReturnHome() {
 
 // Expose for console testing while the home-screen card is still gated.
 window.startTimedTest = startTimedTest;
-}
 
 // ── Account action handlers ──────────────────────────────────────────────────
 function handleSignOut() {
