@@ -6880,6 +6880,26 @@ function kayOnAuthStateChange() {
   if (typeof kayUpdatePrivacyMessage === 'function') kayUpdatePrivacyMessage();
   kayRenderAccount();
 }
+  // ── Test picker — selects which of the V1-V5 timed tests to launch ───────────
+function openTestPicker() {
+  document.getElementById('tp-overlay').classList.add('open');
+}
+function closeTestPicker() {
+  document.getElementById('tp-overlay').classList.remove('open');
+}
+function selectTest(versionOrRandom) {
+  closeTestPicker();
+  const v = (versionOrRandom === 'random')
+    ? 1 + Math.floor(Math.random() * 5)
+    : Number(versionOrRandom);
+  startTimedTest(v);
+}
+// Escape closes the picker
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('tp-overlay')?.classList.contains('open')) {
+    closeTestPicker();
+  }
+});
   // ─────────────────────────────────────────────────────────────────────────────
 // ── Timed Test Mode — SAT Math Module 1 ─────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
