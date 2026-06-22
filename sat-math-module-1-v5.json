@@ -1,0 +1,348 @@
+{
+  "version": 5,
+  "module": "SAT Math — Module 1",
+  "description": "22-question SAT Math timed-test module — practice version 5. Mirrors the digital-SAT Module 1 structure: 22 questions, 35 minutes, Desmos calculator allowed.",
+  "totalQuestions": 22,
+  "timeMinutes": 35,
+  "createdAt": "2026-06-22",
+  "answerFormat": {
+    "MC": "options is array of 4 strings. correct is 0-indexed integer.",
+    "SPR": "correctAnswer is the canonical string answer. UI should normalize student input.",
+    "diagram": "Optional SVG string. Frontend should render above question text when present."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "source": "v5-Q1",
+      "domain": "Algebra",
+      "skill": "Linear equation — solve for variable",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "If 4x - 3 = 13, what is the value of x?",
+      "options": [
+        "4",
+        "5",
+        "3",
+        "2"
+      ],
+      "correct": 0,
+      "explanation": "Add 3 to both sides: 4x = 16. Divide by 4: x = 4."
+    },
+    {
+      "id": 2,
+      "source": "v5-Q2",
+      "domain": "Algebra",
+      "skill": "Linear function — word problem",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A streaming service charges a one-time setup fee of $10 plus $15 per month. Which equation represents the total cost C, in dollars, after m months of service?",
+      "options": [
+        "C = 25m",
+        "C = 15m + 10",
+        "C = 10m + 15",
+        "C = 15m"
+      ],
+      "correct": 1,
+      "explanation": "Monthly cost is 15m; add the one-time fee of $10: C = 15m + 10."
+    },
+    {
+      "id": 3,
+      "source": "v5-Q3",
+      "domain": "Algebra",
+      "skill": "Slope from two points",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "What is the slope of the line passing through the points (-2, 7) and (4, -5)?",
+      "options": [
+        "2",
+        "-3",
+        "-2",
+        "3"
+      ],
+      "correct": 2,
+      "explanation": "Slope = (-5 - 7)/(4 - (-2)) = -12/6 = -2."
+    },
+    {
+      "id": 4,
+      "source": "v5-Q4",
+      "domain": "Algebra",
+      "skill": "Linear equation — multi-step with fractions",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If (2x + 1)/(3) = 7, what is the value of x?",
+      "correctAnswer": "10",
+      "explanation": "Multiply both sides by 3: 2x + 1 = 21. Subtract 1: 2x = 20. Divide: x = 10."
+    },
+    {
+      "id": 5,
+      "source": "v5-Q5",
+      "domain": "Algebra",
+      "skill": "Systems of equations — elimination",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If 5x + 2y = 29 and 3x - 2y = 11, what is the value of y?",
+      "correctAnswer": "2",
+      "explanation": "Adding the equations eliminates y: 8x = 40, so x = 5. Substituting back: 2y = 29 - 25 = 4, so y = 2."
+    },
+    {
+      "id": 6,
+      "source": "v5-Q6",
+      "domain": "Algebra",
+      "skill": "Linear inequality solve",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which of the following is the solution to -3x + 7 ≥ 1?",
+      "options": [
+        "x ≥ -2",
+        "x ≥ 2",
+        "x ≤ 2",
+        "x ≤ -2"
+      ],
+      "correct": 2,
+      "explanation": "Subtract 7: -3x ≥ -6. Divide by -3 (flip the inequality sign): x ≤ 2."
+    },
+    {
+      "id": 7,
+      "source": "v5-Q7",
+      "domain": "Algebra",
+      "skill": "Linear word problem with two unknowns",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A theater sells adult tickets for $12 and child tickets for $8. On a certain night, 80 tickets were sold for a total of $840. How many adult tickets were sold?",
+      "options": [
+        "50",
+        "40",
+        "45",
+        "55"
+      ],
+      "correct": 0,
+      "explanation": "Let a = adult, c = child. Then a + c = 80 and 12a + 8c = 840. From the first: c = 80 - a. Substitute: 12a + 8(80 - a) = 840 → 4a + 640 = 840 → 4a = 200 → a = 50 adult tickets."
+    },
+    {
+      "id": 8,
+      "source": "v5-Q8",
+      "domain": "Advanced Math",
+      "skill": "Function evaluation with negative input",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If h(x) = x² - 3x + 4, what is the value of h(-2)?",
+      "correctAnswer": "14",
+      "explanation": "h(-2) = (-2)² - 3(-2) + 4 = 4 + 6 + 4 = 14."
+    },
+    {
+      "id": 9,
+      "source": "v5-Q9",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — factoring (sum and product)",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "What are the solutions to x² - 9x + 18 = 0?",
+      "options": [
+        "x = -3, x = -6",
+        "x = 3, x = 6",
+        "x = 2, x = 9",
+        "x = 1, x = 18"
+      ],
+      "correct": 1,
+      "explanation": "Factor: (x - 3)(x - 6) = 0. Solutions: x = 3 or x = 6."
+    },
+    {
+      "id": 10,
+      "source": "v5-Q10",
+      "domain": "Advanced Math",
+      "skill": "Exponent rules — product",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which expression is equivalent to (2x³)(5x⁴)?",
+      "options": [
+        "10x¹²",
+        "10x⁷",
+        "7x¹²",
+        "7x⁷"
+      ],
+      "correct": 1,
+      "explanation": "Multiply coefficients: 2 · 5 = 10. Add exponents: x^(3+4) = x⁷. Result: 10x⁷."
+    },
+    {
+      "id": 11,
+      "source": "v5-Q11",
+      "domain": "Advanced Math",
+      "skill": "Polynomial — square of a binomial",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which expression is equivalent to (x - 5)²?",
+      "options": [
+        "x² + 25",
+        "x² + 10x + 25",
+        "x² - 25",
+        "x² - 10x + 25"
+      ],
+      "correct": 3,
+      "explanation": "(x - 5)² = x² - 2(5)x + 25 = x² - 10x + 25."
+    },
+    {
+      "id": 12,
+      "source": "v5-Q12",
+      "domain": "Advanced Math",
+      "skill": "Exponential growth — compound",
+      "difficulty": "Hard",
+      "type": "SPR",
+      "question": "A culture of yeast cells triples every 4 hours. If there are 100 cells now, how many cells will there be after 12 hours?",
+      "correctAnswer": "2700",
+      "explanation": "12/4 = 3 tripling periods. 100 × 3³ = 100 × 27 = 2700 cells."
+    },
+    {
+      "id": 13,
+      "source": "v5-Q13",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — vertex/maximum",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "For the function f(x) = -2x² + 12x - 5, what is the maximum value of f(x)?",
+      "options": [
+        "7",
+        "12",
+        "17",
+        "13"
+      ],
+      "correct": 3,
+      "explanation": "Max at x = -b/(2a) = -12/(2 · -2) = 3. f(3) = -2(9) + 12(3) - 5 = -18 + 36 - 5 = 13."
+    },
+    {
+      "id": 14,
+      "source": "v5-Q14",
+      "domain": "Advanced Math",
+      "skill": "Rational equation",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If 12/x = 3/4, what is the value of x?",
+      "correctAnswer": "16",
+      "explanation": "Cross-multiply: 12 · 4 = 3x → 48 = 3x → x = 16."
+    },
+    {
+      "id": 15,
+      "source": "v5-Q15",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percent — find total from part",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "15% of a number is 27. What is the number?",
+      "options": [
+        "180",
+        "405",
+        "4.05",
+        "42"
+      ],
+      "correct": 0,
+      "explanation": "Let the number be n. Then 0.15n = 27, so n = 27/0.15 = 180."
+    },
+    {
+      "id": 16,
+      "source": "v5-Q16",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Weighted average",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In a class, 12 students scored an average of 85 on a test, and 8 students scored an average of 75. What was the overall average score for the class?",
+      "options": [
+        "82",
+        "80",
+        "81",
+        "78"
+      ],
+      "correct": 2,
+      "explanation": "Total points = 12(85) + 8(75) = 1020 + 600 = 1620. Total students = 20. Average = 1620/20 = 81."
+    },
+    {
+      "id": 17,
+      "source": "v5-Q17",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Ratio — proportion",
+      "difficulty": "Easy",
+      "type": "SPR",
+      "question": "In a school, the ratio of teachers to students is 1:18. If there are 9 teachers, how many students are there?",
+      "correctAnswer": "162",
+      "explanation": "9 × 18 = 162 students."
+    },
+    {
+      "id": 18,
+      "source": "v5-Q18",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Probability — basic",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A spinner has 8 equal sections numbered 1 through 8. What is the probability of spinning an odd number?",
+      "options": [
+        "1/2",
+        "3/8",
+        "1/8",
+        "1/4"
+      ],
+      "correct": 0,
+      "explanation": "Odd numbers: 1, 3, 5, 7 — four of them out of 8. Probability = 4/8 = 1/2."
+    },
+    {
+      "id": 19,
+      "source": "v5-Q19",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Pythagorean theorem",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A right triangle has one leg of length 8 and a hypotenuse of length 17. What is the length of the other leg?",
+      "correctAnswer": "15",
+      "explanation": "8² + b² = 17² → 64 + b² = 289 → b² = 225 → b = 15."
+    },
+    {
+      "id": 20,
+      "source": "v5-Q20",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Coordinate geometry — midpoint",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "What is the midpoint of the line segment with endpoints (2, -3) and (8, 5)?",
+      "options": [
+        "(6, 2)",
+        "(10, 2)",
+        "(5, 2)",
+        "(5, 1)"
+      ],
+      "correct": 3,
+      "explanation": "Midpoint = ((2 + 8)/2, (-3 + 5)/2) = (5, 1)."
+    },
+    {
+      "id": 21,
+      "source": "v5-Q21",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Right triangle — tangent ratio",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In a right triangle, the leg opposite an acute angle θ has length 7 and the adjacent leg has length 24. What is the value of tan θ?",
+      "options": [
+        "24/25",
+        "7/24",
+        "7/25",
+        "24/7"
+      ],
+      "correct": 1,
+      "explanation": "tan θ = opposite/adjacent = 7/24."
+    },
+    {
+      "id": 22,
+      "source": "v5-Q22",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Circle — arc / sector",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A circle has radius 6. What is the area of a sector with a central angle of 60°?",
+      "options": [
+        "12π",
+        "3π",
+        "6π",
+        "π"
+      ],
+      "correct": 2,
+      "explanation": "Sector area = θ/360 × π r² = 60/360 × π(6)² = 1/6 × 36π = 6π.",
+      "diagram": "<svg viewBox=\"0 0 300 280\" xmlns=\"http://www.w3.org/2000/svg\">\n  <!-- Sector fill (warm tint) -->\n  <path d=\"M 150 150 L 250 150 A 100 100 0 0 0 200 63.4 Z\" fill=\"#F0D5BE\" stroke=\"none\"/>\n\n  <!-- Full circle outline -->\n  <circle cx=\"150\" cy=\"150\" r=\"100\" fill=\"none\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n\n  <!-- Two radii (terracotta to highlight) -->\n  <line x1=\"150\" y1=\"150\" x2=\"250\" y2=\"150\" stroke=\"#C4602A\" stroke-width=\"2.5\"/>\n  <line x1=\"150\" y1=\"150\" x2=\"200\" y2=\"63.4\" stroke=\"#C4602A\" stroke-width=\"2.5\"/>\n\n  <!-- Center O -->\n  <circle cx=\"150\" cy=\"150\" r=\"3\" fill=\"#2E2A25\"/>\n\n  <!-- Radius label (below the horizontal radius line) -->\n  <text x=\"188\" y=\"170\" font-family=\"Arial, sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#2E2A25\">6</text>\n\n  <!-- Central angle marker + label (label stays inside the angle) -->\n  <path d=\"M 175 150 A 25 25 0 0 0 162.5 128.35\" fill=\"none\" stroke=\"#2E2A25\" stroke-width=\"1.8\"/>\n  <text x=\"180\" y=\"135\" font-family=\"Arial, sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#2E2A25\">60°</text>\n</svg>"
+    }
+  ]
+}

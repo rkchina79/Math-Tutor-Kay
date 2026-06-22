@@ -1,0 +1,348 @@
+{
+  "version": 3,
+  "module": "SAT Math — Module 1",
+  "description": "22-question SAT Math timed-test module — practice version 3. Mirrors the digital-SAT Module 1 structure: 22 questions, 35 minutes, Desmos calculator allowed.",
+  "totalQuestions": 22,
+  "timeMinutes": 35,
+  "createdAt": "2026-06-22",
+  "answerFormat": {
+    "MC": "options is array of 4 strings. correct is 0-indexed integer.",
+    "SPR": "correctAnswer is the canonical string answer. UI should normalize student input.",
+    "diagram": "Optional SVG string. Frontend should render above question text when present."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "source": "v3-Q1",
+      "domain": "Algebra",
+      "skill": "Linear equation — word problem",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "A taxi charges $4 base fare plus $3 per mile. If a passenger paid $22, how many miles was the ride?",
+      "options": [
+        "7",
+        "5",
+        "8",
+        "6"
+      ],
+      "correct": 3,
+      "explanation": "4 + 3m = 22 → 3m = 18 → m = 6 miles."
+    },
+    {
+      "id": 2,
+      "source": "v3-Q2",
+      "domain": "Algebra",
+      "skill": "Slope-intercept — interpretation",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "The line y = -2x + 9 is graphed in the xy-plane. What is the y-intercept of the line?",
+      "options": [
+        "2",
+        "-9",
+        "-2",
+        "9"
+      ],
+      "correct": 3,
+      "explanation": "In y = mx + b form, the y-intercept is b. Here b = 9, so the y-intercept is at (0, 9), value 9."
+    },
+    {
+      "id": 3,
+      "source": "v3-Q3",
+      "domain": "Algebra",
+      "skill": "Systems of equations",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "If 3x + 2y = 17 and x + 2y = 9, what is the value of x?",
+      "options": [
+        "4",
+        "5",
+        "2",
+        "3"
+      ],
+      "correct": 0,
+      "explanation": "Subtract the second equation from the first: 2x = 8, so x = 4."
+    },
+    {
+      "id": 4,
+      "source": "v3-Q4",
+      "domain": "Algebra",
+      "skill": "Linear inequality — word problem",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A student has $45 to spend on books that each cost $8. What is the maximum number of books the student can buy?",
+      "options": [
+        "6",
+        "5",
+        "7",
+        "4"
+      ],
+      "correct": 1,
+      "explanation": "8b ≤ 45, so b ≤ 5.625. Since b must be a whole number, the max is 5 books."
+    },
+    {
+      "id": 5,
+      "source": "v3-Q5",
+      "domain": "Algebra",
+      "skill": "Solving for a variable",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If 5(x - 3) = 2x + 9, what is the value of x?",
+      "correctAnswer": "8",
+      "explanation": "Distribute: 5x - 15 = 2x + 9. Subtract 2x: 3x - 15 = 9. Add 15: 3x = 24. Divide: x = 8."
+    },
+    {
+      "id": 6,
+      "source": "v3-Q6",
+      "domain": "Algebra",
+      "skill": "Slope of a line",
+      "difficulty": "Easy",
+      "type": "SPR",
+      "question": "What is the slope of the line passing through the points (2, 5) and (6, 13)?",
+      "correctAnswer": "2",
+      "explanation": "Slope = (13 - 5)/(6 - 2) = 8/4 = 2."
+    },
+    {
+      "id": 7,
+      "source": "v3-Q7",
+      "domain": "Algebra",
+      "skill": "Linear function — interpretation",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A gym membership costs $25 per month plus a one-time $50 initiation fee. The total cost T after m months is T = 25m + 50. If a member has paid a total of $325, how many months have they been a member?",
+      "options": [
+        "10",
+        "13",
+        "11",
+        "12"
+      ],
+      "correct": 2,
+      "explanation": "25m + 50 = 325 → 25m = 275 → m = 11 months."
+    },
+    {
+      "id": 8,
+      "source": "v3-Q8",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — factoring",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "What are the solutions to x² + 3x - 10 = 0?",
+      "options": [
+        "x = 2, x = -5",
+        "x = 2, x = 5",
+        "x = -2, x = -5",
+        "x = -2, x = 5"
+      ],
+      "correct": 0,
+      "explanation": "Factor: (x - 2)(x + 5) = 0, so x = 2 or x = -5."
+    },
+    {
+      "id": 9,
+      "source": "v3-Q9",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — completing the square / vertex",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "The parabola y = x² - 6x + 13 has its vertex at which point?",
+      "options": [
+        "(6, 13)",
+        "(3, 4)",
+        "(3, -4)",
+        "(-3, 4)"
+      ],
+      "correct": 1,
+      "explanation": "Complete the square: y = (x² - 6x + 9) + 13 - 9 = (x - 3)² + 4. Vertex is (3, 4)."
+    },
+    {
+      "id": 10,
+      "source": "v3-Q10",
+      "domain": "Advanced Math",
+      "skill": "Exponential decay",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A radioactive substance loses half its mass every 5 years. If a sample has 80 grams now, how much will remain after 15 years?",
+      "options": [
+        "40 grams",
+        "5 grams",
+        "10 grams",
+        "20 grams"
+      ],
+      "correct": 2,
+      "explanation": "15/5 = 3 half-lives. 80 × (1/2)³ = 80/8 = 10 grams."
+    },
+    {
+      "id": 11,
+      "source": "v3-Q11",
+      "domain": "Advanced Math",
+      "skill": "Function evaluation with negative input",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "If g(x) = 2x² - 3x + 1, what is the value of g(-3)?",
+      "options": [
+        "10",
+        "28",
+        "19",
+        "22"
+      ],
+      "correct": 1,
+      "explanation": "g(-3) = 2(-3)² - 3(-3) + 1 = 2(9) + 9 + 1 = 18 + 9 + 1 = 28."
+    },
+    {
+      "id": 12,
+      "source": "v3-Q12",
+      "domain": "Advanced Math",
+      "skill": "Polynomial operations",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If (x + 4)(x - 2) = x² + bx - 8, what is the value of b?",
+      "correctAnswer": "2",
+      "explanation": "Expand: x² + 2x - 8. So b = 2."
+    },
+    {
+      "id": 13,
+      "source": "v3-Q13",
+      "domain": "Advanced Math",
+      "skill": "Exponent rules",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which expression is equivalent to (x⁷)/(x³) for x ≠ 0?",
+      "options": [
+        "x⁴",
+        "x²¹",
+        "x¹⁰",
+        "x^(7/3)"
+      ],
+      "correct": 0,
+      "explanation": "Subtract exponents: x^(7-3) = x⁴."
+    },
+    {
+      "id": 14,
+      "source": "v3-Q14",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — discriminant / number of solutions",
+      "difficulty": "Hard",
+      "type": "SPR",
+      "question": "How many real solutions does the equation x² + 4x + 4 = 0 have?",
+      "correctAnswer": "1",
+      "explanation": "Discriminant = b² - 4ac = 16 - 16 = 0. When the discriminant is 0, there is exactly one real solution (a repeated root)."
+    },
+    {
+      "id": 15,
+      "source": "v3-Q15",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percent of a number",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A laptop is on sale for 30% off its original price of $650. What is the sale price?",
+      "options": [
+        "$420",
+        "$195",
+        "$455",
+        "$620"
+      ],
+      "correct": 2,
+      "explanation": "Discount = 30% of $650 = $195. Sale price = $650 - $195 = $455."
+    },
+    {
+      "id": 16,
+      "source": "v3-Q16",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Unit rate",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "A car travels 240 miles in 4 hours. At this rate, how far will the car travel in 7 hours?",
+      "options": [
+        "380 miles",
+        "420 miles",
+        "320 miles",
+        "480 miles"
+      ],
+      "correct": 1,
+      "explanation": "Rate = 240/4 = 60 mph. Distance in 7 hours = 60 × 7 = 420 miles."
+    },
+    {
+      "id": 17,
+      "source": "v3-Q17",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Median",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A data set contains the values 4, 7, 11, 9, 6, 14, 8. What is the median of this data set?",
+      "correctAnswer": "8",
+      "explanation": "Sorted: 4, 6, 7, 8, 9, 11, 14. With 7 values, the median is the 4th value: 8."
+    },
+    {
+      "id": 18,
+      "source": "v3-Q18",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Ratio with three quantities",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "The ratio of cats to dogs to rabbits in a shelter is 5:3:2. If there are 60 animals in total, how many are cats?",
+      "options": [
+        "24",
+        "18",
+        "30",
+        "12"
+      ],
+      "correct": 2,
+      "explanation": "Total parts = 5 + 3 + 2 = 10. Each part = 60/10 = 6. Cats = 5 × 6 = 30."
+    },
+    {
+      "id": 19,
+      "source": "v3-Q19",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Triangle — angle sum",
+      "difficulty": "Easy",
+      "type": "SPR",
+      "question": "In a triangle, two angles measure 55° and 80°. What is the measure, in degrees, of the third angle?",
+      "correctAnswer": "45",
+      "explanation": "Angles of a triangle sum to 180°. Third angle = 180 - 55 - 80 = 45°."
+    },
+    {
+      "id": 20,
+      "source": "v3-Q20",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Circle — circumference",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A circle has a diameter of 14. What is its circumference?",
+      "options": [
+        "14π",
+        "7π",
+        "49π",
+        "28π"
+      ],
+      "correct": 0,
+      "explanation": "Circumference = π d = 14π."
+    },
+    {
+      "id": 21,
+      "source": "v3-Q21",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Similar triangles",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "Two similar triangles have corresponding sides in the ratio 2:5. If the smaller triangle has a side of length 8, what is the length of the corresponding side in the larger triangle?",
+      "correctAnswer": "20",
+      "explanation": "2/5 = 8/x → 2x = 40 → x = 20."
+    },
+    {
+      "id": 22,
+      "source": "v3-Q22",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Right triangle trigonometry",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In right triangle ABC, the right angle is at C, AB = 13, and BC = 5. What is the value of sin A?",
+      "options": [
+        "12/13",
+        "5/12",
+        "13/12",
+        "5/13"
+      ],
+      "correct": 3,
+      "explanation": "sin A = opposite/hypotenuse = BC/AB = 5/13.",
+      "diagram": "<svg viewBox=\"0 0 300 240\" xmlns=\"http://www.w3.org/2000/svg\">\n  <!-- Triangle -->\n  <polygon points=\"60,200 252,200 60,120\" fill=\"#FDF5EA\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n\n  <!-- Right-angle marker at C -->\n  <path d=\"M 60 188 L 72 188 L 72 200\" fill=\"none\" stroke=\"#2E2A25\" stroke-width=\"1.5\"/>\n\n  <!-- Vertex labels -->\n  <text x=\"40\" y=\"218\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">C</text>\n  <text x=\"258\" y=\"218\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">A</text>\n  <text x=\"40\" y=\"115\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">B</text>\n\n  <!-- Side labels (only the ones given in the problem) -->\n  <text x=\"35\" y=\"165\" font-family=\"Arial, sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#C4602A\">5</text>\n  <text x=\"165\" y=\"150\" font-family=\"Arial, sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#C4602A\">13</text>\n</svg>"
+    }
+  ]
+}

@@ -1,0 +1,348 @@
+{
+  "version": 4,
+  "module": "SAT Math — Module 1",
+  "description": "22-question SAT Math timed-test module — practice version 4. Mirrors the digital-SAT Module 1 structure: 22 questions, 35 minutes, Desmos calculator allowed.",
+  "totalQuestions": 22,
+  "timeMinutes": 35,
+  "createdAt": "2026-06-22",
+  "answerFormat": {
+    "MC": "options is array of 4 strings. correct is 0-indexed integer.",
+    "SPR": "correctAnswer is the canonical string answer. UI should normalize student input.",
+    "diagram": "Optional SVG string. Frontend should render above question text when present."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "source": "v4-Q1",
+      "domain": "Algebra",
+      "skill": "Linear equation — multi-step",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "If 3(2x - 5) + 7 = 4(x + 1), what is the value of x?",
+      "options": [
+        "4",
+        "8",
+        "5",
+        "6"
+      ],
+      "correct": 3,
+      "explanation": "Distribute: 6x - 15 + 7 = 4x + 4. Simplify: 6x - 8 = 4x + 4. Subtract 4x: 2x - 8 = 4. Add 8: 2x = 12. Divide: x = 6."
+    },
+    {
+      "id": 2,
+      "source": "v4-Q2",
+      "domain": "Algebra",
+      "skill": "Linear word problem — two-step",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A florist sells roses for $3 each and a vase for $12. A customer's total order, including one vase, came to $33. How many roses did the customer buy?",
+      "options": [
+        "8",
+        "7",
+        "6",
+        "5"
+      ],
+      "correct": 1,
+      "explanation": "3r + 12 = 33 → 3r = 21 → r = 7 roses."
+    },
+    {
+      "id": 3,
+      "source": "v4-Q3",
+      "domain": "Algebra",
+      "skill": "Systems of equations — elimination",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "If x + y = 12 and x - y = 4, what is the value of y?",
+      "options": [
+        "6",
+        "8",
+        "4",
+        "2"
+      ],
+      "correct": 2,
+      "explanation": "Add equations: 2x = 16, so x = 8. Then y = 12 - 8 = 4."
+    },
+    {
+      "id": 4,
+      "source": "v4-Q4",
+      "domain": "Algebra",
+      "skill": "Inequality — word problem",
+      "difficulty": "Hard",
+      "type": "SPR",
+      "question": "A delivery service charges $5 for the first pound and $2 for each additional pound. If a customer wants to spend no more than $25 on shipping, what is the maximum weight, in pounds, of a single package they can ship?",
+      "correctAnswer": "11",
+      "explanation": "5 + 2(w - 1) ≤ 25 → 3 + 2w ≤ 25 → 2w ≤ 22 → w ≤ 11. Max weight is 11 pounds."
+    },
+    {
+      "id": 5,
+      "source": "v4-Q5",
+      "domain": "Algebra",
+      "skill": "Linear equation — fractions",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If x/3 + 5 = 11, what is the value of x?",
+      "correctAnswer": "18",
+      "explanation": "Subtract 5: x/3 = 6. Multiply by 3: x = 18."
+    },
+    {
+      "id": 6,
+      "source": "v4-Q6",
+      "domain": "Algebra",
+      "skill": "Linear function — find slope",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A line in the xy-plane passes through (-1, 4) and (3, -8). What is the slope of this line?",
+      "options": [
+        "-4",
+        "-3",
+        "3",
+        "4"
+      ],
+      "correct": 1,
+      "explanation": "Slope = (-8 - 4)/(3 - (-1)) = -12/4 = -3."
+    },
+    {
+      "id": 7,
+      "source": "v4-Q7",
+      "domain": "Algebra",
+      "skill": "Systems — substitution",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "If y = 3x - 1 and 2x + y = 14, what is the value of x?",
+      "options": [
+        "3",
+        "2",
+        "4",
+        "5"
+      ],
+      "correct": 0,
+      "explanation": "Substitute: 2x + (3x - 1) = 14 → 5x - 1 = 14 → 5x = 15 → x = 3."
+    },
+    {
+      "id": 8,
+      "source": "v4-Q8",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — solve by factoring",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "What is the larger of the two solutions to x² - 4x - 12 = 0?",
+      "correctAnswer": "6",
+      "explanation": "Factor: (x - 6)(x + 2) = 0. Solutions: x = 6 or x = -2. Larger is 6."
+    },
+    {
+      "id": 9,
+      "source": "v4-Q9",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — area word problem",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A rectangular garden has a length that is 3 feet longer than its width. If the area of the garden is 40 square feet, what is the width, in feet?",
+      "options": [
+        "4",
+        "6",
+        "5",
+        "8"
+      ],
+      "correct": 2,
+      "explanation": "Let w = width. Then w(w + 3) = 40 → w² + 3w - 40 = 0 → (w + 8)(w - 5) = 0. Since width must be positive, w = 5 feet."
+    },
+    {
+      "id": 10,
+      "source": "v4-Q10",
+      "domain": "Advanced Math",
+      "skill": "Exponential function — interpretation",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A savings account starts with $2,000 and grows according to B(t) = 2000(1.04)^t, where B is the balance after t years. What does the value 1.04 represent in this context?",
+      "options": [
+        "The growth factor: a 4% annual increase",
+        "The balance after 4 years",
+        "The annual interest rate as a decimal",
+        "The total balance after one year"
+      ],
+      "correct": 0,
+      "explanation": "In B(t) = a · r^t, the base r is the growth factor. r = 1.04 means a 4% increase per year."
+    },
+    {
+      "id": 11,
+      "source": "v4-Q11",
+      "domain": "Advanced Math",
+      "skill": "Function — composition",
+      "difficulty": "Hard",
+      "type": "SPR",
+      "question": "If f(x) = x + 5 and g(x) = 2x - 1, what is f(g(3))?",
+      "correctAnswer": "10",
+      "explanation": "First find g(3) = 2(3) - 1 = 5. Then f(5) = 5 + 5 = 10."
+    },
+    {
+      "id": 12,
+      "source": "v4-Q12",
+      "domain": "Advanced Math",
+      "skill": "Polynomial — distribute",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which expression is equivalent to 3x(2x - 5) - 4(x - 1)?",
+      "options": [
+        "6x² - 11x - 4",
+        "6x² - 19x + 4",
+        "6x² - 19x - 4",
+        "6x² - 11x + 4"
+      ],
+      "correct": 1,
+      "explanation": "3x(2x - 5) = 6x² - 15x. -4(x - 1) = -4x + 4. Combine: 6x² - 15x - 4x + 4 = 6x² - 19x + 4."
+    },
+    {
+      "id": 13,
+      "source": "v4-Q13",
+      "domain": "Advanced Math",
+      "skill": "Radical equation",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If √(2x + 1) = 5, what is the value of x?",
+      "correctAnswer": "12",
+      "explanation": "Square both sides: 2x + 1 = 25. Subtract 1: 2x = 24. Divide: x = 12."
+    },
+    {
+      "id": 14,
+      "source": "v4-Q14",
+      "domain": "Advanced Math",
+      "skill": "Rational expression — undefined",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "For what value of x is the expression (x + 2)/(x - 7) undefined?",
+      "options": [
+        "-2",
+        "2",
+        "-7",
+        "7"
+      ],
+      "correct": 3,
+      "explanation": "A rational expression is undefined when its denominator equals 0. Set x - 7 = 0, so x = 7."
+    },
+    {
+      "id": 15,
+      "source": "v4-Q15",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percent increase",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A subscription that cost $60 last year now costs $72. What is the percent increase in cost?",
+      "options": [
+        "15%",
+        "25%",
+        "20%",
+        "12%"
+      ],
+      "correct": 2,
+      "explanation": "Increase = $72 - $60 = $12. Percent increase = 12/60 = 0.20 = 20%."
+    },
+    {
+      "id": 16,
+      "source": "v4-Q16",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Proportion — scale",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "On a map, 1 inch represents 50 miles. Two cities are 4.5 inches apart on the map. What is the actual distance between the cities, in miles?",
+      "correctAnswer": "225",
+      "explanation": "Actual distance = 4.5 × 50 = 225 miles."
+    },
+    {
+      "id": 17,
+      "source": "v4-Q17",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Probability with two events",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A standard deck of cards has 52 cards: 4 suits (hearts, diamonds, clubs, spades) with 13 cards each. If one card is drawn at random, what is the probability that it is a face card (Jack, Queen, or King)?",
+      "options": [
+        "3/13",
+        "3/52",
+        "1/13",
+        "1/4"
+      ],
+      "correct": 0,
+      "explanation": "Face cards: 3 per suit × 4 suits = 12. Probability = 12/52 = 3/13."
+    },
+    {
+      "id": 18,
+      "source": "v4-Q18",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Mean — finding missing value",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "The mean of 4 numbers is 12. Three of the numbers are 8, 10, and 15. What is the fourth number?",
+      "options": [
+        "15",
+        "11",
+        "13",
+        "17"
+      ],
+      "correct": 0,
+      "explanation": "Sum of 4 numbers = 4 × 12 = 48. Sum of 3 known = 8 + 10 + 15 = 33. Fourth number = 48 - 33 = 15."
+    },
+    {
+      "id": 19,
+      "source": "v4-Q19",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Circles — inscribed and central angles",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "In a circle, an inscribed angle measures 35°. What is the measure, in degrees, of the central angle that intercepts the same arc?",
+      "options": [
+        "55°",
+        "17.5°",
+        "110°",
+        "70°"
+      ],
+      "correct": 3,
+      "explanation": "An inscribed angle is half the measure of the central angle that intercepts the same arc. So central angle = 2 × 35° = 70°.",
+      "diagram": "<svg viewBox=\"0 0 300 300\" xmlns=\"http://www.w3.org/2000/svg\">\n  <!-- Circle -->\n  <circle cx=\"150\" cy=\"150\" r=\"100\" fill=\"#FDF5EA\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n\n  <!-- Radii OA, OB (forming central angle) -->\n  <line x1=\"150\" y1=\"150\" x2=\"92.6\" y2=\"231.9\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n  <line x1=\"150\" y1=\"150\" x2=\"207.4\" y2=\"231.9\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n\n  <!-- Chords CA, CB (forming inscribed angle) -->\n  <line x1=\"150\" y1=\"50\" x2=\"92.6\" y2=\"231.9\" stroke=\"#C4602A\" stroke-width=\"2\"/>\n  <line x1=\"150\" y1=\"50\" x2=\"207.4\" y2=\"231.9\" stroke=\"#C4602A\" stroke-width=\"2\"/>\n\n  <!-- Vertex dots -->\n  <circle cx=\"150\" cy=\"150\" r=\"3\" fill=\"#2E2A25\"/>\n  <circle cx=\"92.6\" cy=\"231.9\" r=\"3\" fill=\"#2E2A25\"/>\n  <circle cx=\"207.4\" cy=\"231.9\" r=\"3\" fill=\"#2E2A25\"/>\n  <circle cx=\"150\" cy=\"50\" r=\"3\" fill=\"#2E2A25\"/>\n\n  <!-- Vertex labels -->\n  <text x=\"78\" y=\"250\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">A</text>\n  <text x=\"215\" y=\"250\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">B</text>\n  <text x=\"143\" y=\"44\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">C</text>\n  <text x=\"158\" y=\"146\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">O</text>\n\n  <!-- Inscribed angle arc at C with 35° label (label positioned lower in the\n       wider part of the angle so it doesn't crowd chord CA) -->\n  <path d=\"M 141 79 A 14 14 0 0 0 159 79\" fill=\"none\" stroke=\"#C4602A\" stroke-width=\"1.8\"/>\n  <text x=\"138\" y=\"125\" font-family=\"Arial, sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#C4602A\">35°</text>\n\n  <!-- Central angle arc at O (unlabeled — that's the question) -->\n  <path d=\"M 135.65 170.48 A 25 25 0 0 0 164.35 170.48\" fill=\"none\" stroke=\"#2E2A25\" stroke-width=\"1.8\"/>\n</svg>"
+    },
+    {
+      "id": 20,
+      "source": "v4-Q20",
+      "domain": "Geometry & Trigonometry",
+      "skill": "30-60-90 triangle",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In a right triangle whose acute angles measure 30° and 60°, the side opposite the 30° angle has length 5. What is the length of the side opposite the 60° angle?",
+      "options": [
+        "5",
+        "5√3",
+        "10",
+        "5√2"
+      ],
+      "correct": 1,
+      "explanation": "In a right triangle with acute angles 30° and 60°, the sides are in the ratio 1 : √3 : 2. The short leg (opposite 30°) is 5, so the longer leg (opposite 60°) is 5√3."
+    },
+    {
+      "id": 21,
+      "source": "v4-Q21",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Circle — equation in coordinate plane",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "What is the radius of the circle with equation (x - 2)² + (y + 1)² = 49?",
+      "options": [
+        "14",
+        "24.5",
+        "7",
+        "49"
+      ],
+      "correct": 2,
+      "explanation": "The standard form is (x - h)² + (y - k)² = r². Here r² = 49, so r = 7."
+    },
+    {
+      "id": 22,
+      "source": "v4-Q22",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Right triangle — cosine",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "In a right triangle, an acute angle has cosine equal to 3/5. What is the sine of the other acute angle?",
+      "correctAnswer": "3/5",
+      "explanation": "In a right triangle, the two acute angles are complementary, and sin(angle) = cos(complement). So sin of the other angle = cos of the first = 3/5."
+    }
+  ]
+}
