@@ -7020,6 +7020,13 @@ function ttShowQuestion(idx) {
     html += '<div class="tt-review-marker ' + cls + '"><span>' + icon + '</span><span>' + txt + '</span></div>';
   }
 
+  // Render embedded SVG diagram if present (V2-V5 geometry questions).
+  // Injected as raw HTML so the SVG renders — the diagram strings come from
+  // our own JSON banks, not user input.
+  if (q.diagram) {
+    html += '<div class="practice-diagram">' + q.diagram + '</div>';
+  }
+
   html += '<div class="tt-question-text">' + escapeAndFormat(q.question) + '</div>';
 
   if (q.type === 'MC') {
