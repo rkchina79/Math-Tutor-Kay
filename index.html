@@ -2026,7 +2026,13 @@ body.in-timed-test-results .tt-results-overlay { display: flex; }
   background: var(--paper-2); border: 1px solid var(--paper-3); border-radius: 10px;
   font-size: 13px; color: var(--ink-2); line-height: 1.6;
 }
-
+/* Cap diagram size in the timed-test context. The shared .practice-diagram
+   styling sizes naturally inside narrow chat bubbles, but the timed-test
+   question card is 720px wide so the SVG would otherwise fill the whole card. */
+body.in-timed-test .practice-diagram {
+  max-width: 360px;
+  margin: 12px auto 18px;
+}
 /* Mobile responsive */
 @media (max-width: 640px) {
   .tt-header { padding: 8px 12px; gap: 6px; }
