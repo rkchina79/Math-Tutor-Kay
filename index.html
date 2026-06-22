@@ -2420,6 +2420,24 @@ body.in-timed-test-results .tt-results-overlay { display: flex; }
     </div>
   </div>
 </div>
+    <!-- ── Test picker modal — opens when student clicks the timed-test home card ── -->
+<div class="tp-overlay" id="tp-overlay" onclick="if(event.target===this) closeTestPicker()">
+  <div class="tp-modal" role="dialog" aria-label="Choose a practice test">
+    <button class="tp-close" onclick="closeTestPicker()" aria-label="Close">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="tp-title">Choose a practice test</div>
+    <div class="tp-subtitle">22 questions, 35 minutes each<br>Module 1 difficulty mix</div>
+    <div class="tp-grid">
+      <button class="tp-tile" onclick="selectTest(1)"><span class="tp-tile-number">1</span><span class="tp-tile-label">Practice Test 1</span></button>
+      <button class="tp-tile" onclick="selectTest(2)"><span class="tp-tile-number">2</span><span class="tp-tile-label">Practice Test 2</span></button>
+      <button class="tp-tile" onclick="selectTest(3)"><span class="tp-tile-number">3</span><span class="tp-tile-label">Practice Test 3</span></button>
+      <button class="tp-tile" onclick="selectTest(4)"><span class="tp-tile-number">4</span><span class="tp-tile-label">Practice Test 4</span></button>
+      <button class="tp-tile" onclick="selectTest(5)"><span class="tp-tile-number">5</span><span class="tp-tile-label">Practice Test 5</span></button>
+      <button class="tp-tile tp-tile-surprise" onclick="selectTest('random')"><span class="tp-tile-number">?</span><span class="tp-tile-label">Surprise me</span></button>
+    </div>
+  </div>
+</div>
   </main>
 </div>
 
