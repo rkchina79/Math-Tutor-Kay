@@ -1,0 +1,348 @@
+{
+  "version": 2,
+  "module": "SAT Math — Module 1",
+  "description": "22-question SAT Math timed-test module — practice version 2. Mirrors the digital-SAT Module 1 structure: 22 questions, 35 minutes, Desmos calculator allowed.",
+  "totalQuestions": 22,
+  "timeMinutes": 35,
+  "createdAt": "2026-06-22",
+  "answerFormat": {
+    "MC": "options is array of 4 strings. correct is 0-indexed integer.",
+    "SPR": "correctAnswer is the canonical string answer. UI should normalize student input.",
+    "diagram": "Optional SVG string. Frontend should render above question text when present."
+  },
+  "questions": [
+    {
+      "id": 1,
+      "source": "v2-Q1",
+      "domain": "Algebra",
+      "skill": "Linear equations — word problem",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "A parking garage charges a flat fee of $3 plus $2 per hour. If Diego paid $15, for how many hours did he park?",
+      "options": [
+        "7 hours",
+        "9 hours",
+        "6 hours",
+        "5 hours"
+      ],
+      "correct": 2,
+      "explanation": "Set up 3 + 2h = 15. Subtract 3: 2h = 12. Divide: h = 6 hours."
+    },
+    {
+      "id": 2,
+      "source": "v2-Q2",
+      "domain": "Algebra",
+      "skill": "Slope-intercept interpretation",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "The function C(m) = 45 + 0.20m models the monthly cost C, in dollars, of a phone plan based on m, the number of minutes used. What does the value 0.20 represent in this context?",
+      "options": [
+        "The total number of minutes included",
+        "The cost when no minutes are used",
+        "The flat monthly fee, in dollars",
+        "The cost per minute, in dollars"
+      ],
+      "correct": 3,
+      "explanation": "In a linear function y = b + mx, the coefficient of the variable is the rate of change. Here, 0.20 is dollars per minute."
+    },
+    {
+      "id": 3,
+      "source": "v2-Q3",
+      "domain": "Algebra",
+      "skill": "Systems of linear equations",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "If 2x + 3y = 18 and x - y = 4, what is the value of x?",
+      "correctAnswer": "6",
+      "explanation": "From the second equation: x = y + 4. Substitute: 2(y+4) + 3y = 18, so 5y + 8 = 18, giving y = 2. Then x = 6."
+    },
+    {
+      "id": 4,
+      "source": "v2-Q4",
+      "domain": "Algebra",
+      "skill": "Linear inequalities",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A student earns $12 per hour tutoring and needs to earn at least $180 this week. Which inequality represents the number of hours t the student must work?",
+      "options": [
+        "12 + t ≥ 180",
+        "12t ≥ 180",
+        "t/12 ≥ 180",
+        "12t ≤ 180"
+      ],
+      "correct": 1,
+      "explanation": "Earnings = 12t dollars. \"At least $180\" means earnings ≥ 180, so 12t ≥ 180."
+    },
+    {
+      "id": 5,
+      "source": "v2-Q5",
+      "domain": "Algebra",
+      "skill": "Solving for a variable",
+      "difficulty": "Easy",
+      "type": "SPR",
+      "question": "If (3x - 7)/(4) = 5, what is the value of x?",
+      "correctAnswer": "9",
+      "explanation": "Multiply both sides by 4: 3x - 7 = 20. Add 7: 3x = 27. Divide: x = 9."
+    },
+    {
+      "id": 6,
+      "source": "v2-Q6",
+      "domain": "Algebra",
+      "skill": "Linear equation — rate problem",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A water tank contains 240 gallons and drains at a constant rate of 8 gallons per minute. After how many minutes will the tank contain 80 gallons?",
+      "options": [
+        "15",
+        "20",
+        "10",
+        "25"
+      ],
+      "correct": 1,
+      "explanation": "Set up 240 - 8m = 80. Subtract 240: -8m = -160. Divide: m = 20 minutes."
+    },
+    {
+      "id": 7,
+      "source": "v2-Q7",
+      "domain": "Algebra",
+      "skill": "Systems of linear inequalities",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A grocery store sells apples for $1.50 each and oranges for $2 each. A shopper buys at least 8 pieces of fruit and spends no more than $20. If a represents the number of apples and o represents the number of oranges, which system of inequalities models this?",
+      "options": [
+        "a + o ≤ 8 and 1.5a + 2o ≥ 20",
+        "a + o ≥ 8 and 1.5a + 2o ≥ 20",
+        "a + o ≤ 8 and 1.5a + 2o ≤ 20",
+        "a + o ≥ 8 and 1.5a + 2o ≤ 20"
+      ],
+      "correct": 3,
+      "explanation": "\"At least 8 pieces\" → a + o ≥ 8. \"No more than $20\" with cost 1.5a + 2o → 1.5a + 2o ≤ 20."
+    },
+    {
+      "id": 8,
+      "source": "v2-Q8",
+      "domain": "Advanced Math",
+      "skill": "Quadratic equations — factoring",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "What is the smaller of the two solutions to x² - 7x + 10 = 0?",
+      "correctAnswer": "2",
+      "explanation": "Factor: (x-2)(x-5) = 0, so x = 2 or x = 5. The smaller is 2."
+    },
+    {
+      "id": 9,
+      "source": "v2-Q9",
+      "domain": "Advanced Math",
+      "skill": "Quadratic word problem",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A ball is thrown upward, and its height h, in feet, after t seconds is given by h(t) = -16t² + 64t + 5. What is the maximum height of the ball, in feet?",
+      "options": [
+        "4",
+        "128",
+        "64",
+        "69"
+      ],
+      "correct": 3,
+      "explanation": "For a parabola at² + bt + c with a < 0, the max occurs at t = -b/(2a) = -64/(-32) = 2. Substitute: h(2) = -16(4) + 64(2) + 5 = -64 + 128 + 5 = 69."
+    },
+    {
+      "id": 10,
+      "source": "v2-Q10",
+      "domain": "Advanced Math",
+      "skill": "Exponential growth",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A population of bacteria doubles every 3 hours. If the initial population is 500, what is the population after 12 hours?",
+      "options": [
+        "2,000",
+        "8,000",
+        "4,000",
+        "6,000"
+      ],
+      "correct": 1,
+      "explanation": "Number of doublings = 12/3 = 4. Population = 500 × 2⁴ = 500 × 16 = 8000."
+    },
+    {
+      "id": 11,
+      "source": "v2-Q11",
+      "domain": "Advanced Math",
+      "skill": "Function evaluation",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "If f(x) = 3x² - 5, what is f(-2)?",
+      "options": [
+        "7",
+        "17",
+        "-17",
+        "1"
+      ],
+      "correct": 0,
+      "explanation": "f(-2) = 3(-2)² - 5 = 3(4) - 5 = 12 - 5 = 7."
+    },
+    {
+      "id": 12,
+      "source": "v2-Q12",
+      "domain": "Advanced Math",
+      "skill": "Polynomial operations",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "Which expression is equivalent to (2x + 3)(x - 4)?",
+      "options": [
+        "2x² + 5x - 12",
+        "2x² - 11x - 12",
+        "2x² - 5x - 12",
+        "2x² - 8x + 3"
+      ],
+      "correct": 2,
+      "explanation": "FOIL: 2x · x + 2x · (-4) + 3 · x + 3 · (-4) = 2x² - 8x + 3x - 12 = 2x² - 5x - 12."
+    },
+    {
+      "id": 13,
+      "source": "v2-Q13",
+      "domain": "Advanced Math",
+      "skill": "Radical simplification",
+      "difficulty": "Easy",
+      "type": "SPR",
+      "question": "If √(x + 5) = 7, what is the value of x?",
+      "correctAnswer": "44",
+      "explanation": "Square both sides: x + 5 = 49. Subtract 5: x = 44."
+    },
+    {
+      "id": 14,
+      "source": "v2-Q14",
+      "domain": "Advanced Math",
+      "skill": "Quadratic — vertex form",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "The function f(x) = (x - 3)² + 7 has its minimum value at what point?",
+      "options": [
+        "(3, 7)",
+        "(-3, 7)",
+        "(7, 3)",
+        "(3, -7)"
+      ],
+      "correct": 0,
+      "explanation": "In vertex form f(x) = (x - h)² + k, the vertex (minimum, since the parabola opens up) is at (h, k) = (3, 7)."
+    },
+    {
+      "id": 15,
+      "source": "v2-Q15",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Percent change",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A jacket that originally cost $80 is on sale for $60. What is the percent discount? (Enter your answer without the % symbol.)",
+      "correctAnswer": "25",
+      "explanation": "Discount = $80 - $60 = $20. Percent discount = 20/80 = 0.25 = 25%."
+    },
+    {
+      "id": 16,
+      "source": "v2-Q16",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Ratios and proportions",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A recipe calls for 3 cups of flour for every 2 cups of sugar. If a baker uses 12 cups of flour, how many cups of sugar are needed?",
+      "options": [
+        "9",
+        "8",
+        "18",
+        "6"
+      ],
+      "correct": 1,
+      "explanation": "Set up the proportion: 3/2 = 12/s. Cross-multiply: 3s = 24, so s = 8 cups."
+    },
+    {
+      "id": 17,
+      "source": "v2-Q17",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Mean / average",
+      "difficulty": "Easy",
+      "type": "MC",
+      "question": "The test scores of 5 students are 72, 85, 90, 78, and 95. What is the mean (average) of these scores?",
+      "options": [
+        "88",
+        "82",
+        "84",
+        "85"
+      ],
+      "correct": 2,
+      "explanation": "Mean = (72 + 85 + 90 + 78 + 95) / 5 = 420 / 5 = 84."
+    },
+    {
+      "id": 18,
+      "source": "v2-Q18",
+      "domain": "Problem-Solving & Data Analysis",
+      "skill": "Probability",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "A bag contains 4 red marbles, 6 blue marbles, and 5 green marbles. If one marble is drawn at random, what is the probability it is NOT blue?",
+      "options": [
+        "3/5",
+        "2/5",
+        "9/15",
+        "6/15"
+      ],
+      "correct": 0,
+      "explanation": "Total marbles = 4 + 6 + 5 = 15. Not blue = 4 + 5 = 9. Probability = 9/15 = 3/5."
+    },
+    {
+      "id": 19,
+      "source": "v2-Q19",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Right triangles — Pythagorean",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "A right triangle has legs of lengths 9 and 12. What is the length of the hypotenuse?",
+      "correctAnswer": "15",
+      "explanation": "c² = 9² + 12² = 81 + 144 = 225, so c = 15."
+    },
+    {
+      "id": 20,
+      "source": "v2-Q20",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Circles — chord and perpendicular from center",
+      "difficulty": "Medium",
+      "type": "MC",
+      "question": "A chord of a circle is 16 units long. The perpendicular distance from the center of the circle to the chord is 6 units. What is the radius of the circle?",
+      "options": [
+        "10",
+        "14",
+        "12",
+        "8"
+      ],
+      "correct": 0,
+      "explanation": "Drop a perpendicular from the center to the chord; it bisects the chord, giving a right triangle with legs 8 (half the chord) and 6 (distance from center), and hypotenuse r (the radius). By Pythagorean: r² = 6² + 8² = 100, so r = 10.",
+      "diagram": "<svg viewBox=\"0 0 300 280\" xmlns=\"http://www.w3.org/2000/svg\">\n  <!-- Circle (radius 100 px = 10 units; centered at (150, 120)) -->\n  <circle cx=\"150\" cy=\"120\" r=\"100\" fill=\"#FDF5EA\" stroke=\"#2E2A25\" stroke-width=\"2\"/>\n\n  <!-- Chord AB at y=180 (perpendicular distance 60px = 6 units below center) -->\n  <line x1=\"70\" y1=\"180\" x2=\"230\" y2=\"180\" stroke=\"#C4602A\" stroke-width=\"2.5\"/>\n  <circle cx=\"70\" cy=\"180\" r=\"3\" fill=\"#2E2A25\"/>\n  <circle cx=\"230\" cy=\"180\" r=\"3\" fill=\"#2E2A25\"/>\n  <text x=\"52\" y=\"198\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">A</text>\n  <text x=\"237\" y=\"198\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">B</text>\n\n  <!-- Perpendicular from O down to midpoint M of chord (dashed) -->\n  <line x1=\"150\" y1=\"120\" x2=\"150\" y2=\"180\" stroke=\"#2E2A25\" stroke-width=\"1.5\" stroke-dasharray=\"4,3\"/>\n  <circle cx=\"150\" cy=\"180\" r=\"2.5\" fill=\"#2E2A25\"/>\n\n  <!-- Right-angle marker where perpendicular meets chord -->\n  <path d=\"M 140 180 L 140 170 L 150 170\" fill=\"none\" stroke=\"#2E2A25\" stroke-width=\"1.5\"/>\n\n  <!-- Center O -->\n  <circle cx=\"150\" cy=\"120\" r=\"3\" fill=\"#2E2A25\"/>\n  <text x=\"156\" y=\"116\" font-family=\"Georgia, serif\" font-size=\"15\" font-style=\"italic\" fill=\"#2E2A25\">O</text>\n\n  <!-- Length labels -->\n  <text x=\"158\" y=\"158\" font-family=\"Arial, sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#2E2A25\">6</text>\n  <text x=\"142\" y=\"205\" font-family=\"Arial, sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#C4602A\">16</text>\n</svg>"
+    },
+    {
+      "id": 21,
+      "source": "v2-Q21",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Coordinate geometry — distance",
+      "difficulty": "Medium",
+      "type": "SPR",
+      "question": "What is the distance between the points (1, 2) and (4, 6) in the coordinate plane?",
+      "correctAnswer": "5",
+      "explanation": "Distance = √((4-1)² + (6-2)²) = √(9 + 16) = √25 = 5."
+    },
+    {
+      "id": 22,
+      "source": "v2-Q22",
+      "domain": "Geometry & Trigonometry",
+      "skill": "Special right triangle (45-45-90)",
+      "difficulty": "Hard",
+      "type": "MC",
+      "question": "In a right triangle whose two acute angles each measure 45°, the legs each have length 7. What is the length of the hypotenuse?",
+      "options": [
+        "7",
+        "14√2",
+        "7√2",
+        "14"
+      ],
+      "correct": 2,
+      "explanation": "Since both acute angles measure 45°, this is an isosceles right triangle (the legs are equal). The hypotenuse equals leg × √2 = 7√2."
+    }
+  ]
+}
