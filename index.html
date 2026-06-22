@@ -2043,6 +2043,86 @@ body.in-timed-test-results .tt-results-overlay { display: flex; }
   .tt-domain-bar-container { display: none; }
   .tt-results-actions { flex-direction: column; }
 }
+  /* ── Test picker modal — chooses between practice tests V1-V5 ──────────── */
+.tp-overlay {
+  display: none; position: fixed; inset: 0; z-index: 956;
+  background: rgba(26, 24, 20, 0.55);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.tp-overlay.open { display: flex; }
+.tp-modal {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--paper-3);
+  border-radius: 16px;
+  width: 100%; max-width: 480px; max-height: 92vh;
+  padding: 26px 24px 22px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+  animation: fbRise 0.2s ease;
+}
+.tp-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px; border-radius: 7px;
+  background: transparent; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-3); transition: all 0.15s;
+}
+.tp-close:hover { background: var(--paper-2); color: var(--ink); }
+.tp-title {
+  font-family: var(--serif); font-size: 22px;
+  color: var(--ink); text-align: center;
+  letter-spacing: -0.3px; margin-bottom: 4px;
+}
+.tp-subtitle {
+  font-size: 12px; color: var(--ink-3);
+  text-align: center; margin-bottom: 20px;
+  line-height: 1.5;
+}
+.tp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tp-tile {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 14px;
+  background: var(--paper-2); border: 1.5px solid var(--paper-3);
+  border-radius: 11px; cursor: pointer;
+  font-family: var(--sans); text-align: left;
+  transition: all 0.15s;
+  min-height: 64px;
+}
+.tp-tile:hover {
+  border-color: var(--accent);
+  background: rgba(196,96,42,0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(196,96,42,0.1);
+}
+.tp-tile-number {
+  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-family: var(--serif); font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.tp-tile:hover .tp-tile-number { background: var(--ink); }
+.tp-tile-label { font-size: 13.5px; color: var(--ink); font-weight: 500; line-height: 1.3; }
+.tp-tile-surprise { border-style: dashed; background: transparent; }
+.tp-tile-surprise:hover { background: rgba(196,96,42,0.05); }
+.tp-tile-surprise .tp-tile-number {
+  background: transparent; color: var(--accent);
+  border: 1.5px dashed var(--accent);
+}
+.tp-tile-surprise:hover .tp-tile-number {
+  background: var(--accent); color: white; border-color: var(--accent);
+}
+@media (max-width: 640px) {
+  .tp-modal { padding: 22px 18px 18px; }
+  .tp-title { font-size: 19px; }
+  .tp-subtitle { font-size: 11.5px; }
+  .tp-grid { gap: 8px; }
+  .tp-tile { padding: 11px 12px; gap: 10px; min-height: 56px; }
+  .tp-tile-number { width: 32px; height: 32px; font-size: 16px; }
+  .tp-tile-label { font-size: 12.5px; }
+}
 </style>
 </head>
 <body>
