@@ -6796,23 +6796,32 @@ function kayOnAuthStateChange() {
 let ttState = null;
 let ttTimerInterval = null;
 
-async function startTimedTest() {
+async function startTimedTest(version) {
   if (ttState !== null) {
     showAlert('A test is already in progress.', 'info', 3000);
     return;
   }
+  // Default to V1 when called with no arg (preserves legacy behaviour from
+  // the home card). Accept 1-5 to load the matching sat-math-module-1-v<n>.json.
+  const v = (version === undefined || version === null) ? 1 : Number(version);
+  if (![1, 2, 3, 4, 5].includes(v)) {
+    showAlert('Unknown practice test version: ' + version, 'error', 4000);
+    return;
+  }
+  const url = v === 1 ? '/sat-math-module-1.json' : '/sat-math-module-1-v' + v + '.json';
   let bank;
   try {
-    const res = await fetch('/sat-math-module-1.json');
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Question bank fetch failed: ' + res.status);
     bank = await res.json();
   } catch (err) {
-    showAlert('Could not load the question bank. Make sure sat-math-module-1.json is in the repo root.', 'error', 6000);
+    showAlert('Could not load the question bank (' + url + '). Make sure the JSON file is in the repo root.', 'error', 6000);
     console.error(err);
     return;
   }
   ttState = {
     bank: bank,
+    version: v,                          // remember which test this is — used by results screen and picker in next step
     startTime: Date.now(),
     durationMs: bank.timeMinutes * 60 * 1000,
     currentIdx: 0,
