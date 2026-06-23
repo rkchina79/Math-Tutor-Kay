@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<!--
+  Tutor Kay — Privacy Policy
+  Copyright © 2026 Radhika Kolachina. All rights reserved.
+
+  Served at tutorkay.ai/privacy. Reachable from the App Store / Play Store
+  privacy disclosure URLs.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy — Tutor Kay</title>
+<meta name="description" content="What Tutor Kay does and does not do with your data — written in plain English.">
+<meta name="theme-color" content="#2e2a25">
+<link rel="canonical" href="https://tutorkay.ai/privacy">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1a1814;
+  --ink-2: #4a4640;
+  --ink-3: #8a857e;
+  --paper: #faf8f4;
+  --paper-2: #f2ede5;
+  --paper-3: #e8e0d4;
+  --accent: #c4602a;
+  --accent-2: #e8956a;
+  --kay-bg: #2e2a25;
+  --kay-text: #f5f0e8;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --serif: 'DM Serif Display', serif;
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 400;
+}
+
+/* ── Top strip — keeps the connection to the main site ── */
+.topstrip {
+  background: var(--kay-bg);
+  color: var(--kay-text);
+  padding: 14px 24px;
+}
+.topstrip-inner {
+  max-width: 720px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+}
+.topstrip-brand {
+  font-family: var(--serif); font-size: 22px;
+  letter-spacing: -0.3px; line-height: 1;
+  color: #f5f0e8; text-decoration: none;
+}
+.topstrip-link {
+  font-size: 12px; color: rgba(245,240,232,0.7);
+  text-decoration: none; letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(245,240,232,0.3);
+  padding-bottom: 2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.topstrip-link:hover {
+  color: #f5f0e8;
+  border-color: rgba(245,240,232,0.6);
+}
+
+/* ── Hero ── */
+.hero {
+  padding: 64px 24px 40px;
+  max-width: 720px; margin: 0 auto;
+}
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 14px;
+}
+.hero-title {
+  font-family: var(--serif); font-size: 46px;
+  letter-spacing: -1px; line-height: 1.05;
+  color: var(--ink); margin-bottom: 18px;
+}
+.hero-lede {
+  font-size: 17px; color: var(--ink-2);
+  line-height: 1.65; max-width: 580px;
+}
+.hero-lede strong { color: var(--ink); font-weight: 500; }
+.hero-updated {
+  margin-top: 22px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-3); letter-spacing: 0.04em;
+}
+
+/* ── Promise section — the short version ── */
+.promise {
+  max-width: 720px; margin: 0 auto;
+  padding: 28px 24px 36px;
+}
+.promise-card {
+  background: var(--kay-bg); color: var(--kay-text);
+  border-radius: 18px; padding: 32px 32px 28px;
+  border: 1px solid rgba(196,96,42,0.3);
+}
+.promise-title {
+  font-family: var(--serif); font-size: 22px;
+  color: #f5f0e8; margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+.promise-subtitle {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(232,149,106,0.85); margin-bottom: 18px;
+}
+.promise-list {
+  list-style: none; padding: 0;
+  font-size: 14.5px; line-height: 1.7;
+  color: rgba(245,240,232,0.9);
+}
+.promise-list li {
+  padding-left: 22px; position: relative;
+  margin-bottom: 8px;
+}
+.promise-list li::before {
+  content: "✓";
+  position: absolute; left: 0; top: 0;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+.promise-list li:last-child { margin-bottom: 0; }
+
+/* ── Section structure ── */
+.section {
+  max-width: 720px; margin: 0 auto;
+  padding: 36px 24px;
+}
+.section-eyebrow {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px;
+}
+.section-title {
+  font-family: var(--serif); font-size: 30px;
+  color: var(--ink); margin-bottom: 14px;
+  letter-spacing: -0.5px; line-height: 1.15;
+}
+.section-intro {
+  font-size: 15.5px; color: var(--ink-2);
+  line-height: 1.65; margin-bottom: 28px;
+  max-width: 600px;
+}
+
+/* ── Data cards — the structural device that reflects the actual data flow ── */
+.data-grid {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.data-card {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-radius: 14px;
+  padding: 22px 24px;
+}
+.data-card-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.data-card-title {
+  font-family: var(--serif); font-size: 20px;
+  color: var(--ink); letter-spacing: -0.2px;
+}
+.data-card-when {
+  font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-3); letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.data-card-flow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 580px) {
+  .data-card-flow { grid-template-columns: repeat(3, 1fr); }
+}
+.flow-cell { min-width: 0; }
+.flow-label {
+  font-family: var(--mono); font-size: 9.5px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 5px;
+}
+.flow-value {
+  font-size: 13px; color: var(--ink-2); line-height: 1.55;
+}
+.flow-value code {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--paper); padding: 1px 6px;
+  border-radius: 4px; color: var(--accent);
+}
+.data-card-note {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--paper-3);
+  font-size: 13px; color: var(--ink-2);
+  line-height: 1.55;
+}
+.data-card-note strong { color: var(--ink); font-weight: 500; }
+
+/* ── Prose blocks for the longer sections ── */
+.prose p {
+  font-size: 15px; color: var(--ink-2);
+  line-height: 1.7; margin-bottom: 14px;
+}
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--ink); font-weight: 500; }
+.prose a {
+  color: var(--accent);
+  border-bottom: 1px solid rgba(196,96,42,0.35);
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.prose a:hover { border-color: var(--accent); }
+.prose ul {
+  list-style: none; padding: 0;
+  margin: 4px 0 18px;
+}
+.prose ul li {
+  font-size: 14.5px; color: var(--ink-2);
+  line-height: 1.65; padding-left: 18px;
+  position: relative; margin-bottom: 6px;
+}
+.prose ul li::before {
+  content: "›"; position: absolute;
+  left: 0; top: 0; color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Children's section gets visual emphasis since Apple reviews this closely ── */
+.kids-callout {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-top: 14px;
+}
+.kids-callout p { margin-bottom: 12px; }
+.kids-callout p:last-child { margin-bottom: 0; }
+
+/* ── Section divider ── */
+.divider {
+  max-width: 720px; margin: 0 auto;
+  padding: 0 24px;
+}
+.divider-line {
+  height: 1px; background: var(--paper-3);
+}
+
+/* ── Contact card ── */
+.contact-card {
+  max-width: 720px; margin: 36px auto 0;
+  padding: 0 24px 64px;
+}
+.contact-inner {
+  background: var(--paper-2);
+  border: 1px solid var(--paper-3);
+  border-radius: 14px;
+  padding: 26px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+}
+.contact-text { flex: 1; min-width: 200px; }
+.contact-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 4px;
+}
+.contact-name {
+  font-family: var(--serif); font-size: 20px;
+  color: var(--ink); letter-spacing: -0.2px;
+  margin-bottom: 2px;
+}
+.contact-role {
+  font-size: 13px; color: var(--ink-3); font-style: italic;
+}
+.contact-email {
+  font-family: var(--mono); font-size: 14px;
+  color: var(--accent); text-decoration: none;
+  padding: 10px 16px;
+  background: var(--paper); border: 1px solid var(--paper-3);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.contact-email:hover {
+  background: var(--accent); color: white; border-color: var(--accent);
+}
+
+/* ── Footer ── */
+.footer {
+  background: var(--kay-bg); color: rgba(245,240,232,0.65);
+  padding: 28px 24px;
+  text-align: center;
+}
+.footer-inner {
+  max-width: 720px; margin: 0 auto;
+}
+.footer-copy {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.footer-tagline {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(245,240,232,0.4);
+}
+.footer-tagline a {
+  color: rgba(245,240,232,0.6);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(245,240,232,0.2);
+  padding-bottom: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.footer-tagline a:hover {
+  color: #f5f0e8;
+  border-color: rgba(245,240,232,0.5);
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .hero { padding: 44px 20px 24px; }
+  .hero-title { font-size: 36px; }
+  .hero-lede { font-size: 15.5px; }
+  .promise { padding: 20px 20px 28px; }
+  .promise-card { padding: 24px 22px 22px; border-radius: 14px; }
+  .promise-title { font-size: 19px; }
+  .section { padding: 28px 20px; }
+  .section-title { font-size: 24px; }
+  .section-intro { font-size: 14.5px; }
+  .data-card { padding: 18px 20px; border-radius: 12px; }
+  .data-card-title { font-size: 17px; }
+  .data-card-when { font-size: 10px; }
+  .topstrip { padding: 12px 20px; }
+  .topstrip-brand { font-size: 19px; }
+  .contact-card { padding: 0 20px 48px; }
+  .contact-inner { padding: 22px; }
+  .contact-name { font-size: 18px; }
+  .footer { padding: 24px 20px; }
+}
+
+/* ── Accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Brand strip — gives users a way back to the app -->
+<div class="topstrip">
+  <div class="topstrip-inner">
+    <a href="https://tutorkay.ai" class="topstrip-brand">Kay</a>
+    <a href="https://tutorkay.ai" class="topstrip-link">← Back to Kay</a>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">Privacy Policy</div>
+  <h1 class="hero-title">What Kay does, and doesn't do, with your data.</h1>
+  <p class="hero-lede">
+    Tutor Kay is built to help students learn math &mdash; not to harvest their data. This page explains exactly what information flows through the app, where it's stored, and who can see it. <strong>No analytics, no advertising, no third-party trackers, no email-list signup.</strong>
+  </p>
+  <div class="hero-updated">Last updated: June 23, 2026</div>
+</section>
+
+<!-- The short version, up front, in the brand voice -->
+<section class="promise">
+  <div class="promise-card">
+    <div class="promise-title">The short version</div>
+    <div class="promise-subtitle">If you only read one thing</div>
+    <ul class="promise-list">
+      <li>We don't ask for your name, your email, or any identifying information to use Kay.</li>
+      <li>Your chat messages aren't stored on our servers &mdash; only in your own browser.</li>
+      <li>We don't sell or share your data with advertisers, marketers, or data brokers. We never have.</li>
+      <li>You can use Kay completely anonymously, forever.</li>
+      <li>If you opt in to syncing progress across devices, your account is a random nickname like <em>"purple-tiger-7421"</em> &mdash; never tied to a real identity.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Section: What flows through Kay -->
+<section class="section">
+  <div class="section-eyebrow">Section 1</div>
+  <h2 class="section-title">What flows through Kay</h2>
+  <p class="section-intro">
+    Here's every kind of information the app touches, in plain language. Each card shows where the data travels, where (if anywhere) it's stored, and which third parties handle it.
+  </p>
+
+  <div class="data-grid">
+
+    <!-- Chat messages -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Your chat messages</div>
+        <div class="data-card-when">Every time you ask Kay a question</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">Your browser &rarr; Kay's backend server &rarr; <strong>Anthropic</strong> (the AI provider) &rarr; reply comes back the same way.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">In your browser's local storage. <strong>Not on Kay's servers.</strong> Anthropic temporarily caches API traffic per <a href="https://www.anthropic.com/legal/privacy" style="color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(196,96,42,0.4)">their policy</a> (typically 30 days).</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">You. Anthropic (under their privacy terms). That's it. Kay doesn't read or store your chat history.</div>
+        </div>
+      </div>
+      <div class="data-card-note">
+        <strong>Want to wipe it?</strong> Clear your browser data for tutorkay.ai. Everything's gone.
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Photos of your work</div>
+        <div class="data-card-when">When you attach an image to a question</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">Same path as a chat message &mdash; sent to Anthropic so Kay can read what you wrote on paper.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">In your browser session only. <strong>Not retained by Kay.</strong></div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">You and Anthropic. Kay's servers pass the image through without storing it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voice -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Voice (microphone)</div>
+        <div class="data-card-when">When you use the mic button to speak your question</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">Your device's <strong>built-in speech recognition</strong> (Apple's on iOS/macOS, Google's on Android/Chrome). Doesn't pass through Kay's servers.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">Nowhere by Kay. Your OS may apply its own retention rules.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">The transcribed text appears in the input box. Once you send it, it follows the chat path above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Feedback you submit</div>
+        <div class="data-card-when">Only when you tap "Send feedback"</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">Your browser &rarr; <strong>Google Apps Script</strong> &rarr; a private Google Sheet that only Kay's creator can access.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">In that private Google Sheet, indefinitely (so Kay can improve based on what students tell her).</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">Kay's creator. If you provide your name or email (both <em>optional</em>), those are stored too &mdash; only to reply to you.</div>
+        </div>
+      </div>
+      <div class="data-card-note">
+        <strong>Don't want to be contacted?</strong> Leave the name and email fields blank. Your feedback still helps.
+      </div>
+    </div>
+
+    <!-- Stats counter -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Anonymous usage counter</div>
+        <div class="data-card-when">Every time anyone asks a question</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">A random per-session ID and a "+1" counter ping &rarr; Kay's backend &rarr; <strong>Upstash</strong> (a Redis database service).</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">In Upstash. Used only to show the "questions answered" and "students served" numbers in the sidebar.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">Nobody &mdash; it's literally just two numbers. No identifying information attached.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cross-session memory (passkey) -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Cross-device sync (optional)</div>
+        <div class="data-card-when">Only if you choose to set up a passkey</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value">Your browser &rarr; Kay's backend &rarr; <strong>Upstash</strong>. Uses standard <code>passkey</code> (WebAuthn) for authentication &mdash; no passwords, ever.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">A random pseudonym like "purple-tiger-7421", a recovery-phrase hash, your concept mastery + practice accuracy stats, and session metadata (titles + timestamps). <strong>Chat content is not synced.</strong></div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">Only you, by signing in with your passkey or 6-word recovery phrase. Kay's creator cannot link a pseudonym to a real person.</div>
+        </div>
+      </div>
+      <div class="data-card-note">
+        <strong>Want it gone?</strong> Tap "Delete account" in the sidebar. Everything tied to your pseudonym is permanently erased from our servers.
+      </div>
+    </div>
+
+    <!-- Hosting -->
+    <div class="data-card">
+      <div class="data-card-header">
+        <div class="data-card-title">Hosting and request logs</div>
+        <div class="data-card-when">Every time the page loads</div>
+      </div>
+      <div class="data-card-flow">
+        <div class="flow-cell">
+          <div class="flow-label">Travels to</div>
+          <div class="flow-value"><strong>Cloudflare</strong> (which hosts the site) and <strong>Render</strong> (which runs the backend). They see standard request information.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Stored where</div>
+          <div class="flow-value">In their server logs, briefly, per their standard retention policies. This is the same for any website on the internet.</div>
+        </div>
+        <div class="flow-cell">
+          <div class="flow-label">Who can see it</div>
+          <div class="flow-value">Cloudflare and Render staff for operational purposes (uptime, abuse prevention). Kay's creator does not browse these logs.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Section: Children -->
+<section class="section">
+  <div class="section-eyebrow">Section 2</div>
+  <h2 class="section-title">Students under 13</h2>
+  <div class="prose">
+    <p>
+      Tutor Kay is designed for students preparing for the SAT, ACT, and other secondary-school math &mdash; typically ages 14 and up. We do not market the app to children under 13.
+    </p>
+    <p>
+      Because Kay does not require a name, email, or account to use, the app does not knowingly collect personal information from any student, regardless of age. The data flows described above apply to everyone identically.
+    </p>
+    <div class="kids-callout">
+      <p>
+        <strong>If you are a parent or guardian</strong> and you believe a child under 13 has used Tutor Kay and provided identifying information (for example, through the feedback form), please contact us at the email below. We will delete any such information promptly and confirm in writing that it's been removed.
+      </p>
+      <p>
+        We comply with the U.S. Children's Online Privacy Protection Act (COPPA) and the broader principle that children's data deserves extra care.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Section: Your rights -->
+<section class="section">
+  <div class="section-eyebrow">Section 3</div>
+  <h2 class="section-title">Your rights</h2>
+  <div class="prose">
+    <p>
+      Whether you're in California, Europe, or anywhere else, you have the right to:
+    </p>
+    <ul>
+      <li>Know what information we have about you (the answer is almost always "none")</li>
+      <li>Request deletion of any data tied to you (your pseudonym, your feedback submission)</li>
+      <li>Use Kay without consenting to anything beyond what's necessary to provide the service</li>
+      <li>Stop using the app and clear your browser data, which removes everything stored locally</li>
+    </ul>
+    <p>
+      For California residents specifically: we do not sell personal information, period. The CCPA's "right to opt out of sale" is not applicable because there's nothing being sold to opt out of.
+    </p>
+    <p>
+      For European users (GDPR): the lawful basis for the limited data Kay does handle is "legitimate interest" in providing a working tutoring service. You can exercise any GDPR right by contacting us.
+    </p>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Section: Changes -->
+<section class="section">
+  <div class="section-eyebrow">Section 4</div>
+  <h2 class="section-title">Changes to this policy</h2>
+  <div class="prose">
+    <p>
+      If we ever change anything substantive &mdash; what we collect, how we use it, who we share it with &mdash; we'll update the "Last updated" date at the top of this page and post a notice in the app. Trivial edits (typos, wording cleanups) won't get a notice.
+    </p>
+    <p>
+      A history of changes will be kept in the public <a href="https://github.com/rkchina79/Math-Tutor-Kay">source code repository</a> for anyone who wants to see exactly what changed and when.
+    </p>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact-card">
+  <div class="contact-inner">
+    <div class="contact-text">
+      <div class="contact-label">Privacy questions go to</div>
+      <div class="contact-name">Radhika Kolachina</div>
+      <div class="contact-role">Creator of Tutor Kay</div>
+    </div>
+    <a href="mailto:rkchina79@gmail.com" class="contact-email">rkchina79@gmail.com</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-copy">© 2026 Radhika Kolachina. All rights reserved.</div>
+    <div class="footer-tagline">
+      Tutor Kay &middot; <a href="https://tutorkay.ai">tutorkay.ai</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
