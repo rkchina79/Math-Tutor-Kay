@@ -2035,14 +2035,14 @@ body.in-timed-test .practice-diagram {
 }
 /* Mobile responsive */
 @media (max-width: 640px) {
-  .tt-header { padding: 8px 12px; gap: 6px; }
+  .tt-header { padding: 8px 12px; padding-top: max(8px, calc(env(safe-area-inset-top) + 6px)); gap: 6px; }
   .tt-timer { font-size: 13px; padding: 5px 10px; min-width: 70px; }
   .tt-progress { font-size: 11px; }
   .tt-submit-btn { padding: 6px 12px; font-size: 12px; }
   .tt-question-area { padding: 16px 14px; }
   .tt-question-text { font-size: 14.5px; }
   .tt-mc-option { padding: 10px 12px; font-size: 13.5px; }
-  .tt-footer { padding: 10px 12px; }
+  .tt-footer { padding: 10px 12px; padding-bottom: max(10px, calc(env(safe-area-inset-bottom) + 8px)); }
   .tt-nav-btn { padding: 5px 0; font-size: 10px; }
   .tt-results-inner { padding: 24px 14px; }
   .tt-score-fraction { font-size: 38px; }
