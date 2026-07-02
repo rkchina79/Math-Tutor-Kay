@@ -274,6 +274,12 @@ html, body { height: 100%; font-family: var(--sans); background: var(--paper); c
 .eq-graph-btn { display: flex; align-items: center; gap: 5px; margin-top: 8px; padding: 5px 10px; background: none; border: 1px solid var(--paper-3); border-radius: 6px; font-family: var(--sans); font-size: 11px; color: var(--ink-3); cursor: pointer; transition: all 0.15s; }
 .eq-graph-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* Follow-up chips under Kay's messages ("Go deeper" / "Explain differently") */
+.followup-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.followup-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; background: none; border: 1px solid var(--paper-3); border-radius: 6px; font-family: var(--sans); font-size: 11px; color: var(--ink-3); cursor: pointer; transition: all 0.15s; }
+.followup-chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(196,96,42,0.06); }
+.followup-chip svg { width: 12px; height: 12px; flex-shrink: 0; }
+
 /* Typing indicator */
 .typing-indicator { display: flex; gap: 12px; margin-bottom: 20px; align-items: flex-start; }
 .typing-dots { display: flex; gap: 4px; padding: 12px 4px 4px; align-items: center; }
@@ -5749,6 +5755,22 @@ function messageHTML(m, idx) {
     return '';
   }
 
+  // Follow-up chips under Kay's messages: "Go deeper" on every real reply,
+  // "Explain differently" additionally after a substantive concept explanation.
+  if (isKay && hasBubbleBody) {
+    const isCard = /class="[^"]*(achievement-card|quiz-card|practice-card|practice-recap)/.test(bubbleContent);
+    const plain = (m.content || '').replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '').trim();
+    if (!isCard && plain.length >= 40) {
+      const deeperIcon = '<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="7 6 12 11 17 6"/><polyline points="7 13 12 18 17 13"/></svg>';
+      const diffIcon = '<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
+      let chips = `<button type="button" class="followup-chip" onclick="askFollowUp('deeper')">${deeperIcon} Go deeper</button>`;
+      if (classifyMessage(m.content || '', idx) === 'statement' && plain.length > 200) {
+        chips += `<button type="button" class="followup-chip" onclick="askFollowUp('different')">${diffIcon} Explain differently</button>`;
+      }
+      extraHTML += `<div class="followup-chips">${chips}</div>`;
+    }
+  }
+
   return `<div class="message ${isKay ? 'kay' : 'user'}">
     <div class="msg-avatar ${isKay ? 'kay' : 'user'}">${isKay ? 'K' : 'Y'}</div>
     <div class="msg-content">
@@ -6079,6 +6101,14 @@ function showComingSoon() {
 function sendHint() {
   if (messages.length === 0) { showAlert('Start a problem first, then ask for a hint.', 'info', 2500); return; }
   sendMessage("I'm stuck — can you give me a hint without giving away the answer?");
+}
+function askFollowUp(kind) {
+  if (typeof isLoading !== 'undefined' && isLoading) return;
+  if (messages.length === 0) return;
+  const text = kind === 'deeper'
+    ? "Can you go deeper on that? I'd like a fuller explanation — more detail, or the reasoning behind it."
+    : "Can you explain that a different way? A fresh angle or another example would help it click.";
+  sendMessage(text);
 }
 function endSession() {
   if (messages.length === 0) { showAlert('Start a session first before ending it.', 'info', 2500); return; }
