@@ -2193,9 +2193,6 @@ body.in-timed-test .practice-diagram {
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Send feedback
     </button>
-    <a href="https://buymeacoffee.com/tutorkay" target="_blank" class="support-btn">
-      ☕ Support Kay
-    </a>
     <div class="sidebar-copyright">© 2026 Radhika Kolachina</div>
   </aside>
 
@@ -2265,7 +2262,6 @@ body.in-timed-test .practice-diagram {
           <div class="session-card-desc">Work through a math idea step by step with Kay's guided questions. Best for building real understanding.</div>
         </button>
         <button class="session-card session-card-featured" onclick="startPracticeMode()">
-          <div class="session-card-badge">Beta</div>
           <div class="session-card-icon">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
           </div>
@@ -2273,7 +2269,6 @@ body.in-timed-test .practice-diagram {
           <div class="session-card-desc">Drill problems at exam difficulty. Kay generates fresh questions, checks your work, and explains each one.</div>
         </button>
         <button class="session-card" onclick="openTestPicker()">
-          <div class="session-card-badge">Beta</div>
           <div class="session-card-icon">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
@@ -2590,7 +2585,16 @@ let pendingImageDataURL = null;  // full data URL for display
 // ── Voice input init ─────────────────────────────────────────────────────────
 function initVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
+
+  // Voice input does not work in the iOS app (WKWebView) or mobile Safari — the
+  // SpeechRecognition API reports as available but errors when actually used.
+  // Only enable it where it genuinely works (desktop and Android browsers);
+  // otherwise leave the mic button hidden so users never hit an error.
+  const isNativeApp = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (!SpeechRecognition || isNativeApp || isIOS) {
     voiceSupported = false;
     return;
   }
