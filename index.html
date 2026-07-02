@@ -5809,7 +5809,46 @@ function convertMathNotation(text) {
   return changed ? result : text;
 }
 
+// Normalize common LLM math-delimiter slips before rendering. Kay is told to
+// use \(...\) / \[...\] and to reserve $ for currency, but as a language model
+// she occasionally emits a stray $ or forgets a closing \). Left unhandled, a
+// single missing \) makes the non-greedy stash below "over-grab" into the next
+// expression, producing raw LaTeX / a red KaTeX error across a whole paragraph.
+// This caps the damage: stray $ vanish, and every \( is guaranteed a \).
+function sanitizeMathDelimiters(text) {
+  if (!text) return text;
+
+  // Display math written as $$...$$  ->  \[...\]
+  text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_m, inner) => '\\[' + inner + '\\]');
+
+  // Remove stray dollar signs that are NOT currency and NOT escaped. Currency is
+  // a $ directly followed by a digit ($5, $1,200.50); \$ is an intentional literal
+  // handled later. Everything else is a slip and would otherwise print raw.
+  text = text.replace(/(?<!\\)\$(?!\d)/g, '');
+
+  // Balance inline \(...\) so a single missing \) can't swallow the rest of the
+  // line. If a \( is still open when we reach the next \( or a newline, close it
+  // first — this confines any glitch to one short span.
+  let out = '', i = 0, open = false;
+  while (i < text.length) {
+    const two = text.substr(i, 2);
+    if (two === '\\(') {
+      if (open) out += '\\)';           // previous \( never closed — close it now
+      open = true; out += '\\('; i += 2; continue;
+    }
+    if (two === '\\)') {
+      if (open) { open = false; out += '\\)'; }   // matched close
+      i += 2; continue;                            // stray \) with nothing open — drop
+    }
+    if (open && text[i] === '\n') { out += '\\)'; open = false; }  // newline closes
+    out += text[i]; i += 1;
+  }
+  if (open) out += '\\)';
+  return out;
+}
+
 function escapeAndFormat(text) {
+  text = sanitizeMathDelimiters(text);
   const stash = [];
   // Stash ALL math first — both display and inline — before any processing.
   // We use \(...\) for inline math and \[...\] for display math (matching the
